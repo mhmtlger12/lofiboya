@@ -195,24 +195,24 @@ namespace LofiBoya
             return b;
         }
 
-        /// <summary>Son 7 gün: bitirilen resimler, süre, oynanan günler ve öğrenme oyunlarında doğru/deneme.
-        /// Yüzde ya da not yok: aileye çocuğun neyle uğraştığını gösterir, kıyaslamaz.</summary>
+        /// <summary>
+        /// Haftalık rapor: üstte üç özet kutusu (resim, dakika, gün), altında her öğrenme oyunu için
+        /// renkli doğru oranı çubuğu, en çok karıştırılan ikili ve "Evde deneyin" kartı.
+        /// Not ya da sıralama yok: aileye çocuğun neyle uğraştığını gösterir, kıyaslamaz.
+        /// </summary>
         static void Report()
         {
-            var rows = new System.Collections.Generic.List<(string text, bool head)>
-            {
-                (Loc.T("rep_pictures", Stats.Week("pic")), false),
-                (Loc.T("rep_time", Mathf.RoundToInt(Stats.Week("sec") / 60f)), false),
-                (Loc.T("rep_days", Stats.ActiveDays()), false),
-                (Loc.T("rep_games_title"), true),
-            };
-            // geçen haftayla kıyas (yalnızca geçen hafta veri varsa)
+            int pic = Stats.Week("pic"), min = Mathf.RoundToInt(Stats.Week("sec") / 60f), days = Stats.ActiveDays();
             int lastPic = Stats.Week("pic", 1), lastMin = Mathf.RoundToInt(Stats.Week("sec", 1) / 60f);
-            if (lastPic + lastMin > 0)
-                rows.Insert(3, (Loc.T("rep_compare", lastPic, lastMin), false));
+            bool hasLast = lastPic + lastMin > 0;
 
             string[] titles = { "colors", "pictures", "shapes", "counting", "feelings_game", "trace", "letters", "patterns", "memory" };
-            bool any = false;
+            Color[] colors =
+            {
+                Theme.Accent, Theme.Mint, Theme.Lavender, Theme.Butter, Theme.Sky, Theme.Hex("FFCBA4"),
+                Theme.Hex("F5C6E0"), Theme.Hex("CDEBB5"), Theme.Hex("EBD9C4"),
+            };
+            var games = new System.Collections.Generic.List<(int i, int ok, int total)>();
             string weakest = null, leastPlayed = null;
             float weakRate = 2f;
             int leastN = int.MaxValue;
@@ -221,72 +221,165 @@ namespace LofiBoya
                 int ok = Stats.Week(Stats.Games[i] + "_ok"), no = Stats.Week(Stats.Games[i] + "_no");
                 if (ok + no < leastN) { leastN = ok + no; leastPlayed = Stats.Games[i]; }
                 if (ok + no == 0) continue;
-                any = true;
-                rows.Add((Loc.T("rep_game", Loc.T(titles[i]), ok, ok + no), false));
+                games.Add((i, ok, ok + no));
                 float rate = ok / (float)(ok + no);
                 if (ok + no >= 5 && rate < weakRate) { weakRate = rate; weakest = Stats.Games[i]; }
             }
-            if (!any) rows.Add((Loc.T("rep_none"), false));
-
-            // en çok karıştırılan ikili: "Turuncu ile kırmızıyı karıştırıyor"
             var cf = Stats.TopConfusion();
+            string tipGame = weakRate < 0.7f ? weakest : leastPlayed;
+            string tip = tipGame != null ? Loc.T("tip_" + tipGame) : null;
+
+            // ---- içerik yüksekliği ----
+            const float tileH = 210f, rowH = 78f, gap = 34f;
+            float contentH = tileH + gap + 64 + Mathf.Max(1, games.Count) * rowH + gap;
+            if (cf.HasValue) contentH += 130 + gap;
+            if (tip != null) contentH += 210 + gap;
+            contentH += 100;
+            float panelH = Mathf.Min(contentH + 340f, 1680f);
+
+            var (overlay, card, close) = Panel(920, panelH);
+            var t = UIKit.Label(card.transform, Loc.T("report_title"), 62, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            t.rectTransform.Band(true, 100, 36);
+
+            // kaydırılabilir gövde (uzun raporlar ekrana sığsın)
+            var scrollRt = UIKit.Node("Scroll", card.transform).Stretch(0, 150, 0, 190);
+            var sr = scrollRt.gameObject.AddComponent<ScrollRect>();
+            sr.horizontal = false;
+            sr.movementType = ScrollRect.MovementType.Clamped;
+            sr.scrollSensitivity = 40;
+            var vp = UIKit.Node("Viewport", scrollRt).Stretch();
+            vp.gameObject.AddComponent<RectMask2D>().softness = new Vector2Int(0, 24);
+            vp.gameObject.AddComponent<Image>().color = Color.clear;
+            sr.viewport = vp;
+            var content = UIKit.Node("Content", vp);
+            content.anchorMin = new Vector2(0, 1);
+            content.anchorMax = new Vector2(1, 1);
+            content.pivot = new Vector2(0.5f, 1);
+            content.offsetMin = content.offsetMax = Vector2.zero;
+            content.sizeDelta = new Vector2(0, contentH);
+            sr.content = content;
+
+            RectTransform At(Transform parent, float x, float y, float w, float h)
+            {
+                var rt = UIKit.Node("Item", parent);
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1);
+                rt.pivot = new Vector2(0.5f, 1);
+                rt.anchoredPosition = new Vector2(x, -y);
+                rt.sizeDelta = new Vector2(w, h);
+                return rt;
+            }
+            Text Txt(Transform parent, string s, int size, Color c, TextAnchor a, FontStyle f = FontStyle.Normal)
+            {
+                var l = UIKit.Label(parent, s, size, c, a, f);
+                l.horizontalOverflow = HorizontalWrapMode.Wrap;
+                l.resizeTextForBestFit = true;
+                l.resizeTextMinSize = Mathf.Min(20, size);
+                l.resizeTextMaxSize = size;
+                return l;
+            }
+
+            float y = 10;
+            // ---- üç özet kutusu ----
+            var tiles = new (string value, string label, int last, Color color)[]
+            {
+                (pic.ToString(), Loc.T("rep_l_pic"), lastPic, Theme.Butter),
+                (min.ToString(), Loc.T("rep_l_min"), lastMin, Theme.Mint),
+                (days + "/7", Loc.T("rep_l_days"), -1, Theme.Sky),
+            };
+            for (int i = 0; i < tiles.Length; i++)
+            {
+                var (value, label, last, color) = tiles[i];
+                var box = UIKit.Box(At(content, (i - 1) * 272, y, 252, tileH), "Tile", color, null, 0.6f);
+                box.rectTransform.Stretch();
+                var num = Txt(box.transform, value, 84, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+                num.rectTransform.Stretch(8, 14, 8, 92);
+                var lab = Txt(box.transform, label, 30, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+                lab.rectTransform.Stretch(10, 112, 10, 48);
+                if (hasLast && last >= 0)
+                {
+                    var prev = Txt(box.transform, Loc.T("rep_last", last), 24, Theme.Text.WithAlpha(0.75f), TextAnchor.MiddleCenter);
+                    prev.rectTransform.Stretch(10, 158, 10, 12);
+                }
+            }
+            y += tileH + gap;
+
+            // ---- oyunlar: renkli doğru oranı çubukları ----
+            var head = Txt(At(content, 0, y, 800, 56), Loc.T("rep_games_title"), 40, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            head.rectTransform.Stretch();
+            y += 64;
+            if (games.Count == 0)
+            {
+                var none = Txt(At(content, 0, y, 800, rowH), Loc.T("rep_none"), 32, Theme.TextSoft, TextAnchor.MiddleLeft);
+                none.rectTransform.Stretch();
+                y += rowH;
+            }
+            foreach (var (i, ok, total) in games)
+            {
+                var row = At(content, 0, y, 800, rowH - 12);
+                var dot = UIKit.Box(row, "Dot", colors[i], UIKit.Circle);
+                dot.type = Image.Type.Simple;
+                dot.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(18, 0), new Vector2(30, 30));
+                var name = Txt(row, Loc.T(titles[i]), 32, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+                name.rectTransform.anchorMin = new Vector2(0, 0);
+                name.rectTransform.anchorMax = new Vector2(0, 1);
+                name.rectTransform.pivot = new Vector2(0, 0.5f);
+                name.rectTransform.anchoredPosition = new Vector2(48, 0);
+                name.rectTransform.sizeDelta = new Vector2(250, 0);
+                var track = UIKit.Box(row, "Track", Theme.Text.WithAlpha(0.08f), null, 2f);
+                track.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(310 + 200, 0), new Vector2(400, 30));
+                float rate = ok / (float)total;
+                var fill = UIKit.Box(track.transform, "Fill", Color.Lerp(colors[i], Theme.Text, 0.12f), null, 2f);
+                fill.rectTransform.anchorMin = Vector2.zero;
+                fill.rectTransform.anchorMax = new Vector2(Mathf.Max(0.04f, rate), 1);
+                fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
+                var count = Txt(row, ok + "/" + total, 30, Theme.Text, TextAnchor.MiddleRight, FontStyle.Bold);
+                count.rectTransform.anchorMin = new Vector2(1, 0);
+                count.rectTransform.anchorMax = new Vector2(1, 1);
+                count.rectTransform.pivot = new Vector2(1, 0.5f);
+                count.rectTransform.anchoredPosition = Vector2.zero;
+                count.rectTransform.sizeDelta = new Vector2(84, 0);
+                y += rowH;
+            }
+            y += gap;
+
+            // ---- en çok karıştırılan ikili ----
             if (cf.HasValue)
             {
                 var (game, a, b, n) = cf.Value;
                 string Nice(string k) => game == "counting" || game == "letters" ? k : Names.Cap(Names.Word(k).name);
-                rows.Add((Loc.T("rep_confused", Nice(a), Nice(b), n), false));
+                var box = UIKit.Box(At(content, 0, y, 820, 130), "Confused", Theme.Accent.WithAlpha(0.22f), null, 0.6f);
+                box.rectTransform.Stretch();
+                var ht = Txt(box.transform, Loc.T("rep_cf_title"), 30, Theme.Text, TextAnchor.UpperLeft, FontStyle.Bold);
+                ht.rectTransform.Stretch(30, 16, 30, 70);
+                var pt = Txt(box.transform, Loc.T("rep_cf_pair", Nice(a), Nice(b), n), 34, Theme.Text, TextAnchor.MiddleLeft);
+                pt.rectTransform.Stretch(30, 60, 30, 14);
+                y += 130 + gap;
             }
 
-            // evde yapılabilecek etkinlik: zorlandığı (yoksa az oynadığı) alan
-            string tipGame = weakRate < 0.7f ? weakest : leastPlayed;
-            string tip = tipGame != null ? Loc.T("tip_" + tipGame) : null;
-
-            const float rowH = 96f;
-            float tipH = tip != null ? 230f : 0f;
-            float h = 150 + rows.Count * rowH + tipH + 150 + 200;
-            var (overlay, card, close) = Panel(860, h);
-            var t = UIKit.Label(card.transform, Loc.T("report_title"), 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-            t.rectTransform.Band(true, 100, 40);
-            float y = -190;
-            foreach (var (text, head) in rows)
-            {
-                var l = UIKit.Label(card.transform, text, head ? 42 : 38, head ? Theme.Text : Theme.TextSoft, TextAnchor.MiddleLeft, head ? FontStyle.Bold : FontStyle.Normal);
-                var rt = l.rectTransform;
-                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1);
-                rt.sizeDelta = new Vector2(740, rowH);
-                rt.anchoredPosition = new Vector2(0, y);
-                l.resizeTextForBestFit = true;
-                l.resizeTextMinSize = 24;
-                l.resizeTextMaxSize = head ? 42 : 38;
-                y -= rowH;
-            }
+            // ---- evde deneyin ----
             if (tip != null)
             {
-                var th = UIKit.Box(card.transform, "Tip", Theme.Butter.WithAlpha(0.6f), null, 0.6f);
-                var trt = th.rectTransform;
-                trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 1);
-                trt.pivot = new Vector2(0.5f, 1);
-                trt.sizeDelta = new Vector2(760, tipH - 20);
-                trt.anchoredPosition = new Vector2(0, y + rowH * 0.5f - 10);
-                var tl = UIKit.Label(th.transform, "<b>" + Loc.T("tip_title") + "</b>\n" + tip, 34, Theme.Text, TextAnchor.MiddleLeft);
-                tl.rectTransform.Stretch(26, 12, 26, 12);
-                tl.horizontalOverflow = HorizontalWrapMode.Wrap;
-                tl.resizeTextForBestFit = true;
-                tl.resizeTextMinSize = 22;
-                tl.resizeTextMaxSize = 34;
-                y -= tipH;
+                var box = UIKit.Box(At(content, 0, y, 820, 210), "Tip", Theme.Butter.WithAlpha(0.75f), null, 0.6f);
+                box.rectTransform.Stretch();
+                var bulb = UIKit.Box(box.transform, "Bulb", Theme.Text, Art.Bulb);
+                bulb.type = Image.Type.Simple;
+                bulb.preserveAspect = true;
+                bulb.rectTransform.Place(new Vector2(0, 1), new Vector2(62, -62), new Vector2(64, 64));
+                var ht = Txt(box.transform, Loc.T("tip_title"), 32, Theme.Text, TextAnchor.UpperLeft, FontStyle.Bold);
+                ht.rectTransform.Stretch(112, 34, 28, 140);
+                var tt = Txt(box.transform, tip, 31, Theme.Text, TextAnchor.UpperLeft);
+                tt.rectTransform.Stretch(112, 80, 28, 16);
+                y += 210 + gap;
             }
-            var note = UIKit.Label(card.transform, Loc.T("rep_note"), 32, Theme.TextSoft);
-            note.rectTransform.anchorMin = note.rectTransform.anchorMax = new Vector2(0.5f, 1);
-            note.rectTransform.sizeDelta = new Vector2(740, 130);
-            note.rectTransform.anchoredPosition = new Vector2(0, y - 40);
-            note.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+            var note = Txt(At(content, 0, y, 800, 90), Loc.T("rep_note"), 28, Theme.TextSoft, TextAnchor.MiddleCenter);
+            note.rectTransform.Stretch();
 
             var ok2 = UIKit.Button(card.transform, Loc.T("ok"), Theme.AccentButton, Color.white, 50, close);
             var ort = (RectTransform)ok2.transform;
             ort.anchorMin = ort.anchorMax = new Vector2(0.5f, 0);
             ort.sizeDelta = new Vector2(360, 130);
-            ort.anchoredPosition = new Vector2(0, 110);
+            ort.anchoredPosition = new Vector2(0, 100);
         }
 
         static string CurrentLanguageName() =>

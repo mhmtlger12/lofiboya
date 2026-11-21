@@ -242,13 +242,13 @@ namespace LofiBoya
             ("fruit", new[] { "strawberry", "watermelon", "apple", "pineapple" }),
             ("vehicle", new[] { "car", "bus", "train", "airplane", "ship", "rocket", "tractor" }),
             ("bug", new[] { "bee", "ladybug", "butterfly", "cricket" }),
-            ("flower", new[] { "tulip", "rose", "sunflower", "lily", "flower", "flowers" }),
+            ("flower", new[] { "tulip", "rose", "sunflower", "lily" }),   // "çiçek" resmi sorulmaz: "Çiçek bir çiçek" olmasın
         };
         // iki gruba da girebilecekler: çeldirici olarak kullanılmaz (kafa karıştırmasın)
         static readonly HashSet<string> Ambiguous = new()
         {
             "turtle", "penguin", "seal", "duck", "frog", "snail", "alligator", "hippo", "polarbear", "acorn", "vegbasket",
-            "garden", "mushroom", "beach", "reef", "zenfish", "flowergarden", "scarecrow", "farm",
+            "garden", "mushroom", "beach", "reef", "zenfish", "flowergarden", "scarecrow", "farm", "flower", "flowers",
         };
 
         static int CategoryOf(string key)

@@ -369,6 +369,12 @@ fact_chef|Chefs cook tasty food.|Aşçılar lezzetli yemekler pişirir.|Köche k
 fact_astronaut|Astronauts float in space.|Astronotlar uzayda süzülür.|Astronauten schweben im All.|Les astronautes flottent dans l'espace.|Los astronautas flotan en el espacio.|Gli astronauti fluttuano nello spazio.|Os astronautas flutuam no espaço.|Космонавты парят в космосе.|يطفو رواد الفضاء في الفضاء.|अंतरिक्ष यात्री अंतरिक्ष में तैरते हैं।
 fact_handwash|Wash hands with soap while you sing a short song.|Ellerimizi kısa bir şarkı boyunca sabunla yıkarız.|Hände mit Seife waschen, so lange wie ein kurzes Lied.|On se lave les mains au savon le temps d'une chanson.|Lavamos las manos con jabón mientras cantamos una canción.|Laviamo le mani col sapone per una canzoncina.|Lavamos as mãos com sabão durante uma canção.|Моем руки с мылом, пока поём песенку.|نغسل أيدينا بالصابون طوال أغنية قصيرة.|छोटा गाना गाते हुए साबुन से हाथ धोएँ।
 fact_toothbrush|We brush our teeth in the morning and at night.|Dişlerimizi sabah ve akşam fırçalarız.|Wir putzen morgens und abends die Zähne.|On se brosse les dents matin et soir.|Nos cepillamos los dientes por la mañana y por la noche.|Ci laviamo i denti mattina e sera.|Escovamos os dentes de manhã e à noite.|Чистим зубы утром и вечером.|نفرّش أسناننا صباحًا ومساءً.|हम सुबह और रात को दाँत साफ़ करते हैं।
+rep_l_pic|pictures finished|resim bitirdi|Bilder fertig|dessins finis|dibujos terminados|disegni finiti|desenhos acabados|рисунков готово|رسومات مكتملة|चित्र पूरे
+rep_l_min|minutes played|dakika oynadı|Minuten gespielt|minutes de jeu|minutos de juego|minuti di gioco|minutos de jogo|минут игры|دقائق لعب|मिनट खेला
+rep_l_days|days played|gün oynadı|Tage gespielt|jours joués|días jugados|giorni di gioco|dias jogados|дней игры|أيام لعب|दिन खेला
+rep_last|week before: {0}|önceki hafta: {0}|Vorwoche: {0}|semaine d'avant : {0}|semana anterior: {0}|settimana prima: {0}|semana anterior: {0}|неделей ранее: {0}|الأسبوع السابق: {0}|पिछला हफ़्ता: {0}
+rep_cf_title|Often mixes up|Sık karıştırdığı|Verwechselt oft|Confond souvent|Suele confundir|Confonde spesso|Confunde muitas vezes|Часто путает|يخلط غالبًا بين|अक्सर उलझता है
+rep_cf_pair|{0} and {1} ({2} times this week)|{0} ve {1} (bu hafta {2} kez)|{0} und {1} ({2}-mal diese Woche)|{0} et {1} ({2} fois cette semaine)|{0} y {1} ({2} veces esta semana)|{0} e {1} ({2} volte questa settimana)|{0} e {1} ({2} vezes esta semana)|{0} и {1} ({2} раз за неделю)|{0} و{1} ({2} مرات هذا الأسبوع)|{0} और {1} (इस हफ़्ते {2} बार)
 ";
     }
 }

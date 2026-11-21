@@ -557,6 +557,71 @@ namespace LofiBoya
             _colorTex.Apply(false);
         }
 
+        // ================= Tahmini kalem ucu =================
+        // Dokunuştan ekrana 1–2 kare gecikme olur (Android + Unity). Kalem çizgisi parmağın gerisinde
+        // kalmasın diye çizginin ucuna, parmağın hızına göre 1–2 kare ilerisine uzanan geçici bir parça
+        // çizilir; bir sonraki karede gerçek boya oraya gelince yerini ona bırakır.
+
+        RectTransform _tip;
+        Image _tipBody, _tipEndA, _tipEndB;
+        Vector2 _ptrPrev, _ptrVel;
+        bool _ptrHas;
+
+        void EnsureTip()
+        {
+            if (_tip != null) return;
+            _tip = UIKit.Node("PredictTip", Image.transform).Stretch();
+            UnityEngine.UI.Image Part(string n, Sprite sp)
+            {
+                var img = UIKit.Box(_tip, n, Color.white, sp);
+                img.type = UnityEngine.UI.Image.Type.Simple;
+                img.raycastTarget = false;
+                img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                return img;
+            }
+            _tipBody = Part("Body", null);
+            _tipBody.sprite = null;
+            _tipEndA = Part("EndA", UIKit.Circle);
+            _tipEndB = Part("EndB", UIKit.Circle);
+        }
+
+        void LateUpdate()
+        {
+            if (Level == null || Image == null) return;
+            float dt = Mathf.Max(Time.unscaledDeltaTime, 1e-4f);
+            var p = PointerScreen;
+            if (_ptrHas) _ptrVel = Vector2.Lerp(_ptrVel, (p - _ptrPrev) / dt, 0.6f);
+            _ptrPrev = p;
+            _ptrHas = true;
+
+            bool show = _stroking && Tool == Tool.Pencil && _strokeLength > 0f;
+            if (!show)
+            {
+                if (_tip != null && _tip.gameObject.activeSelf) _tip.gameObject.SetActive(false);
+                return;
+            }
+            EnsureTip();
+            _tip.gameObject.SetActive(true);
+            var r = Image.rectTransform.rect;
+            // çizginin son boyanan noktası (yerel) ve parmağın 1–2 kare sonraki tahmini yeri
+            var a = new Vector2(r.xMin + _lastStampUv.x * r.width, r.yMin + _lastStampUv.y * r.height) - r.center;
+            float lead = Mathf.Min(0.034f, dt * 2f);
+            var pred = p + Vector2.ClampMagnitude(_ptrVel * lead, 90f);
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(Image.rectTransform, pred, null, out var bl)) return;
+            var b = bl - r.center;
+            float thick = BrushRadiusPaintPx() * 2f * r.width / Paint.Width * 0.9f;
+            var col = CurrentColor;
+            col.a = 0.9f;
+            var d = b - a;
+            _tipBody.rectTransform.anchoredPosition = (a + b) * 0.5f;
+            _tipBody.rectTransform.sizeDelta = new Vector2(d.magnitude, thick);
+            _tipBody.rectTransform.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
+            _tipEndA.rectTransform.anchoredPosition = a;
+            _tipEndB.rectTransform.anchoredPosition = b;
+            _tipEndA.rectTransform.sizeDelta = _tipEndB.rectTransform.sizeDelta = new Vector2(thick, thick);
+            _tipBody.color = _tipEndA.color = _tipEndB.color = col;
+        }
+
         // ================= Kalem / silgi =================
 
         float BrushRadiusPaintPx()

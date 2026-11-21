@@ -38,7 +38,8 @@ namespace LofiBoya
         Buddy _buddy;
         int _milestone;                 // 0..3: %25 / %50 / %75 söylendi mi
         float _lastActivity, _lastIdlePeek = -999f;
-        float _openedAt;                // resim açıldığından beri geçen süre (sürece övgü için)
+        float _openedAt;
+        int _prevQueued;                // boyamadan çıkınca eski kare kuyruğu ayarı                // resim açıldığından beri geçen süre (sürece övgü için)
 
         // Sayılı mod (1-5): her bölgenin bir numarası, her numaranın bir rengi var
         bool _numbers;
@@ -64,6 +65,9 @@ namespace LofiBoya
             // çizerken gecikme az olsun: ekran 90/120 Hz ise o hızda çalış (çıkınca 60'a döner)
             int hz = Mathf.RoundToInt((float)Screen.currentResolution.refreshRateRatio.value);
             Application.targetFrameRate = Mathf.Clamp(hz, 60, 120);
+            // ekran kartı en fazla 1 kare önden hazırlasın: parmak ile boya arasındaki gecikme kısalır
+            _prevQueued = QualitySettings.maxQueuedFrames;
+            QualitySettings.maxQueuedFrames = 1;
             _level = Level.Load(Group, Id);
             if (_level == null) { App.I.ShowGallery(Group); return; }
             var save = SaveSystem.Load(_level.Key);
@@ -1132,6 +1136,7 @@ namespace LofiBoya
         void OnDestroy()
         {
             Application.targetFrameRate = 60;
+            if (_prevQueued > 0) QualitySettings.maxQueuedFrames = _prevQueued;
             foreach (var sp in _previewSprites) if (sp != null) { Destroy(sp.texture); Destroy(sp); }
             if (_canvas != null && _canvas.Level != null && _saveTimer > 0) SaveNow();
             _level?.Unload();
