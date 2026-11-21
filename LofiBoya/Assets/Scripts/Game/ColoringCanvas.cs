@@ -83,6 +83,8 @@ namespace LofiBoya
 
         // Dokunma durumu
         bool _gesture, _moved, _multi, _panOnly;
+        /// <summary>Hareket parmakla mı fareyle mi başladı: o kaynak bitince hareket her zaman biter.</summary>
+        bool _touchGesture;
         Vector2 _startPos, _lastPos;
         float _lastPinchDist;
         Vector2 _lastPinchMid;
@@ -294,7 +296,7 @@ namespace LofiBoya
                 if (!_multi || !_gesture)
                 {
                     if (!_gesture && (!InViewport(mid) || OverOtherUI(mid))) return;
-                    _gesture = true; _multi = true; _moved = true;
+                    _gesture = true; _multi = true; _moved = true; _touchGesture = true;
                     _lastPinchDist = dist; _lastPinchMid = mid;
                     return;
                 }
@@ -315,6 +317,7 @@ namespace LofiBoya
                     // önünde pencere/buton/panel varsa (ör. "Temizle" onayı) tuval bu dokunuşu almaz
                     if (t.phase != UnityEngine.InputSystem.TouchPhase.Began || !InViewport(p) || OverOtherUI(p)) return;
                     BeginGesture(p, false);
+                    _touchGesture = true;
                 }
                 else if (_multi)
                 {
@@ -341,9 +344,13 @@ namespace LofiBoya
                 if (ended) PointerUp(p);
                 return;
             }
-            if (_gesture && touches.Count == 0 && (_multi || _panOnly) && Touchscreen.current != null && Mouse.current == null)
+            // parmakla başlayan hareket, parmaklar kalkınca biter ("bitti" olayı kaçmış olsa bile).
+            // Eskiden bu yalnızca faresiz cihazda oluyordu; editörde/faresi olan cihazda tuval
+            // yakınlaştırmadan sonra "kaydırılıyor" durumunda takılı kalıp boyamayı engelliyordu.
+            if (_gesture && _touchGesture && touches.Count == 0)
             {
-                _gesture = false; _multi = false; _panOnly = false;
+                if (_stroking) EndStroke();
+                ResetGesture();
                 return;
             }
 
@@ -371,8 +378,14 @@ namespace LofiBoya
 #endif
         }
 
+        void ResetGesture()
+        {
+            _gesture = false; _moved = false; _multi = false; _panOnly = false; _touchGesture = false;
+        }
+
         void BeginGesture(Vector2 p, bool panOnly)
         {
+            _touchGesture = false;
             _gesture = true; _moved = false; _multi = false; _panOnly = panOnly;
             _startPos = _lastPos = p;
             if (!panOnly && (Tool == Tool.Pencil || Tool == Tool.Eraser)) BeginStroke(p);
@@ -397,7 +410,7 @@ namespace LofiBoya
             }
             else if (!_moved && !_multi && !_panOnly && Tool == Tool.Fill) TapAt(p);
             else if (!_moved && !_multi && !_panOnly && Tool == Tool.Stamp) StampAt(p);
-            _gesture = false; _moved = false; _multi = false; _panOnly = false;
+            ResetGesture();
         }
 
         static readonly List<RaycastResult> _hits = new();
