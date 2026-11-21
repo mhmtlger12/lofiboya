@@ -282,6 +282,23 @@ namespace LofiBoya
 
         // ================= Girdi =================
 
+        /// <summary>
+        /// Dokunmatikte kalem/silgi parmağın tam altına değil, biraz önündeki kalem ucuna çizer:
+        /// parmak çizilen yeri kapatmaz (çizim uygulamalarındaki "ofsetli uç"). Fare ve kova/damga etkilenmez.
+        /// Mesafe ekranın inç başına noktasına göre: yaklaşık 8 mm yukarı, 2 mm sola.
+        /// </summary>
+        public Vector2 TipOffset
+        {
+            get
+            {
+                if (!TouchInput || !(Tool == Tool.Pencil || Tool == Tool.Eraser)) return Vector2.zero;
+                float dpi = Screen.dpi > 0 ? Screen.dpi : 320f;
+                return new Vector2(-0.08f, 0.32f) * dpi;
+            }
+        }
+
+        Vector2 DrawPoint(Vector2 finger) => finger + TipOffset;
+
         void HandleInput()
         {
 #if ENABLE_INPUT_SYSTEM
@@ -316,14 +333,14 @@ namespace LofiBoya
             {
                 var t = touches[0];
                 var p = t.screenPosition;
-                PointerScreen = p;
+                PointerScreen = DrawPoint(p);
                 PointerOver = InViewport(p);
                 bool ended = t.phase is UnityEngine.InputSystem.TouchPhase.Ended or UnityEngine.InputSystem.TouchPhase.Canceled;
                 if (!_gesture)
                 {
                     // önünde pencere/buton/panel varsa (ör. "Temizle" onayı) tuval bu dokunuşu almaz
                     if (t.phase != UnityEngine.InputSystem.TouchPhase.Began || !InViewport(p) || OverOtherUI(p)) return;
-                    BeginGesture(p, false);
+                    BeginGesture(p, false, DrawPoint(p));
                     _touchGesture = true;
                 }
                 else if (_multi)
@@ -343,12 +360,12 @@ namespace LofiBoya
                         var e = hist[h];
                         if (e.time <= _lastTouchTime) continue;
                         _lastTouchTime = e.time;
-                        StrokeTo(e.screenPosition);
+                        StrokeTo(DrawPoint(e.screenPosition));
                     }
                 }
                 _lastTouchTime = t.time;
-                PointerMove(p);
-                if (ended) PointerUp(p);
+                PointerMove(p, DrawPoint(p));
+                if (ended) PointerUp(p, DrawPoint(p));
                 return;
             }
             // parmakla başlayan hareket, parmaklar kalkınca biter ("bitti" olayı kaçmış olsa bile).
@@ -376,12 +393,12 @@ namespace LofiBoya
             bool panBtnHeld = mouse.rightButton.isPressed || mouse.middleButton.isPressed;
             if (!_gesture)
             {
-                if (mouse.leftButton.wasPressedThisFrame && InViewport(mp) && !OverOtherUI(mp)) { BeginGesture(mp, false); PointerMove(mp); }
+                if (mouse.leftButton.wasPressedThisFrame && InViewport(mp) && !OverOtherUI(mp)) { BeginGesture(mp, false); PointerMove(mp, mp); }
                 else if (panBtnDown && InViewport(mp) && !OverOtherUI(mp)) BeginGesture(mp, true);
                 return;
             }
-            if (mouse.leftButton.isPressed || panBtnHeld) PointerMove(mp);
-            else PointerUp(mp);
+            if (mouse.leftButton.isPressed || panBtnHeld) PointerMove(mp, mp);
+            else PointerUp(mp, mp);
 #endif
         }
 
@@ -390,30 +407,31 @@ namespace LofiBoya
             _gesture = false; _moved = false; _multi = false; _panOnly = false; _touchGesture = false;
         }
 
-        void BeginGesture(Vector2 p, bool panOnly)
+        /// <param name="drawAt">Kalemin çizdiği nokta (dokunmatikte parmağın biraz önü); yoksa p.</param>
+        void BeginGesture(Vector2 p, bool panOnly, Vector2? drawAt = null)
         {
             _touchGesture = false;
             _gesture = true; _moved = false; _multi = false; _panOnly = panOnly;
             _startPos = _lastPos = p;
-            if (!panOnly && (Tool == Tool.Pencil || Tool == Tool.Eraser)) BeginStroke(p);
+            if (!panOnly && (Tool == Tool.Pencil || Tool == Tool.Eraser)) BeginStroke(drawAt ?? p);
         }
 
-        void PointerMove(Vector2 p)
+        void PointerMove(Vector2 p, Vector2 draw)
         {
-            if (_stroking) { StrokeTo(p); _lastPos = p; return; }
+            if (_stroking) { StrokeTo(draw); _lastPos = p; return; }
             float slop = Screen.dpi > 0 ? Screen.dpi * 0.06f : 14f;
             if (!_moved && Vector2.Distance(p, _startPos) > slop) _moved = true;
             if (_moved && (Tool == Tool.Fill || Tool == Tool.Stamp || _panOnly)) Pan(p - _lastPos);
             _lastPos = p;
         }
 
-        void PointerUp(Vector2 p)
+        void PointerUp(Vector2 p, Vector2 draw)
         {
             if (_stroking)
             {
                 bool tap = _strokeLength < 6f;
                 EndStroke();
-                if (tap && Tool == Tool.Eraser) EraseRegionAt(p);
+                if (tap && Tool == Tool.Eraser) EraseRegionAt(draw);
             }
             else if (!_moved && !_multi && !_panOnly && Tool == Tool.Fill) TapAt(p);
             else if (!_moved && !_multi && !_panOnly && Tool == Tool.Stamp) StampAt(p);

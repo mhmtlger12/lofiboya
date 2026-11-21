@@ -92,13 +92,26 @@ namespace LofiBoya
             hand.rectTransform.sizeDelta = new Vector2(size, size);
         }
 
+        /// <summary>
+        /// Farede kalem sağ-yukarı uzanır (uç imlecin yerinde). Dokunmatikte uç parmağın biraz önünde
+        /// (bkz. ColoringCanvas.TipOffset) ve gövde aşağı, parmağa doğru uzanır: parmak kalemi tutar, uç görünür.
+        /// </summary>
+        float Angle
+        {
+            get
+            {
+                var off = _canvas.TipOffset;
+                if (off == Vector2.zero) return BaseAngle;
+                // gövdenin yerel yönü aşağı (-90°); parmağa (uçtan -off yönüne) çevir
+                return Mathf.Atan2(-off.y, -off.x) * Mathf.Rad2Deg + 90f;
+            }
+        }
+
         void LateUpdate()
         {
             if (_canvas == null) return;
             float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
-            // Dokunmatikte parmak zaten kalemdir: çizilen kalem boyanan yeri kapatmasın diye gösterilmez.
-            // Yalnızca farede (imlecin yerini görmek için) görünür.
-            bool drawTool = (_canvas.Tool == Tool.Pencil || _canvas.Tool == Tool.Eraser) && !_canvas.TouchInput;
+            bool drawTool = _canvas.Tool == Tool.Pencil || _canvas.Tool == Tool.Eraser;
             bool eraser = _canvas.Tool == Tool.Eraser;
 
             // görünürlük: çizerken her zaman; farede tuvalin üstündeyken; dokunmatikte parmak kalkınca kısa süre kalır
@@ -134,7 +147,7 @@ namespace LofiBoya
 
             _root.anchoredPosition = _pos;
             float wobble = Mathf.Sin(Time.unscaledTime * 2.1f) * 1.5f * (1f - _press);
-            _crayon.localRotation = Quaternion.Euler(0, 0, BaseAngle + _tilt + wobble);
+            _crayon.localRotation = Quaternion.Euler(0, 0, Angle + _tilt + wobble);
             float s = 1f - 0.05f * _press;
             _crayon.localScale = new Vector3(s, s, 1);
             // gölge: kaldırınca uzaklaşır, bastırınca uca yaklaşır
