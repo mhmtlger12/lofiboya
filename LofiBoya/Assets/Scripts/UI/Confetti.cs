@@ -13,6 +13,7 @@ namespace LofiBoya
 
         public static void Burst(Transform parent, int count)
         {
+            if (SaveSystem.CalmMode) return;   // sakin mod: konfeti yok
             var rt = UIKit.Node("Confetti", parent).Stretch();
             rt.gameObject.AddComponent<Confetti>().Spawn(count);
         }

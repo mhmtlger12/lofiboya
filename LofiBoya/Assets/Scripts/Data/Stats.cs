@@ -10,7 +10,7 @@ namespace LofiBoya
     /// </summary>
     public static class Stats
     {
-        public static readonly string[] Games = { "colors", "pictures", "shapes", "counting", "feelings", "trace" };
+        public static readonly string[] Games = { "colors", "pictures", "shapes", "counting", "feelings", "trace", "letters", "patterns", "memory" };
 
         static string Key(DateTime day, string field) => "st_" + day.ToString("yyyyMMdd") + "_" + field;
 
@@ -23,12 +23,43 @@ namespace LofiBoya
         /// <summary>Öğrenme oyununda bir cevap.</summary>
         public static void Answer(string game, bool right) => Add(game + (right ? "_ok" : "_no"));
 
-        /// <summary>Son 7 günün toplamı (bugün dahil).</summary>
-        public static int Week(string field)
+        /// <summary>Son 7 günün toplamı (bugün dahil). weeksAgo = 1: ondan önceki 7 gün.</summary>
+        public static int Week(string field, int weeksAgo = 0)
         {
             int sum = 0;
-            for (int i = 0; i < 7; i++) sum += PlayerPrefs.GetInt(Key(DateTime.Now.AddDays(-i), field), 0);
+            for (int i = 0; i < 7; i++) sum += PlayerPrefs.GetInt(Key(DateTime.Now.AddDays(-i - 7 * weeksAgo), field), 0);
             return sum;
+        }
+
+        /// <summary>
+        /// Karışıklık kaydı: istenen şey yerine başka bir şey seçildi (ör. renk: "orange" yerine "red").
+        /// Rapor "Turuncu ile kırmızıyı karıştırıyor" diyebilsin diye. Haftalık, bu cihazda.
+        /// </summary>
+        public static void Confused(string game, string wanted, string picked)
+        {
+            if (string.IsNullOrEmpty(wanted) || string.IsNullOrEmpty(picked) || wanted == picked) return;
+            string pair = string.CompareOrdinal(wanted, picked) < 0 ? wanted + "+" + picked : picked + "+" + wanted;
+            string list = PlayerPrefs.GetString("cf_list", "");
+            string id = game + ":" + pair;
+            if (!("," + list + ",").Contains("," + id + ","))
+                PlayerPrefs.SetString("cf_list", list.Length == 0 ? id : list + "," + id);
+            Add("cf_" + id);
+        }
+
+        /// <summary>Bu hafta en çok karıştırılan çift (oyun, a, b, kaç kez). Yoksa null.</summary>
+        public static (string game, string a, string b, int n)? TopConfusion()
+        {
+            (string, string, string, int)? best = null;
+            foreach (var id in PlayerPrefs.GetString("cf_list", "").Split(','))
+            {
+                if (id.Length == 0) continue;
+                int n = Week("cf_" + id);
+                if (n < 2 || (best.HasValue && best.Value.Item4 >= n)) continue;
+                int c = id.IndexOf(':'), plus = id.IndexOf('+');
+                if (c < 0 || plus < 0) continue;
+                best = (id.Substring(0, c), id.Substring(c + 1, plus - c - 1), id.Substring(plus + 1), n);
+            }
+            return best;
         }
 
         /// <summary>Son 7 günde uygulamanın açık olduğu gün sayısı.</summary>

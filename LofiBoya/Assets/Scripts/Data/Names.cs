@@ -143,6 +143,9 @@ namespace LofiBoya
             ["seiripan-ai-generated-9623276"] = "girl", ["seiripan-cute-9623238"] = "beach", ["seiripan-cute-9623248"] = "beach",
         };
 
+        /// <summary>Resmin ad anahtarı ("lofi-whale-001" -> "whale"), bilinmiyorsa null.</summary>
+        public static string KeyOf(string id) => Key(id);
+
         static string Key(string id)
         {
             if (ById.TryGetValue(id, out var k)) return k;
@@ -206,7 +209,8 @@ namespace LofiBoya
 
         static Dictionary<string, string[]> _words;
 
-        static (string name, string form) Word(string key)
+        /// <summary>Tablodaki bir anahtarın (renk, şekil, duygu, resim) adı: rapor ve yeni oyunlar için.</summary>
+        public static (string name, string form) Word(string key)
         {
             if (_words == null) Parse();
             if (key == null || !_words.TryGetValue(key, out var row)) return (key, key);
@@ -373,6 +377,10 @@ feel_happy|happy face|the happy face|mutlu yüz|mutlu yüzü|fröhliches Gesicht
 feel_sad|sad face|the sad face|üzgün yüz|üzgün yüzü|trauriges Gesicht|das traurige Gesicht|visage triste|le visage triste|cara triste|la cara triste|faccina triste|la faccina triste|cara triste|a cara triste|грустное личико|грустное личико|وجه حزين|الوجه الحزين|उदास चेहरा|उदास चेहरा
 feel_angry|angry face|the angry face|kızgın yüz|kızgın yüzü|wütendes Gesicht|das wütende Gesicht|visage fâché|le visage fâché|cara enfadada|la cara enfadada|faccina arrabbiata|la faccina arrabbiata|cara zangada|a cara zangada|сердитое личико|сердитое личико|وجه غاضب|الوجه الغاضب|गुस्से वाला चेहरा|गुस्से वाला चेहरा
 feel_surprised|surprised face|the surprised face|şaşkın yüz|şaşkın yüzü|überraschtes Gesicht|das überraschte Gesicht|visage surpris|le visage surpris|cara de sorpresa|la cara de sorpresa|faccina sorpresa|la faccina sorpresa|cara surpreendida|a cara surpreendida|удивлённое личико|удивлённое личико|وجه متفاجئ|الوجه المتفاجئ|हैरान चेहरा|हैरान चेहरा
+feel_scared|scared face|the scared face|korkmuş yüz|korkmuş yüzü|ängstliches Gesicht|das ängstliche Gesicht|visage effrayé|le visage effrayé|cara asustada|la cara asustada|faccina spaventata|la faccina spaventata|cara assustada|a cara assustada|испуганное личико|испуганное личико|وجه خائف|الوجه الخائف|डरा हुआ चेहरा|डरा हुआ चेहरा
+feel_proud|proud face|the proud face|gururlu yüz|gururlu yüzü|stolzes Gesicht|das stolze Gesicht|visage fier|le visage fier|cara orgullosa|la cara orgullosa|faccina orgogliosa|la faccina orgogliosa|cara orgulhosa|a cara orgulhosa|гордое личико|гордое личико|وجه فخور|الوجه الفخور|गर्व वाला चेहरा|गर्व वाला चेहरा
+feel_calm|calm face|the calm face|sakin yüz|sakin yüzü|ruhiges Gesicht|das ruhige Gesicht|visage calme|le visage calme|cara tranquila|la cara tranquila|faccina serena|la faccina serena|cara calma|a cara calma|спокойное личико|спокойное личико|وجه هادئ|الوجه الهادئ|शांत चेहरा|शांत चेहरा
+feel_shy|shy face|the shy face|utangaç yüz|utangaç yüzü|schüchternes Gesicht|das schüchterne Gesicht|visage timide|le visage timide|cara tímida|la cara tímida|faccina timida|la faccina timida|cara tímida|a cara tímida|застенчивое личико|застенчивое личико|وجه خجول|الوجه الخجول|शर्मीला चेहरा|शर्मीला चेहरा
 puffy|Puffy|Puffy|Pofuduk|Pofuduk'u|Puffi|Puffi|Pouf|Pouf|Pufi|a Pufi|Puffi|Puffi|Fofinho|o Fofinho|Пушок|Пушка|نفنوف|نفنوف|पफ़ी|पफ़ी
 shape_circle|circle|the circle|daire|daireyi|Kreis|den Kreis|rond|le rond|círculo|el círculo|cerchio|il cerchio|círculo|o círculo|круг|круг|دائرة|الدائرة|गोला|गोले
 shape_square|square|the square|kare|kareyi|Quadrat|das Quadrat|carré|le carré|cuadrado|el cuadrado|quadrato|il quadrato|quadrado|o quadrado|квадрат|квадрат|مربع|المربع|वर्ग|वर्ग

@@ -89,7 +89,7 @@ namespace LofiBoya
             }
 
             // ---- Başla ----
-            var start = UIKit.Button(root, Loc.T("start"), Theme.Accent, Color.white, 64, () => App.I.ShowGallery());
+            var start = UIKit.Button(root, Loc.T("start"), Theme.AccentButton, Color.white, 64, () => App.I.ShowGallery());
             _startBtn = (RectTransform)start.transform;
             _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 410), new Vector2(700, 170));
             Tween.Pop(_startBtn, 0.35f);
@@ -102,7 +102,7 @@ namespace LofiBoya
             int stars = SaveSystem.Stars;
             if (stars > 0)
             {
-                var badge = UIKit.Box(stickers.transform, "Badge", Theme.Accent, null, 0.5f);
+                var badge = UIKit.Box(stickers.transform, "Badge", Theme.AccentButton, null, 0.5f);
                 badge.rectTransform.anchorMin = badge.rectTransform.anchorMax = new Vector2(1, 1);
                 badge.rectTransform.sizeDelta = new Vector2(46 + stars.ToString().Length * 26, 64);
                 badge.rectTransform.anchoredPosition = new Vector2(-24, -4);
@@ -118,6 +118,9 @@ namespace LofiBoya
             ((RectTransform)music.transform).Place(new Vector2(0, 1), new Vector2(100, -100), new Vector2(110, 110));
             var gear = UIKit.IconButton(root, Art.Gear, Theme.Card.WithAlpha(0.9f), Theme.TextSoft, 110, () => ParentGate.Show(ParentGate.Settings), 0.5f);
             ((RectTransform)gear.transform).Place(new Vector2(1, 1), new Vector2(-100, -100), new Vector2(110, 110));
+
+            // ilk açılış: oyunlar çocuğun yaşına göre ayarlansın (bir kez sorulur; sonra Ayarlar'dan değişir)
+            if (!SaveSystem.AgeAsked) Tween.Delay(0.9f, () => { if (this != null && !SaveSystem.AgeAsked) ParentGate.AskAge(); });
         }
 
         void Bubble(RectTransform mascot, string text)

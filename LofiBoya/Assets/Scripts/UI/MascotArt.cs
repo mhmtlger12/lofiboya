@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace LofiBoya
 {
-    public enum MascotMood { Normal, Happy, Sad, Angry, Surprised }
+    public enum MascotMood { Normal, Happy, Sad, Angry, Surprised, Scared, Proud, Calm, Shy }
     public enum MascotHat { None, Party, Crown, Chef, Firefighter, Doctor, Flower, Astronaut }
 
     /// <summary>
@@ -224,7 +224,7 @@ namespace LofiBoya
         /// <summary>Ağızsız gövde: duygu yüzleri üstüne gelir.</summary>
         public static Sprite BodyPlain => _bodyPlain != null ? _bodyPlain : (_bodyPlain = Make(W, H, c => DrawBody(c, false)));
 
-        static readonly Sprite[] _faces = new Sprite[5];
+        static readonly Sprite[] _faces = new Sprite[9];
         /// <summary>Duygu yüzü (göz + kaş + ağız), BodyPlain üstüne.</summary>
         public static Sprite Face(MascotMood m)
         {
@@ -273,6 +273,53 @@ namespace LofiBoya
                     }
                     c.Fill(p => Ellipse(p, 0.5f, 0.32f, 0.032f, 0.042f), Ink);                                  // "O" ağız
                     c.Fill(p => Ellipse(p, 0.5f, 0.32f, 0.019f, 0.028f), Theme.Hex("FF8FA3"));
+                    break;
+                case MascotMood.Scared:
+                    // kocaman gözler, küçük gözbebekleri, titrek ağız, ter damlası
+                    foreach (var x in new[] { 0.40f, 0.60f })
+                    {
+                        c.Fill(p => Circle(p, x, 0.43f, 0.046f), Ink);
+                        c.Fill(p => Circle(p, x, 0.43f, 0.034f), Color.white);
+                        c.Fill(p => Circle(p, x, 0.425f, 0.011f), Ink);
+                    }
+                    c.Fill(p => Seg(p, new Vector2(0.355f, 0.50f), new Vector2(0.43f, 0.525f), 0.008f), Ink);
+                    c.Fill(p => Seg(p, new Vector2(0.645f, 0.50f), new Vector2(0.57f, 0.525f), 0.008f), Ink);
+                    for (int k = 0; k < 4; k++)
+                    {
+                        float x0 = 0.44f + k * 0.03f, y0 = k % 2 == 0 ? 0.325f : 0.305f, y1 = k % 2 == 0 ? 0.305f : 0.325f;
+                        c.Fill(p => Seg(p, new Vector2(x0, y0), new Vector2(x0 + 0.03f, y1), 0.007f), Ink);
+                    }
+                    c.Fill(p => Mathf.Min(Circle(p, 0.70f, 0.47f, 0.018f), Polygon(p, new[] { new Vector2(0.682f, 0.475f), new Vector2(0.718f, 0.475f), new Vector2(0.70f, 0.515f) })), Theme.Hex("7EC8F5"));
+                    break;
+                case MascotMood.Proud:
+                    // kapalı gülen gözler, kocaman gülüş, pembe yanaklar, kalkık burun gibi kaşlar
+                    foreach (var x in new[] { 0.40f, 0.60f })
+                        c.Fill(p => Mathf.Max(Mathf.Abs(Circle(p, x, 0.415f, 0.035f)) - 0.009f, 0.415f - p.y), Ink);
+                    foreach (var x in new[] { 0.33f, 0.67f })
+                        c.Fill(p => Ellipse(p, x, 0.36f, 0.035f, 0.022f), Theme.Hex("FFB3C1"));
+                    c.Fill(p => Mathf.Max(Circle(p, 0.5f, 0.35f, 0.07f), p.y - 0.35f), Ink);
+                    c.Fill(p => Mathf.Max(Circle(p, 0.5f, 0.35f, 0.054f), p.y - 0.34f), Theme.Hex("FF8FA3"));
+                    // gurur yıldızı: kafanın yanında parlayan küçük altın yıldız (mutlu yüzden ayırt edilsin)
+                    {
+                        var st = StarPoly(0.76f, 0.56f, 0.07f, 0.032f);
+                        c.Fill(p => Polygon(p, st) - 0.008f, Theme.Hex("F4A93B"));
+                        c.Fill(p => Polygon(p, st), Theme.Hex("FFD54A"));
+                    }
+                    break;
+                case MascotMood.Calm:
+                    // aşağı bakan yumuşak kapalı gözler (huzurlu), küçük gülümseme
+                    foreach (var x in new[] { 0.40f, 0.60f })
+                        c.Fill(p => Mathf.Max(Mathf.Abs(Circle(p, x, 0.44f, 0.035f)) - 0.008f, p.y - 0.44f), Ink);
+                    c.Fill(p => Mathf.Max(Mathf.Abs(Circle(p, 0.5f, 0.35f, 0.035f)) - 0.008f, p.y - 0.35f), Ink);
+                    break;
+                case MascotMood.Shy:
+                    // yana bakan gözler, kızarmış yanaklar, minik dalgalı ağız
+                    OpenEye(c, 0.39f, 0.41f, 0.03f, 0.036f);
+                    OpenEye(c, 0.59f, 0.41f, 0.03f, 0.036f);
+                    foreach (var x in new[] { 0.33f, 0.67f })
+                        c.Fill(p => Ellipse(p, x, 0.355f, 0.045f, 0.026f), Theme.Hex("FF9FB2"));
+                    c.Fill(p => Seg(p, new Vector2(0.47f, 0.32f), new Vector2(0.50f, 0.31f), 0.007f), Ink);
+                    c.Fill(p => Seg(p, new Vector2(0.50f, 0.31f), new Vector2(0.53f, 0.32f), 0.007f), Ink);
                     break;
                 default:
                     DrawEyes(c, 0);

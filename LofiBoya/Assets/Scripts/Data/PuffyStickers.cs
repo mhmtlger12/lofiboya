@@ -11,6 +11,16 @@ namespace LofiBoya
             (MascotHat.Doctor, 12), (MascotHat.Firefighter, 16), (MascotHat.Astronaut, 20),
         };
 
+        /// <summary>
+        /// Yıldızlarla açılan Pofuduklar: öğrenme oyunlarında kazanılan yıldızların bir karşılığı olsun.
+        /// Yıldız harcanmaz (eksilmez); toplam yıldız eşiği geçince açılır.
+        /// </summary>
+        public static readonly (MascotMood mood, int stars)[] StarMoods =
+        {
+            (MascotMood.Happy, 10), (MascotMood.Surprised, 25), (MascotMood.Proud, 50), (MascotMood.Calm, 80),
+            (MascotMood.Shy, 120), (MascotMood.Scared, 170),
+        };
+
         /// <summary>Bitirilen resim sayısı (tüm gruplar).</summary>
         public static int DoneCount()
         {

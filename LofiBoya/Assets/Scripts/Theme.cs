@@ -11,9 +11,12 @@ namespace LofiBoya
         public static readonly Color Card = Hex("FFFDFB");
         public static readonly Color Paper = Hex("FFFDF8");
         public static readonly Color Text = Hex("5E4B6E");
-        public static readonly Color TextSoft = Hex("A291AE");
+        // krem zeminde en az 4.5:1 kontrast (eski A291AE yaklaşık 3:1'di)
+        public static readonly Color TextSoft = Hex("76648A");
         public static readonly Color Accent = Hex("FF9EAA");
         public static readonly Color AccentDark = Hex("F07C8C");
+        // üstünde beyaz yazı olan butonlar: büyük kalın yazı için en az 3:1 kontrast
+        public static readonly Color AccentButton = Hex("E8697F");
         public static readonly Color Lavender = Hex("C3B5F0");
         public static readonly Color Mint = Hex("A8E6CF");
         public static readonly Color Sky = Hex("A9D6F5");

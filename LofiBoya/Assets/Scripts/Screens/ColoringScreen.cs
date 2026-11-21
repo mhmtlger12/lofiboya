@@ -38,6 +38,7 @@ namespace LofiBoya
         Buddy _buddy;
         int _milestone;                 // 0..3: %25 / %50 / %75 söylendi mi
         float _lastActivity, _lastIdlePeek = -999f;
+        float _openedAt;                // resim açıldığından beri geçen süre (sürece övgü için)
 
         // Sayılı mod (1-5): her bölgenin bir numarası, her numaranın bir rengi var
         bool _numbers;
@@ -103,6 +104,7 @@ namespace LofiBoya
                 Tween.Delay(1.3f, () => { if (this != null && _buddy != null) _buddy.Peek(null, 3f); });
             }
             _lastActivity = Time.unscaledTime;
+            _openedAt = Time.unscaledTime;
             _canvas.Changed += OnChanged;
             OnChanged();
             float p0 = _canvas.Progress;
@@ -639,6 +641,7 @@ namespace LofiBoya
                     var num = UIKit.Label(badge.transform, (i + 1).ToString(), 42, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
                     num.rectTransform.Stretch(0, 0, 0, 4);
                 }
+                else ColorMarks.AddFor(holder, colors[i], Mathf.Min(cw - 6, 56), 0.66f);   // renk körü desteği (açıksa)
 
                 // dokunma alanı kalemden geniş olsun
                 var hit = slot.gameObject.AddComponent<Image>();
@@ -981,13 +984,20 @@ namespace LofiBoya
             var sh = t.gameObject.AddComponent<Shadow>();
             sh.effectColor = Theme.Accent.WithAlpha(0.6f);
             sh.effectDistance = new Vector2(0, -6);
-            var s = UIKit.Label(card.transform, Loc.T("done_sub"), 40, Theme.TextSoft);
-            s.rectTransform.Band(true, 60, 245);
+            // sonuca değil sürece övgü + resimle ilgili tek cümlelik bilgi
+            var s = UIKit.Label(card.transform, Praise() + Fact(), 38, Theme.Text);
+            s.rectTransform.Band(true, 96, 236);
+            s.rectTransform.offsetMin = new Vector2(50, s.rectTransform.offsetMin.y);
+            s.rectTransform.offsetMax = new Vector2(-50, s.rectTransform.offsetMax.y);
+            s.horizontalOverflow = HorizontalWrapMode.Wrap;
+            s.resizeTextForBestFit = true;
+            s.resizeTextMinSize = 24;
+            s.resizeTextMaxSize = 38;
 
             var photoBg = UIKit.Box(card.transform, "PhotoBg", Theme.Paper, null, 1.2f);
-            photoBg.rectTransform.Stretch(60, 330, 60, 260);
+            photoBg.rectTransform.Stretch(60, 350, 60, 260);
             photoBg.gameObject.AddComponent<Dance>();
-            var hearts = UIKit.Node("Hearts", card.transform).Stretch(60, 330, 60, 260);
+            var hearts = UIKit.Node("Hearts", card.transform).Stretch(60, 350, 60, 260);
             hearts.gameObject.AddComponent<HeartRain>();
             var photo = UIKit.Node("Photo", photoBg.transform).Stretch(20, 20, 20, 20);
             var raw = photo.gameObject.AddComponent<RawImage>();
@@ -1017,7 +1027,7 @@ namespace LofiBoya
             dl.type = Image.Type.Simple;
             dl.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(52, 0), new Vector2(46, 46));
 
-            var next = UIKit.Button(card.transform, _level.IsBlank ? Loc.T("gallery_next") : Loc.T("next"), Theme.Accent, Color.white, 44, NextLevel);
+            var next = UIKit.Button(card.transform, _level.IsBlank ? Loc.T("gallery_next") : Loc.T("next"), Theme.AccentButton, Color.white, 44, NextLevel);
             var nrt = (RectTransform)next.transform;
             nrt.anchorMin = nrt.anchorMax = new Vector2(0.5f, 0);
             nrt.sizeDelta = new Vector2(230, 140);
@@ -1053,6 +1063,29 @@ namespace LofiBoya
             Tween.Delay(0.4f, () => Speech.Say(line));
 
             Confetti.Burst(_overlay.transform, 90);
+        }
+
+        /// <summary>Nasıl boyadığına göre övgü: çok renk, sabır, dikkat ya da kendi seçimi.</summary>
+        string Praise()
+        {
+            var used = new HashSet<int>();
+            var cols = _canvas.RegionColors;
+            var filled = _canvas.Filled;
+            if (cols != null && filled != null)
+                for (int i = 0; i < cols.Length && i < filled.Length; i++)
+                    if (filled[i]) used.Add((cols[i].r << 16) | (cols[i].g << 8) | cols[i].b);
+            float minutes = (Time.unscaledTime - _openedAt) / 60f;
+            string key = used.Count >= 6 ? "praise_colors" : _level.Count >= 60 ? "praise_patient" : minutes >= 4f ? "praise_focus" : "praise_own";
+            return Loc.T(key);
+        }
+
+        /// <summary>"Balinalar denizde yaşar." gibi bilgi cümlesi (varsa), başında satır sonu ile.</summary>
+        string Fact()
+        {
+            var k = Names.KeyOf(Id);
+            if (k == null) return "";
+            string f = Loc.T("fact_" + k);
+            return f == "fact_" + k ? "" : "\n" + f;
         }
 
         void SaveToPhotos(Button btn)

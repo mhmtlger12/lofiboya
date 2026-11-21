@@ -24,6 +24,7 @@ namespace LofiBoya
 
         void Update()
         {
+            if (SaveSystem.CalmMode) return;   // sakin mod: yerinde dursun
             float t = Time.unscaledTime * _speed + _phase;
             _rt.anchoredPosition = _base + new Vector2(Mathf.Sin(t * 0.7f) * _amp * 1.5f, Mathf.Sin(t) * _amp);
         }

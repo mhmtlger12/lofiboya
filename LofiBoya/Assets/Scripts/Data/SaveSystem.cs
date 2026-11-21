@@ -181,6 +181,29 @@ namespace LofiBoya
 
         public static readonly string[] AgeLabels = { "3–4", "5–6", "7+" };
 
+        /// <summary>Yaş ilk açılışta ebeveyne soruldu mu.</summary>
+        public static bool AgeAsked
+        {
+            get => PlayerPrefs.HasKey("ageBand");
+        }
+
+        /// <summary>Öğrenme oyunlarında kaç seçenek: 3–4 yaş 2, 5–6 yaş 3, 7+ yaş 4.</summary>
+        public static int OptionCount => 2 + Mathf.Clamp(AgeBand, 0, 2);
+
+        /// <summary>Sakin mod: konfeti, süzülen süsler ve sallanmalar kapalı (hassas çocuklar için).</summary>
+        public static bool CalmMode
+        {
+            get => PlayerPrefs.GetInt("calm", 0) == 1;
+            set { PlayerPrefs.SetInt("calm", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>Renk körü desteği: boya kalemlerinin üstünde her renge özel küçük bir işaret.</summary>
+        public static bool ColorAssist
+        {
+            get => PlayerPrefs.GetInt("colorAssist", 0) == 1;
+            set { PlayerPrefs.SetInt("colorAssist", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
         /// <summary>Kaydı olan bütün resimler (en yeni önce): "grup_id" anahtarları.</summary>
         public static List<string> SavedKeys()
         {

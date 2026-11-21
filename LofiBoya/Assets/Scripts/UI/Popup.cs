@@ -71,7 +71,7 @@ namespace LofiBoya
             nrt.sizeDelta = new Vector2(320, 130);
             nrt.anchoredPosition = new Vector2(-180, 110);
 
-            var yesBtn = UIKit.Button(card.transform, yes, Theme.Accent, Color.white, 46, () => { Close(); onYes?.Invoke(); });
+            var yesBtn = UIKit.Button(card.transform, yes, Theme.AccentButton, Color.white, 46, () => { Close(); onYes?.Invoke(); });
             var yrt = (RectTransform)yesBtn.transform;
             yrt.anchorMin = yrt.anchorMax = new Vector2(0.5f, 0);
             yrt.sizeDelta = new Vector2(320, 130);
