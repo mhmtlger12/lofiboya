@@ -1,107 +1,189 @@
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace LofiBoya
 {
-    /// <summary>Renklerin ve resimlerin Türkçe adları (konuşma ve başlıklar için).</summary>
+    /// <summary>
+    /// Renklerin ve resimlerin adları, seçili dilde.
+    /// Her ad iki biçimde: yalın ad ("aslan", "lion") ve cümle içi biçim (Türkçe "aslanı", Almanca
+    /// "den Löwen", Fransızca "le lion", Rusça "льва"...). "{0} bul!" gibi kalıplar ikinciyi kullanır.
+    /// </summary>
     public static class Names
     {
         // ---------------- Renkler ----------------
 
-        /// <summary>Temel renkler: öğrenme oyununda ve sayılı modda kullanılır.</summary>
-        public static readonly (string name, string acc, Color color)[] Basic =
+        static readonly (string key, Color color)[] BasicColors =
         {
-            ("kırmızı", "kırmızıyı", Theme.Hex("FF5A5F")), ("turuncu", "turuncuyu", Theme.Hex("FFA14A")), ("sarı", "sarıyı", Theme.Hex("FFD93D")),
-            ("yeşil", "yeşili", Theme.Hex("6BCB77")), ("mavi", "maviyi", Theme.Hex("4D96FF")), ("mor", "moru", Theme.Hex("9B72F2")),
-            ("pembe", "pembeyi", Theme.Hex("FF8FC7")), ("kahverengi", "kahverengiyi", Theme.Hex("A9744F")),
+            ("red", Theme.Hex("FF5A5F")), ("orange", Theme.Hex("FFA14A")), ("yellow", Theme.Hex("FFD93D")),
+            ("green", Theme.Hex("6BCB77")), ("blue", Theme.Hex("4D96FF")), ("purple", Theme.Hex("9B72F2")),
+            ("pink", Theme.Hex("FF8FC7")), ("brown", Theme.Hex("A9744F")),
         };
 
-        /// <summary>Baş harfi büyük (Türkçe kurallarıyla).</summary>
-        public static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0], new System.Globalization.CultureInfo("tr-TR")) + s.Substring(1);
+        /// <summary>Temel renkler (öğrenme oyunu ve sayılı mod), seçili dilde.</summary>
+        public static (string name, string acc, Color color)[] Basic
+        {
+            get
+            {
+                var arr = new (string, string, Color)[BasicColors.Length];
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    var (n, f) = Word(BasicColors[i].key);
+                    arr[i] = (n, f, BasicColors[i].color);
+                }
+                return arr;
+            }
+        }
 
-        /// <summary>Herhangi bir rengin çocukların bileceği adı.</summary>
-        public static string ColorName(Color c)
+        /// <summary>Herhangi bir rengin çocukların bileceği adı (seçili dilde).</summary>
+        public static string ColorName(Color c) => Word(ColorKey(c)).name;
+
+        public static string ColorKey(Color c)
         {
             Color.RGBToHSV(c, out float h, out float s, out float v);
             h *= 360f;
-            if (v < 0.22f) return "siyah";
-            if (s < 0.12f) return v > 0.85f ? "beyaz" : "gri";
-            // açık ve az doygun sıcak tonlar: ten/krem
-            if (s < 0.3f && v > 0.8f && (h < 50 || h > 340)) return h < 20 || h > 340 ? "pembe" : "krem";
-            if (h < 15 || h >= 345) return v > 0.8f && s < 0.55f ? "pembe" : "kırmızı";
-            if (h < 40) return v < 0.65f ? "kahverengi" : "turuncu";
-            if (h < 65) return v < 0.6f ? "kahverengi" : "sarı";
-            if (h < 160) return "yeşil";
-            if (h < 195) return "turkuaz";
-            if (h < 250) return v < 0.45f ? "lacivert" : "mavi";
-            if (h < 290) return "mor";
-            if (h < 345) return "pembe";
-            return "renk";
+            if (v < 0.22f) return "black";
+            if (s < 0.12f) return v > 0.85f ? "white" : "gray";
+            if (s < 0.3f && v > 0.8f && (h < 50 || h > 340)) return h < 20 || h > 340 ? "pink" : "cream";
+            if (h < 15 || h >= 345) return v > 0.8f && s < 0.55f ? "pink" : "red";
+            if (h < 40) return v < 0.65f ? "brown" : "orange";
+            if (h < 65) return v < 0.6f ? "brown" : "yellow";
+            if (h < 160) return "green";
+            if (h < 195) return "turquoise";
+            if (h < 250) return v < 0.45f ? "navy" : "blue";
+            if (h < 290) return "purple";
+            return "pink";
         }
 
         // ---------------- Resimler ----------------
 
-        /// <summary>İngilizce kelime -> (Türkçe ad, belirtme hâli "…ı bul" için).</summary>
-        static readonly Dictionary<string, (string name, string acc)> Words = new()
+        /// <summary>Dosya adındaki İngilizce kelime -> tablo anahtarı.</summary>
+        static readonly Dictionary<string, string> Words = new()
         {
-            ["cat"] = ("kedi", "kediyi"), ["kitten"] = ("kedi", "kediyi"),
-            ["dog"] = ("köpek", "köpeği"), ["puppy"] = ("yavru köpek", "yavru köpeği"),
-            ["lion"] = ("aslan", "aslanı"), ["tiger"] = ("kaplan", "kaplanı"),
-            ["elephant"] = ("fil", "fili"), ["giraffe"] = ("zürafa", "zürafayı"),
-            ["unicorn"] = ("tek boynuzlu at", "tek boynuzlu atı"), ["panda"] = ("panda", "pandayı"),
-            ["owl"] = ("baykuş", "baykuşu"), ["fox"] = ("tilki", "tilkiyi"), ["wolf"] = ("kurt", "kurdu"),
-            ["deer"] = ("geyik", "geyiği"), ["duck"] = ("ördek", "ördeği"), ["dolphin"] = ("yunus", "yunusu"),
-            ["bear"] = ("ayı", "ayıyı"), ["teddybear"] = ("oyuncak ayı", "oyuncak ayıyı"),
-            ["strawberry"] = ("çilek", "çileği"), ["watermelon"] = ("karpuz", "karpuzu"),
-            ["ice"] = ("dondurma", "dondurmayı"), ["ghost"] = ("hayalet", "hayaleti"),
-            ["witch"] = ("cadı", "cadıyı"), ["snowman"] = ("kardan adam", "kardan adamı"),
-["bunny"] = ("tavşan", "tavşanı"), ["rabbit"] = ("tavşan", "tavşanı"),
-            ["octopus"] = ("ahtapot", "ahtapotu"), ["seal"] = ("fok", "foku"), ["walrus"] = ("mors", "morsu"),
-            ["cake"] = ("pasta", "pastayı"), ["tomato"] = ("domates", "domatesi"),
-            ["monkey"] = ("maymun", "maymunu"), ["alligator"] = ("timsah", "timsahı"),
+            ["cat"] = "cat", ["kitten"] = "cat", ["dog"] = "dog", ["puppy"] = "puppy", ["lion"] = "lion", ["tiger"] = "tiger",
+            ["elephant"] = "elephant", ["giraffe"] = "giraffe", ["unicorn"] = "unicorn", ["panda"] = "panda", ["owl"] = "owl",
+            ["fox"] = "fox", ["wolf"] = "wolf", ["deer"] = "deer", ["duck"] = "duck", ["dolphin"] = "dolphin", ["bear"] = "bear",
+            ["teddybear"] = "teddybear", ["strawberry"] = "strawberry", ["watermelon"] = "watermelon", ["ice"] = "ice",
+            ["ghost"] = "ghost", ["witch"] = "witch", ["snowman"] = "snowman", ["bunny"] = "bunny", ["rabbit"] = "bunny",
         };
 
-        /// <summary>Dosya adından anlaşılmayan resimler için elle verilen adlar.</summary>
-        static readonly Dictionary<string, (string name, string acc)> ById = new()
+        /// <summary>Dosya adından anlaşılmayan resimler.</summary>
+        static readonly Dictionary<string, string> ById = new()
         {
-            ["artrose-easter-6122817"] = ("civciv", "civcivi"),
-            ["artrose-easter-6122832"] = ("tavşan", "tavşanı"),
-            ["artrose-easter-6122870"] = ("civciv", "civcivi"),
-            ["artrose-easter-6122901"] = ("ördek", "ördeği"),
-            ["purepageart-coloring-page-9943298"] = ("ayı", "ayıyı"),
-            ["purepageart-coloring-page-9943301"] = ("aslan", "aslanı"),
-            ["purepageart-cute-9005708"] = ("midilli", "midilliyi"),
-            ["purepageart-cute-9069178"] = ("hayalet", "hayaleti"),
+            ["artrose-easter-6122817"] = "chick", ["artrose-easter-6122832"] = "bunny",
+            ["artrose-easter-6122870"] = "chick", ["artrose-easter-6122901"] = "duck",
+            ["purepageart-coloring-page-9943298"] = "bear", ["purepageart-coloring-page-9943301"] = "lion",
+            ["purepageart-cute-9005708"] = "pony", ["purepageart-cute-9069178"] = "ghost",
         };
 
-        static (string name, string acc)? Lookup(string id)
+        static string Key(string id)
         {
-            if (ById.TryGetValue(id, out var byId)) return byId;
+            if (ById.TryGetValue(id, out var k)) return k;
             var parts = id.ToLowerInvariant().Split('-');
-            // "polar bear" gibi iki kelimelileri önce dene
             for (int i = 0; i + 1 < parts.Length; i++)
-                if (parts[i] == "polar" && parts[i + 1] == "bear") return ("kutup ayısı", "kutup ayısını");
+                if (parts[i] == "polar" && parts[i + 1] == "bear") return "polarbear";
             for (int i = 1; i < parts.Length; i++)
                 if (Words.TryGetValue(parts[i], out var w)) return w;
             return null;
         }
 
-        /// <summary>Galeri ve başlıklarda görünen Türkçe ad.</summary>
+        /// <summary>Galeri ve başlıklarda görünen ad.</summary>
         public static string LevelTitle(string id)
         {
-            var w = Lookup(id);
-            if (w == null) return Level.PrettyName(id);
-            var n = w.Value.name;
-            return char.ToUpper(n[0], new System.Globalization.CultureInfo("tr-TR")) + n.Substring(1);
+            var k = Key(id);
+            return Cap(k != null ? Word(k).name : Loc.T("picture"));
         }
 
-        /// <summary>Hayvan/nesne adı biliniyorsa (ad, belirtme hâli).</summary>
+        /// <summary>Resmin adı biliniyorsa (yalın ad, cümle içi biçim).</summary>
         public static bool TryAnimal(string id, out string name, out string accusative)
         {
-            var w = Lookup(id);
-            name = w?.name;
-            accusative = w?.acc;
-            return w != null;
+            var k = Key(id);
+            name = accusative = null;
+            if (k == null) return false;
+            (name, accusative) = Word(k);
+            return true;
         }
+
+        /// <summary>Baş harfi büyük (Türkçede İ/ı kuralıyla).</summary>
+        public static string Cap(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            var culture = Loc.Lang == "tr" ? new CultureInfo("tr-TR") : CultureInfo.InvariantCulture;
+            return char.ToUpper(s[0], culture) + s.Substring(1);
+        }
+
+        // ---------------- Tablo ----------------
+
+        static Dictionary<string, string[]> _words;
+
+        static (string name, string form) Word(string key)
+        {
+            if (_words == null) Parse();
+            if (key == null || !_words.TryGetValue(key, out var row)) return (key, key);
+            int i = Loc.Index * 2;
+            if (i + 1 >= row.Length) i = 0;
+            return (row[i], row[i + 1]);
+        }
+
+        static void Parse()
+        {
+            _words = new Dictionary<string, string[]>();
+            foreach (var raw in Table.Split('\n'))
+            {
+                var line = raw.Trim('\r');
+                if (line.Length == 0 || line.StartsWith("#")) continue;
+                var p = line.Split('|');
+                var vals = new string[p.Length - 1];
+                for (int i = 1; i < p.Length; i++) vals[i - 1] = p[i].Trim();
+                _words[p[0].Trim()] = vals;
+            }
+        }
+
+        // anahtar | en ad | en biçim | tr | tr | de | de | fr | fr | es | es | it | it | pt | pt | ru | ru | ar | ar | hi | hi
+        const string Table = @"
+# renkler
+red|red|red|kırmızı|kırmızıyı|Rot|Rot|rouge|le rouge|rojo|el rojo|rosso|il rosso|vermelho|o vermelho|красный|красный|أحمر|الأحمر|लाल|लाल
+orange|orange|orange|turuncu|turuncuyu|Orange|Orange|orange|l'orange|naranja|el naranja|arancione|l'arancione|laranja|o laranja|оранжевый|оранжевый|برتقالي|البرتقالي|नारंगी|नारंगी
+yellow|yellow|yellow|sarı|sarıyı|Gelb|Gelb|jaune|le jaune|amarillo|el amarillo|giallo|il giallo|amarelo|o amarelo|жёлтый|жёлтый|أصفر|الأصفر|पीला|पीला
+green|green|green|yeşil|yeşili|Grün|Grün|vert|le vert|verde|el verde|verde|il verde|verde|o verde|зелёный|зелёный|أخضر|الأخضر|हरा|हरा
+blue|blue|blue|mavi|maviyi|Blau|Blau|bleu|le bleu|azul|el azul|blu|il blu|azul|o azul|синий|синий|أزرق|الأزرق|नीला|नीला
+purple|purple|purple|mor|moru|Lila|Lila|violet|le violet|morado|el morado|viola|il viola|roxo|o roxo|фиолетовый|фиолетовый|بنفسجي|البنفسجي|बैंगनी|बैंगनी
+pink|pink|pink|pembe|pembeyi|Rosa|Rosa|rose|le rose|rosa|el rosa|rosa|il rosa|cor-de-rosa|o cor-de-rosa|розовый|розовый|وردي|الوردي|गुलाबी|गुलाबी
+brown|brown|brown|kahverengi|kahverengiyi|Braun|Braun|marron|le marron|marrón|el marrón|marrone|il marrone|castanho|o castanho|коричневый|коричневый|بني|البني|भूरा|भूरा
+black|black|black|siyah|siyahı|Schwarz|Schwarz|noir|le noir|negro|el negro|nero|il nero|preto|o preto|чёрный|чёрный|أسود|الأسود|काला|काला
+white|white|white|beyaz|beyazı|Weiß|Weiß|blanc|le blanc|blanco|el blanco|bianco|il bianco|branco|o branco|белый|белый|أبيض|الأبيض|सफ़ेद|सफ़ेद
+gray|gray|gray|gri|griyi|Grau|Grau|gris|le gris|gris|el gris|grigio|il grigio|cinzento|o cinzento|серый|серый|رمادي|الرمادي|स्लेटी|स्लेटी
+cream|cream|cream|krem|kremi|Creme|Creme|crème|le crème|crema|el crema|crema|il crema|creme|o creme|кремовый|кремовый|كريمي|الكريمي|क्रीम|क्रीम
+turquoise|turquoise|turquoise|turkuaz|turkuazı|Türkis|Türkis|turquoise|le turquoise|turquesa|el turquesa|turchese|il turchese|turquesa|o turquesa|бирюзовый|бирюзовый|فيروزي|الفيروزي|फ़िरोज़ी|फ़िरोज़ी
+navy|navy blue|navy blue|lacivert|laciverti|Dunkelblau|Dunkelblau|bleu marine|le bleu marine|azul marino|el azul marino|blu scuro|il blu scuro|azul-marinho|o azul-marinho|тёмно-синий|тёмно-синий|كحلي|الكحلي|गहरा नीला|गहरा नीला
+# resimler
+cat|cat|the cat|kedi|kediyi|Katze|die Katze|chat|le chat|gato|el gato|gatto|il gatto|gato|o gato|кошка|кошку|قطة|القطة|बिल्ली|बिल्ली
+dog|dog|the dog|köpek|köpeği|Hund|den Hund|chien|le chien|perro|el perro|cane|il cane|cão|o cão|собака|собаку|كلب|الكلب|कुत्ता|कुत्ता
+puppy|puppy|the puppy|yavru köpek|yavru köpeği|Welpe|den Welpen|chiot|le chiot|cachorro|el cachorro|cucciolo|il cucciolo|cachorrinho|o cachorrinho|щенок|щенка|جرو|الجرو|पिल्ला|पिल्ला
+lion|lion|the lion|aslan|aslanı|Löwe|den Löwen|lion|le lion|león|el león|leone|il leone|leão|o leão|лев|льва|أسد|الأسد|शेर|शेर
+tiger|tiger|the tiger|kaplan|kaplanı|Tiger|den Tiger|tigre|le tigre|tigre|el tigre|tigre|la tigre|tigre|o tigre|тигр|тигра|نمر|النمر|बाघ|बाघ
+elephant|elephant|the elephant|fil|fili|Elefant|den Elefanten|éléphant|l'éléphant|elefante|el elefante|elefante|l'elefante|elefante|o elefante|слон|слона|فيل|الفيل|हाथी|हाथी
+giraffe|giraffe|the giraffe|zürafa|zürafayı|Giraffe|die Giraffe|girafe|la girafe|jirafa|la jirafa|giraffa|la giraffa|girafa|a girafa|жираф|жирафа|زرافة|الزرافة|जिराफ़|जिराफ़
+unicorn|unicorn|the unicorn|tek boynuzlu at|tek boynuzlu atı|Einhorn|das Einhorn|licorne|la licorne|unicornio|el unicornio|unicorno|l'unicorno|unicórnio|o unicórnio|единорог|единорога|يونيكورن|اليونيكورن|यूनिकॉर्न|यूनिकॉर्न
+panda|panda|the panda|panda|pandayı|Panda|den Panda|panda|le panda|panda|el panda|panda|il panda|panda|o panda|панда|панду|باندا|الباندا|पांडा|पांडा
+owl|owl|the owl|baykuş|baykuşu|Eule|die Eule|hibou|le hibou|búho|el búho|gufo|il gufo|coruja|a coruja|сова|сову|بومة|البومة|उल्लू|उल्लू
+fox|fox|the fox|tilki|tilkiyi|Fuchs|den Fuchs|renard|le renard|zorro|el zorro|volpe|la volpe|raposa|a raposa|лиса|лису|ثعلب|الثعلب|लोमड़ी|लोमड़ी
+wolf|wolf|the wolf|kurt|kurdu|Wolf|den Wolf|loup|le loup|lobo|el lobo|lupo|il lupo|lobo|o lobo|волк|волка|ذئب|الذئب|भेड़िया|भेड़िया
+deer|deer|the deer|geyik|geyiği|Reh|das Reh|cerf|le cerf|ciervo|el ciervo|cervo|il cervo|veado|o veado|олень|оленя|غزال|الغزال|हिरण|हिरण
+duck|duck|the duck|ördek|ördeği|Ente|die Ente|canard|le canard|pato|el pato|papera|la papera|pato|o pato|утка|утку|بطة|البطة|बत्तख|बत्तख
+dolphin|dolphin|the dolphin|yunus|yunusu|Delfin|den Delfin|dauphin|le dauphin|delfín|el delfín|delfino|il delfino|golfinho|o golfinho|дельфин|дельфина|دلفين|الدلفين|डॉल्फ़िन|डॉल्फ़िन
+bear|bear|the bear|ayı|ayıyı|Bär|den Bären|ours|l'ours|oso|el oso|orso|l'orso|urso|o urso|медведь|медведя|دب|الدب|भालू|भालू
+teddybear|teddy bear|the teddy bear|oyuncak ayı|oyuncak ayıyı|Teddybär|den Teddybären|nounours|le nounours|osito|el osito|orsacchiotto|l'orsacchiotto|ursinho|o ursinho|мишка|мишку|دبدوب|الدبدوب|टेडी बियर|टेडी बियर
+polarbear|polar bear|the polar bear|kutup ayısı|kutup ayısını|Eisbär|den Eisbären|ours polaire|l'ours polaire|oso polar|el oso polar|orso polare|l'orso polare|urso-polar|o urso-polar|белый медведь|белого медведя|دب قطبي|الدب القطبي|ध्रुवीय भालू|ध्रुवीय भालू
+strawberry|strawberry|the strawberry|çilek|çileği|Erdbeere|die Erdbeere|fraise|la fraise|fresa|la fresa|fragola|la fragola|morango|o morango|клубника|клубнику|فراولة|الفراولة|स्ट्रॉबेरी|स्ट्रॉबेरी
+watermelon|watermelon|the watermelon|karpuz|karpuzu|Wassermelone|die Wassermelone|pastèque|la pastèque|sandía|la sandía|anguria|l'anguria|melancia|a melancia|арбуз|арбуз|بطيخ|البطيخ|तरबूज़|तरबूज़
+ice|ice cream|the ice cream|dondurma|dondurmayı|Eis|das Eis|glace|la glace|helado|el helado|gelato|il gelato|gelado|o gelado|мороженое|мороженое|آيس كريم|الآيس كريم|आइसक्रीम|आइसक्रीम
+ghost|ghost|the ghost|hayalet|hayaleti|Gespenst|das Gespenst|fantôme|le fantôme|fantasma|el fantasma|fantasma|il fantasma|fantasma|o fantasma|привидение|привидение|شبح|الشبح|भूत|भूत
+witch|witch|the witch|cadı|cadıyı|Hexe|die Hexe|sorcière|la sorcière|bruja|la bruja|strega|la strega|bruxa|a bruxa|ведьма|ведьму|ساحرة|الساحرة|चुड़ैल|चुड़ैल
+snowman|snowman|the snowman|kardan adam|kardan adamı|Schneemann|den Schneemann|bonhomme de neige|le bonhomme de neige|muñeco de nieve|el muñeco de nieve|pupazzo di neve|il pupazzo di neve|boneco de neve|o boneco de neve|снеговик|снеговика|رجل الثلج|رجل الثلج|स्नोमैन|स्नोमैन
+bunny|bunny|the bunny|tavşan|tavşanı|Hase|den Hasen|lapin|le lapin|conejo|el conejo|coniglio|il coniglio|coelho|o coelho|зайчик|зайчика|أرنب|الأرنب|खरगोश|खरगोश
+chick|chick|the chick|civciv|civcivi|Küken|das Küken|poussin|le poussin|pollito|el pollito|pulcino|il pulcino|pintainho|o pintainho|цыплёнок|цыплёнка|صوص|الصوص|चूज़ा|चूज़ा
+pony|pony|the pony|midilli|midilliyi|Pony|das Pony|poney|le poney|poni|el poni|pony|il pony|pónei|o pónei|пони|пони|مهر|المهر|टट्टू|टट्टू
+";
     }
 }

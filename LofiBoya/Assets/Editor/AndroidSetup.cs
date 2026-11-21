@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Android;
 using UnityEditor.Build;
 using UnityEngine;
 
@@ -42,9 +43,33 @@ namespace LofiBoya.EditorTools
             PlayerSettings.Android.renderOutsideSafeArea = false;
             PlayerSettings.runInBackground = false;
             EditorUserBuildSettings.buildAppBundle = true;
+            ApplyIcons();
             ApplySigning(true);
             AssetDatabase.SaveAssets();
             Debug.Log($"[LofiBoya] Android: {PackageName} v{VersionName} ({VersionCode}), IL2CPP ARM64+ARMv7, AAB");
+        }
+
+        /// <summary>Uygulama ikonu: Assets/Art/AppIcon (magaza_gorselleri.py üretir).</summary>
+        public static void ApplyIcons()
+        {
+            const string dir = "Assets/Art/AppIcon/";
+            var legacy = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "ikon.png");
+            var bg = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "ikon_arka.png");
+            var fg = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "ikon_on.png");
+            if (legacy == null) { Debug.LogWarning("[LofiBoya] İkon bulunamadı: " + dir); return; }
+            PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { legacy }, IconKind.Any);
+            var t = NamedBuildTarget.Android;
+            foreach (var kind in PlayerSettings.GetSupportedIconKinds(t))
+            {
+                var icons = PlayerSettings.GetPlatformIcons(t, kind);
+                foreach (var icon in icons)
+                {
+                    if (kind == AndroidPlatformIconKind.Adaptive && bg != null && fg != null) icon.SetTextures(bg, fg);
+                    else icon.SetTexture(legacy);
+                }
+                PlayerSettings.SetPlatformIcons(t, kind, icons);
+            }
+            Debug.Log("[LofiBoya] Uygulama ikonu ayarlandı");
         }
 
         /// <summary>keys/key.properties varsa imzayı ayarla.</summary>

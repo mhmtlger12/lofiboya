@@ -1,0 +1,155 @@
+using System.Collections.Generic;
+
+namespace LofiBoya
+{
+    /// <summary>
+    /// Metin tablosu. Her satır: anahtar | en | tr | de | fr | es | it | pt | ru | ar | hi
+    /// "\n" satır sonu demektir. Yeni dil eklemek için Loc.Codes'a ve her satıra bir sütun ekleyin.
+    /// </summary>
+    public static class Strings
+    {
+        static Dictionary<string, string[]> _map;
+
+        public static string Get(string key, int lang)
+        {
+            if (_map == null) Parse();
+            if (!_map.TryGetValue(key, out var row)) return null;
+            return lang < row.Length && !string.IsNullOrEmpty(row[lang]) ? row[lang] : null;
+        }
+
+        static void Parse()
+        {
+            _map = new Dictionary<string, string[]>();
+            foreach (var raw in Table.Split('\n'))
+            {
+                var line = raw.Trim('\r');
+                if (line.Length == 0 || line.StartsWith("#")) continue;
+                var parts = line.Split('|');
+                var vals = new string[parts.Length - 1];
+                for (int i = 1; i < parts.Length; i++) vals[i - 1] = parts[i].Trim().Replace("\\n", "\n");
+                _map[parts[0].Trim()] = vals;
+            }
+        }
+
+        const string Table = @"
+# ---------------- Karşılama ----------------
+app_sub|relax  •  color  •  breathe|rahatla  •  boya  •  nefes al|entspannen  •  malen  •  atmen|détends-toi  •  colorie  •  respire|relájate  •  colorea  •  respira|rilassati  •  colora  •  respira|relaxa  •  pinta  •  respira|отдыхай  •  раскрашивай  •  дыши|استرخِ  •  لوّن  •  تنفّس|आराम  •  रंग  •  साँस
+daily|~ today's picture ~|~ bugünün resmi ~|~ Bild des Tages ~|~ dessin du jour ~|~ dibujo del día ~|~ disegno del giorno ~|~ desenho do dia ~|~ картинка дня ~|~ صورة اليوم ~|~ आज का चित्र ~
+start|Start Coloring|Boyamaya Başla|Jetzt malen!|On colorie !|¡A colorear!|Coloriamo!|Vamos pintar!|Раскрашивать!|هيا نلوّن!|रंग भरें!
+learn|Learn|Öğren|Lernen|Apprendre|Aprender|Impara|Aprender|Учиться|تعلّم|सीखो
+stickers_btn|Stickers|Çıkartmalar|Sticker|Stickers|Pegatinas|Adesivi|Cromos|Наклейки|ملصقات|स्टिकर
+music_toast|music: {0}|müzik: {0}|Musik: {0}|musique : {0}|música: {0}|musica: {0}|música: {0}|музыка: {0}|الموسيقى: {0}|संगीत: {0}
+bubble_streak|{0} days\nof coloring!|{0} gündür\nboyuyorsun!|{0} Tage\nam Malen!|{0} jours\nde coloriage !|¡{0} días\ncoloreando!|{0} giorni\na colorare!|{0} dias\na pintar!|Дней подряд:\n{0}!|{0} أيام\nمن التلوين!|{0} दिन से\nरंग रहे हो!
+bubble_daily|today's picture\nis waiting!|bugünün resmi\nseni bekliyor!|Das Bild des\nTages wartet!|le dessin du jour\nt'attend !|¡el dibujo del día\nte espera!|il disegno del\ngiorno ti aspetta!|o desenho do dia\nespera por ti!|картинка дня\nждёт тебя!|صورة اليوم\nبانتظارك!|आज का चित्र\nतैयार है!
+hello|Hi! I'm Puffy. Let's color together!|Merhaba! Ben Pofuduk. Hadi birlikte boyayalım!|Hallo! Ich bin Puffi. Komm, wir malen zusammen!|Coucou ! Je suis Pouf. On colorie ensemble ?|¡Hola! Soy Pufi. ¡Vamos a colorear juntos!|Ciao! Sono Puffi. Coloriamo insieme!|Olá! Eu sou o Fofinho. Vamos pintar juntos!|Привет! Я Пушок. Давай раскрашивать вместе!|مرحبًا! أنا نفنوف. هيا نلوّن معًا!|नमस्ते! मैं पफ़ी हूँ। चलो साथ में रंग भरें!
+hello_streak|Hi! {0} days of coloring in a row. You're amazing!|Merhaba! {0} gündür boyuyorsun, süpersin!|Hallo! Schon {0} Tage hintereinander. Super!|Coucou ! Déjà {0} jours de suite. Bravo !|¡Hola! ¡Ya llevas {0} días seguidos! ¡Genial!|Ciao! Già {0} giorni di fila. Bravissimo!|Olá! Já são {0} dias seguidos. Fantástico!|Привет! Дней подряд: {0}. Ты молодец!|مرحبًا! {0} أيام متتالية. أنت رائع!|नमस्ते! लगातार {0} दिन। बहुत बढ़िया!
+mascot_1|Hee hee! That tickles!|Hihi! Gıdıklanıyorum!|Hihi! Das kitzelt!|Hihi ! Ça chatouille !|¡Jiji! ¡Me haces cosquillas!|Ih ih! Mi fai il solletico!|Hihi! Fazes-me cócegas!|Хи-хи! Щекотно!|هههه! هذا يدغدغني!|हीहीही! गुदगुदी होती है!
+mascot_2|Hello!|Merhaba!|Hallo!|Coucou !|¡Hola!|Ciao!|Olá!|Привет!|مرحبًا!|नमस्ते!
+mascot_3|Let's color!|Hadi boyayalım!|Komm, wir malen!|On colorie ?|¡A colorear!|Coloriamo!|Vamos pintar!|Давай раскрашивать!|هيا نلوّن!|चलो रंग भरें!
+mascot_4|You're awesome!|Sen harikasın!|Du bist toll!|Tu es génial !|¡Eres genial!|Sei fantastico!|És fantástico!|Ты супер!|أنت رائع!|तुम कमाल हो!
+mascot_5|Which color shall we pick today?|Bugün hangi rengi seçelim?|Welche Farbe nehmen wir heute?|Quelle couleur on choisit aujourd'hui ?|¿Qué color elegimos hoy?|Che colore scegliamo oggi?|Que cor escolhemos hoje?|Какой цвет выберем сегодня?|أي لون نختار اليوم؟|आज कौन-सा रंग चुनें?
+# ---------------- Galeri ----------------
+gallery_title|My Coloring Book|Boyama Defterim|Mein Malbuch|Mon coloriage|Mi cuaderno|Il mio album|O meu caderno|Моя раскраска|دفتر التلوين|मेरी रंग किताब
+gallery_sub|what would you like to color today?|bugün ne boyamak istersin?|Was möchtest du heute malen?|Que veux-tu colorier aujourd'hui ?|¿Qué quieres colorear hoy?|Cosa vuoi colorare oggi?|O que queres pintar hoje?|Что раскрасим сегодня?|ماذا تريد أن تلوّن اليوم؟|आज क्या रंगोगे?
+empty_tab|New pictures are on the way!\n\nWhy not color the\nEasy ones for now?|Yeni resimler yolda!\n\nŞimdilik Kolay'daki resimleri\nboyamaya ne dersin?|Neue Bilder sind unterwegs!\n\nMal doch erst die\nleichten Bilder aus!|De nouveaux dessins arrivent !\n\nEn attendant, colorie\nles dessins faciles !|¡Pronto habrá dibujos nuevos!\n\nMientras tanto,\n¡colorea los fáciles!|Nuovi disegni in arrivo!\n\nIntanto colora\nquelli facili!|Novos desenhos a caminho!\n\nEntretanto, pinta\nos fáceis!|Скоро будут новые картинки!\n\nА пока раскрась\nлёгкие!|رسومات جديدة قادمة!\n\nلوّن الآن\nالرسومات السهلة!|नए चित्र जल्दी आएँगे!\n\nअभी आसान वाले\nचित्र रंगो!
+blank_page|Blank Page|Boş Sayfa|Leere Seite|Page blanche|Hoja en blanco|Foglio bianco|Folha em branco|Чистый лист|صفحة فارغة|खाली पन्ना
+draw_badge|draw!|çiz!|malen!|dessine !|¡dibuja!|disegna!|desenha!|рисуй!|ارسم!|बनाओ!
+badge_new|new|yeni|neu|nouveau|nuevo|nuovo|novo|новое|جديد|नया
+badge_done|done!|bitti!|fertig!|fini !|¡listo!|fatto!|feito!|готово!|تم!|पूरा!
+easy|Easy|Kolay|Leicht|Facile|Fácil|Facile|Fácil|Лёгкие|سهل|आसान
+medium|Medium|Orta|Mittel|Moyen|Medio|Medio|Médio|Средние|متوسط|मध्यम
+hard|Hard|Zor|Schwer|Difficile|Difícil|Difficile|Difícil|Сложные|صعب|कठिन
+picture|Picture|Resim|Bild|Dessin|Dibujo|Disegno|Desenho|Картинка|صورة|चित्र
+# ---------------- Boyama ----------------
+percent|{0}%|%{0}|{0} %|{0} %|{0} %|{0}%|{0}%|{0}%|{0}%|{0}%
+finish|Finish  ›|Bitir  ›|Fertig  ›|Terminer  ›|Terminar  ›|Fine  ›|Terminar  ›|Готово  ›|إنهاء|पूरा  ›
+intro|{0}! Let's color it!|Bu bir {1}! Hadi boyayalım.|{0}! Lass uns malen!|{0} ! On colorie !|¡{0}! ¡A colorear!|{0}! Coloriamo!|{0}! Vamos pintar!|{0}! Давай раскрашивать!|{0}! هيا نلوّن!|{0}! चलो रंग भरें!
+all_painted|everything is colored|her yer boyanmış|alles ist ausgemalt|tout est colorié|todo está coloreado|è tutto colorato|está tudo pintado|всё раскрашено|كل شيء ملوّن|सब रंग गया
+tip_pencil|draw with your finger · move with two fingers|parmağınla çiz · iki parmakla kaydır|mit dem Finger malen · mit zwei Fingern schieben|dessine avec ton doigt · deux doigts pour bouger|dibuja con el dedo · mueve con dos dedos|disegna con il dito · sposta con due dita|desenha com o dedo · move com dois dedos|рисуй пальцем · двигай двумя пальцами|ارسم بإصبعك · حرّك بإصبعين|उँगली से बनाओ · दो उँगलियों से हिलाओ
+tip_stamp|tap to stamp! · pick a shape on the right|dokun, damga bas! · sağdan şekil seç|tippen zum Stempeln! · Form rechts wählen|touche pour tamponner ! · forme à droite|¡toca para estampar! · forma a la derecha|tocca per timbrare! · forma a destra|toca para carimbar! · forma à direita|нажми — будет штамп! · форма справа|المس لتطبع! · الشكل من اليمين|छूकर ठप्पा लगाओ! · दाएँ से आकार चुनो
+tip_eraser|erase · tap to clear an area|sil · dokununca bölgeyi boşaltır|radieren · Tippen leert eine Fläche|gomme · touche pour vider une zone|borra · toca para vaciar una zona|cancella · tocca per svuotare un'area|apaga · toca para limpar uma área|стирай · нажми, чтобы очистить|امسح · المس لتفريغ منطقة|मिटाओ · छूकर हिस्सा साफ़ करो
+numbered|Color by Number|Sayılı Boyama|Malen nach Zahlen|Coloriage magique|Colorear por números|Colora per numeri|Pintar por números|По номерам|التلوين بالأرقام|अंकों से रंग
+no_numbers_blank|no numbers here, draw freely!|boş sayfada sayı yok, serbestçe çiz!|hier gibt es keine Zahlen, mal frei!|pas de numéros ici, dessine librement !|aquí no hay números, ¡dibuja libre!|qui non ci sono numeri, disegna libero!|aqui não há números, desenha à vontade!|здесь нет номеров, рисуй свободно!|لا أرقام هنا، ارسم بحرية!|यहाँ अंक नहीं हैं, खुलकर बनाओ!
+numbers_on|Color by number! Pick the color with the same number.|Sayılı boyama! Numarayla aynı rengi seç.|Malen nach Zahlen! Nimm die Farbe mit der gleichen Zahl.|Coloriage magique ! Choisis la couleur du même numéro.|¡Colorear por números! Elige el color con el mismo número.|Colora per numeri! Scegli il colore con lo stesso numero.|Pintar por números! Escolhe a cor com o mesmo número.|Раскраска по номерам! Выбери цвет с таким же номером.|التلوين بالأرقام! اختر اللون الذي يحمل نفس الرقم.|अंकों से रंग! वही अंक वाला रंग चुनो।
+number_hint|This is number {0}. Pick {1}!|Burası {0}. {1} kalemi seç!|Das ist die {0}. Nimm {1}!|C'est le {0}. Prends {1} !|Es el {0}. ¡Elige {1}!|È il {0}. Scegli {1}!|É o {0}. Escolhe {1}!|Это номер {0}. Выбери {1}!|هذا الرقم {0}. اختر {1}!|यह {0} नंबर है। {1} रंग चुनो!
+already_clean|it's already clean|zaten tertemiz|schon ganz sauber|c'est déjà tout propre|ya está limpio|è già pulito|já está limpo|уже чисто|إنها نظيفة بالفعل|पहले से साफ़ है
+clear_title|Clear everything?|Temizlensin mi?|Alles löschen?|Tout effacer ?|¿Borrar todo?|Cancellare tutto?|Apagar tudo?|Стереть всё?|مسح كل شيء؟|सब मिटा दें?
+clear_msg|All the colors in this picture will be erased.|Bu resimdeki bütün boyalar silinecek.|Alle Farben in diesem Bild werden gelöscht.|Toutes les couleurs de ce dessin seront effacées.|Se borrarán todos los colores de este dibujo.|Tutti i colori di questo disegno verranno cancellati.|Todas as cores deste desenho serão apagadas.|Все цвета на этой картинке сотрутся.|سيتم مسح كل الألوان في هذه الصورة.|इस चित्र के सारे रंग मिट जाएँगे।
+clear_yes|clear|temizle|löschen|effacer|borrar|cancella|apagar|стереть|امسح|मिटाओ
+clear_no|cancel|vazgeç|abbrechen|annuler|cancelar|annulla|cancelar|отмена|إلغاء|रहने दो
+streak_toast|{0} days of coloring in a row!|{0} gündür boyuyorsun!|{0} Tage hintereinander gemalt!|{0} jours de coloriage de suite !|¡{0} días seguidos coloreando!|{0} giorni di fila a colorare!|{0} dias seguidos a pintar!|Дней подряд: {0}!|{0} أيام متتالية من التلوين!|लगातार {0} दिन से रंग रहे हो!
+streak_say|{0} days in a row! You're super!|{0} gündür boyuyorsun! Süpersin!|{0} Tage hintereinander! Super!|{0} jours de suite ! Tu es super !|¡{0} días seguidos! ¡Eres genial!|{0} giorni di fila! Sei super!|{0} dias seguidos! És o máximo!|Дней подряд: {0}! Ты супер!|{0} أيام متتالية! أنت رائع!|लगातार {0} दिन! तुम कमाल हो!
+magic_normal_say|Normal paint|Normal boya|Normale Farbe|Peinture normale|Pintura normal|Colore normale|Tinta normal|Обычная краска|لون عادي|सादा रंग
+magic_say|{0} paint!|{0} boya!|{0}-Farbe!|Peinture {0} !|¡Pintura {0}!|Colore {0}!|Tinta {0}!|Краска «{0}»!|لون {0}!|{0} रंग!
+magic_1|Glitter|Simli|Glitzer|pailletée|brillante|glitter|brilhante|Блёстки|لامع|चमकीला
+magic_2|Rainbow|Gökkuşağı|Regenbogen|arc-en-ciel|arcoíris|arcobaleno|arco-íris|Радуга|قوس قزح|इंद्रधनुष
+magic_3|Polka dot|Puantiye|Punkte|à pois|de lunares|a pois|às bolinhas|Горошек|منقّط|बिंदी वाला
+magic_4|Starry|Yıldızlı|Sternen|étoilée|de estrellas|stellato|estrelado|Звёздочки|نجوم|तारों वाला
+stamp_0|Heart|Kalp|Herz|Cœur|Corazón|Cuore|Coração|Сердечко|قلب|दिल
+stamp_1|Star|Yıldız|Stern|Étoile|Estrella|Stella|Estrela|Звёздочка|نجمة|तारा
+stamp_2|Flower|Çiçek|Blume|Fleur|Flor|Fiore|Flor|Цветок|زهرة|फूल
+stamp_3|Balloon|Balon|Ballon|Ballon|Globo|Palloncino|Balão|Шарик|بالون|गुब्बारा
+stamp_4|Cloud|Bulut|Wolke|Nuage|Nube|Nuvola|Nuvem|Облако|غيمة|बादल
+pal_0|Pastel|Pastel|Pastell|Pastel|Pastel|Pastello|Pastel|Пастель|باستيل|पेस्टल
+pal_1|Candy|Şeker|Bonbon|Bonbon|Caramelo|Caramella|Doce|Конфеты|حلوى|कैंडी
+pal_2|Sunset|Gün Batımı|Abendrot|Coucher de soleil|Atardecer|Tramonto|Pôr do sol|Закат|غروب|सूर्यास्त
+pal_3|Forest|Orman|Wald|Forêt|Bosque|Bosco|Floresta|Лес|غابة|जंगल
+pal_4|Ocean|Okyanus|Ozean|Océan|Océano|Oceano|Oceano|Океан|محيط|सागर
+pal_5|Classic|Klasik|Klassisch|Classique|Clásico|Classico|Clássico|Классика|كلاسيك|क्लासिक
+# ---------------- Bitiş ----------------
+great|Wonderful!|Harika!|Toll!|Génial !|¡Genial!|Fantastico!|Fantástico!|Чудесно!|رائع!|वाह!
+done_sub|you finished your picture, it's lovely|resmini tamamladın, çok güzel oldu|dein Bild ist fertig, wunderschön|ton dessin est fini, il est superbe|terminaste tu dibujo, ¡qué bonito!|hai finito il disegno, è bellissimo|acabaste o desenho, ficou lindo|картинка готова, очень красиво|أنهيت رسمتك، إنها جميلة|तुम्हारा चित्र पूरा हुआ, बहुत सुंदर
+gallery|Gallery|Galeri|Galerie|Galerie|Galería|Galleria|Galeria|Галерея|المعرض|गैलरी
+gallery_next|Gallery  ›|Galeri  ›|Galerie  ›|Galerie  ›|Galería  ›|Galleria  ›|Galeria  ›|Галерея  ›|المعرض|गैलरी  ›
+save|Save|Kaydet|Speichern|Garder|Guardar|Salva|Guardar|Сохранить|حفظ|सेव
+saved_btn|Saved|Kaydedildi|Gespeichert|Gardé|Guardado|Salvato|Guardado|Готово|تم الحفظ|सेव हुआ
+next|Next  ›|Sonraki  ›|Weiter  ›|Suivant  ›|Siguiente  ›|Avanti  ›|Seguinte  ›|Дальше  ›|التالي|अगला  ›
+done_say|Great job! You finished your picture!|Harika! Resmini bitirdin!|Toll gemacht! Dein Bild ist fertig!|Bravo ! Tu as fini ton dessin !|¡Muy bien! ¡Terminaste tu dibujo!|Bravo! Hai finito il disegno!|Muito bem! Acabaste o desenho!|Молодец! Картинка готова!|أحسنت! أنهيت رسمتك!|शाबाश! तुमने चित्र पूरा किया!
+done_named|Wonderful! You colored {0}!|Harika! {0} boyadın!|Toll! Du hast {0} ausgemalt!|Bravo ! Tu as colorié {0} !|¡Genial! ¡Coloreaste {0}!|Fantastico! Hai colorato {0}!|Fantástico! Pintaste {0}!|Отлично! Ты раскрасил {0}!|رائع! لقد لوّنت {0}!|वाह! तुमने {0} रंग दिया!
+blank_done_say|You made a beautiful picture!|Çok güzel bir resim yaptın!|Du hast ein wunderschönes Bild gemalt!|Tu as fait un très joli dessin !|¡Hiciste un dibujo precioso!|Hai fatto un disegno bellissimo!|Fizeste um desenho lindo!|Ты нарисовал красивую картинку!|رسمت صورة جميلة جدًا!|तुमने बहुत सुंदर चित्र बनाया!
+saved_say|Your picture is saved! You can show it to your family.|Resmin kaydedildi! Annene babana gösterebilirsin.|Dein Bild ist gespeichert! Zeig es deiner Familie.|Ton dessin est gardé ! Montre-le à ta famille.|¡Tu dibujo está guardado! Enséñaselo a tu familia.|Il tuo disegno è salvato! Mostralo alla tua famiglia.|O teu desenho foi guardado! Mostra-o à tua família.|Картинка сохранена! Покажи её родным.|تم حفظ رسمتك! أرِها لعائلتك.|चित्र सेव हो गया! परिवार को दिखाओ।
+saved_gallery|saved to your photos!|galeriye kaydedildi!|in deinen Fotos gespeichert!|enregistré dans tes photos !|¡guardado en tus fotos!|salvato nelle tue foto!|guardado nas tuas fotos!|сохранено в фото!|تم الحفظ في الصور!|फ़ोटो में सेव हुआ!
+saved_local|your picture was saved!|resmin kaydedildi!|dein Bild wurde gespeichert!|ton dessin est enregistré !|¡tu dibujo se guardó!|il disegno è stato salvato!|o desenho foi guardado!|картинка сохранена!|تم حفظ رسمتك!|चित्र सेव हुआ!
+save_failed|couldn't save|kaydedilemedi|Speichern fehlgeschlagen|impossible d'enregistrer|no se pudo guardar|impossibile salvare|não foi possível guardar|не удалось сохранить|تعذّر الحفظ|सेव नहीं हुआ
+# ---------------- Öğren ----------------
+learn_sub|which game shall we play?|hangi oyunu oynayalım?|Welches Spiel spielen wir?|À quel jeu on joue ?|¿A qué jugamos?|A che gioco giochiamo?|A que jogamos?|Во что поиграем?|أي لعبة نلعب؟|कौन-सा खेल खेलें?
+colors|Colors|Renkler|Farben|Couleurs|Colores|Colori|Cores|Цвета|الألوان|रंग
+colors_sub|find the color|rengi bul|finde die Farbe|trouve la couleur|encuentra el color|trova il colore|encontra a cor|найди цвет|ابحث عن اللون|रंग ढूँढो
+pictures|Pictures|Resimler|Bilder|Dessins|Dibujos|Disegni|Desenhos|Картинки|صور|चित्र
+pictures_sub|which one?|hangisi?|welches?|lequel ?|¿cuál?|quale?|qual?|какая?|أيّها؟|कौन-सा?
+soon|coming soon!|yakında!|bald!|bientôt !|¡muy pronto!|presto!|em breve!|скоро!|قريبًا!|जल्द आ रहा है!
+find|Find {0}!|{0} bul!|Finde {0}!|Trouve {0} !|¡Encuentra {0}!|Trova {0}!|Encontra {0}!|Найди {0}!|ابحث عن {0}!|{0} ढूँढो!
+cheer_0|Well done!|Aferin!|Gut gemacht!|Bien joué !|¡Muy bien!|Bravo!|Muito bem!|Молодец!|أحسنت!|शाबाश!
+cheer_1|Super!|Süpersin!|Super!|Super !|¡Súper!|Super!|Boa!|Супер!|ممتاز!|बहुत बढ़िया!
+cheer_2|Wonderful!|Harika!|Toll!|Génial !|¡Genial!|Fantastico!|Fantástico!|Чудесно!|رائع!|वाह!
+cheer_3|Bravo!|Bravo!|Bravo!|Bravo !|¡Bravo!|Evviva!|Bravo!|Браво!|برافو!|बहुत खूब!
+right_say|{0} {1}!|{0} Bu {1}!|{0} {1}!|{0} {1} !|{0} ¡{1}!|{0} {1}!|{0} {1}!|{0} {1}!|{0} {1}!|{0} {1}!
+wrong_say|{0}? Try again!|Bu {0}. Tekrar dene!|{0}? Versuch es nochmal!|{0} ? Essaie encore !|¿{0}? ¡Inténtalo otra vez!|{0}? Riprova!|{0}? Tenta outra vez!|{0}? Попробуй ещё!|{0}؟ حاول مرة أخرى!|{0}? फिर से कोशिश करो!
+# ---------------- Çıkartmalar ----------------
+stickers_title|My Stickers|Çıkartmalarım|Meine Sticker|Mes stickers|Mis pegatinas|I miei adesivi|Os meus cromos|Мои наклейки|ملصقاتي|मेरे स्टिकर
+stickers_none|finish a picture to get your first sticker!|bir resmi bitir, ilk çıkartman gelsin!|Mal ein Bild fertig für deinen ersten Sticker!|finis un dessin pour ton premier sticker !|¡termina un dibujo y gana tu primera pegatina!|finisci un disegno per il primo adesivo!|acaba um desenho e ganha o primeiro cromo!|раскрась картинку — получишь наклейку!|أنهِ رسمة لتحصل على أول ملصق!|चित्र पूरा करो, पहला स्टिकर पाओ!
+stickers_count|you collected {0} / {1} stickers|{0} / {1} çıkartma topladın|{0} / {1} Sticker gesammelt|{0} / {1} stickers gagnés|has reunido {0} / {1} pegatinas|hai raccolto {0} / {1} adesivi|juntaste {0} / {1} cromos|собрано наклеек: {0} / {1}|جمعت {0} / {1} ملصقًا|{0} / {1} स्टिकर मिले
+# ---------------- Ebeveyn / ayarlar ----------------
+parents|For grown-ups|Ebeveyn bölümü|Für Eltern|Pour les parents|Para los padres|Per i genitori|Para os pais|Для родителей|للوالدين|माता-पिता के लिए
+gate_q|What is {0} + {1}?|{0} + {1} kaç eder?|Was ist {0} + {1}?|Combien font {0} + {1} ?|¿Cuánto es {0} + {1}?|Quanto fa {0} + {1}?|Quanto é {0} + {1}?|Сколько будет {0} + {1}?|كم يساوي {0} + {1}؟|{0} + {1} कितना है?
+settings|Settings|Ayarlar|Einstellungen|Réglages|Ajustes|Impostazioni|Definições|Настройки|الإعدادات|सेटिंग्स
+music|Music|Müzik|Musik|Musique|Música|Musica|Música|Музыка|الموسيقى|संगीत
+sound|Sound effects|Efekt sesleri|Soundeffekte|Effets sonores|Efectos de sonido|Effetti sonori|Efeitos sonoros|Звуки|المؤثرات الصوتية|साउंड इफ़ेक्ट
+voice|Voice (color and picture names)|Konuşma (renk ve hayvan adları)|Sprache (Farb- und Bildnamen)|Voix (noms des couleurs et dessins)|Voz (nombres de colores y dibujos)|Voce (nomi di colori e disegni)|Voz (nomes de cores e desenhos)|Голос (названия цветов и картинок)|الصوت (أسماء الألوان والصور)|आवाज़ (रंगों और चित्रों के नाम)
+haptics|Vibration|Titreşim|Vibration|Vibration|Vibración|Vibrazione|Vibração|Вибрация|الاهتزاز|कंपन
+track|Track: {0}  ›|Parça: {0}  ›|Lied: {0}  ›|Morceau : {0}  ›|Canción: {0}  ›|Brano: {0}  ›|Faixa: {0}  ›|Трек: {0}  ›|المقطوعة: {0}|गाना: {0}  ›
+language|Language: {0}  ›|Dil: {0}  ›|Sprache: {0}  ›|Langue : {0}  ›|Idioma: {0}  ›|Lingua: {0}  ›|Idioma: {0}  ›|Язык: {0}  ›|اللغة: {0}|भाषा: {0}  ›
+lang_auto|Automatic|Otomatik|Automatisch|Automatique|Automático|Automatica|Automático|Авто|تلقائي|अपने आप
+info|No ads · no personal data collected\nProgress is stored only on this device.|Reklam yok · kişisel veri toplanmaz\nİlerleme yalnızca bu cihazda saklanır.|Keine Werbung · keine persönlichen Daten\nFortschritt bleibt nur auf diesem Gerät.|Sans pub · aucune donnée personnelle\nLa progression reste sur cet appareil.|Sin anuncios · sin datos personales\nEl progreso se guarda solo en este dispositivo.|Niente pubblicità · nessun dato personale\nI progressi restano su questo dispositivo.|Sem anúncios · sem dados pessoais\nO progresso fica só neste dispositivo.|Без рекламы · без личных данных\nПрогресс хранится только на устройстве.|بلا إعلانات · لا نجمع بيانات شخصية\nيُحفظ التقدّم على هذا الجهاز فقط.|कोई विज्ञापन नहीं · कोई निजी डेटा नहीं\nप्रगति सिर्फ़ इसी डिवाइस में रहती है।
+ok|OK|Tamam|OK|OK|Vale|OK|OK|Готово|حسنًا|ठीक है
+# ---------------- Müzik parçaları ----------------
+track_0|Pink Clouds|Pembe Bulutlar|Rosa Wolken|Nuages roses|Nubes rosas|Nuvole rosa|Nuvens cor-de-rosa|Розовые облака|غيوم وردية|गुलाबी बादल
+track_1|Rainy Café|Yağmurlu Kafe|Regencafé|Café sous la pluie|Café lluvioso|Caffè sotto la pioggia|Café à chuva|Дождливое кафе|مقهى ممطر|बारिश वाला कैफ़े
+track_2|Night Walk|Gece Yürüyüşü|Nachtspaziergang|Balade de nuit|Paseo nocturno|Passeggiata notturna|Passeio noturno|Ночная прогулка|نزهة ليلية|रात की सैर
+track_3|Morning Coffee|Sabah Kahvesi|Morgenkaffee|Café du matin|Café de la mañana|Caffè del mattino|Café da manhã|Утренний кофе|قهوة الصباح|सुबह की कॉफ़ी
+track_4|Music Box|Müzik Kutusu|Spieluhr|Boîte à musique|Caja de música|Carillon|Caixa de música|Музыкальная шкатулка|صندوق الموسيقى|संगीत बक्सा
+track_5|Bird Garden|Kuş Bahçesi|Vogelgarten|Jardin des oiseaux|Jardín de pájaros|Giardino degli uccelli|Jardim dos pássaros|Птичий сад|حديقة الطيور|चिड़ियों का बाग
+track_6|Seaside|Deniz Kenarı|Am Meer|Bord de mer|Junto al mar|In riva al mare|À beira-mar|У моря|على الشاطئ|समुद्र किनारे
+";
+    }
+}

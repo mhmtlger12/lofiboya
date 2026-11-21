@@ -19,7 +19,7 @@ namespace LofiBoya
             _i.Setup();
         }
 
-        class Track { public string name; public AudioClip clip; public LofiMusic gen; }
+        class Track { public string name; public AudioClip clip; public LofiMusic gen; public int preset = -1; }
         readonly List<Track> _tracks = new();
         int _track;
 
@@ -32,10 +32,11 @@ namespace LofiBoya
             // Assets/Resources/Audio içindeki gerçek parçalar önce, sonra kodla üretilen lofi havaları
             foreach (var clip in Resources.LoadAll<AudioClip>("Audio"))
                 _tracks.Add(new Track { name = clip.name, clip = clip });
-            foreach (var preset in LofiMusic.Presets)
+            for (int p = 0; p < LofiMusic.Presets.Length; p++)
             {
+                var preset = LofiMusic.Presets[p];
                 var gen = new LofiMusic(preset);
-                _tracks.Add(new Track { name = preset.Name, clip = gen.CreateClip(), gen = gen });
+                _tracks.Add(new Track { name = preset.Name, clip = gen.CreateClip(), gen = gen, preset = p });
             }
             _track = Mathf.Clamp(PlayerPrefs.GetInt("track", 0), 0, _tracks.Count - 1);
             SetTrack(_track, false);
@@ -194,7 +195,15 @@ namespace LofiBoya
             return TrackName;
         }
 
-        public static string TrackName => _i != null && _i._tracks.Count > 0 ? _i._tracks[_i._track].name : "";
+        public static string TrackName
+        {
+            get
+            {
+                if (_i == null || _i._tracks.Count == 0) return "";
+                var t = _i._tracks[_i._track];
+                return t.preset >= 0 ? Loc.T("track_" + t.preset) : t.name;
+            }
+        }
 
         public static void ApplySettings()
         {

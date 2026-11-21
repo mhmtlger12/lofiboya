@@ -71,7 +71,7 @@ namespace LofiBoya
             BuildCanvasCard(root, save);
             BuildPalette(root);
 
-            _finishBtn = (RectTransform)UIKit.Button(root, "Bitir  ›", Theme.Mint, Theme.Text, 44, ShowComplete).transform;
+            _finishBtn = (RectTransform)UIKit.Button(root, Loc.T("finish"), Theme.Mint, Theme.Text, 44, ShowComplete).transform;
             _finishBtn.anchorMin = _finishBtn.anchorMax = new Vector2(0.5f, 0);
             _finishBtn.pivot = new Vector2(0.5f, 0);
             _finishBtn.sizeDelta = new Vector2(280, 110);
@@ -95,7 +95,7 @@ namespace LofiBoya
 
             // Resmi tanıt: "Bu bir aslan!"
             if (Names.TryAnimal(Id, out var animal, out _))
-                Tween.Delay(0.7f, () => { if (this != null) Speech.Say("Bu bir " + animal + "! Hadi boyayalım.", "bu_" + Speech.Slug(animal)); });
+                Tween.Delay(0.7f, () => { if (this != null) Speech.Say(Loc.T("intro", Names.Cap(animal), animal), "bu_" + Speech.Slug(animal)); });
         }
 
         // ================= Kurulum =================
@@ -109,7 +109,7 @@ namespace LofiBoya
             const float size = 100f, gap = 112f;
             var hint = UIKit.IconButton(root, Art.Bulb, Theme.Butter, Theme.Text, size, () =>
             {
-                if (!_canvas.ShowHint()) Popup.Toast("her yer boyanmış");
+                if (!_canvas.ShowHint()) Popup.Toast(Loc.T("all_painted"));
             }, 0.56f);
             ((RectTransform)hint.transform).Place(new Vector2(1, 1), new Vector2(-90, -100), new Vector2(size, size));
 
@@ -122,7 +122,7 @@ namespace LofiBoya
             var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, size, () => Popup.Toast(Sfx.NextTrack()), 0.48f);
             ((RectTransform)music.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap * 3, -100), new Vector2(size, size));
 
-            var title = UIKit.Label(root, _level.IsBlank ? "Boş Sayfa" : Names.LevelTitle(Id), 46, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var title = UIKit.Label(root, _level.IsBlank ? Loc.T("blank_page") : Names.LevelTitle(Id), 46, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0, 1);
             title.rectTransform.pivot = new Vector2(0, 0.5f);
             title.rectTransform.anchoredPosition = new Vector2(180, -78);
@@ -143,7 +143,7 @@ namespace LofiBoya
             _progressFill.anchorMin = Vector2.zero;
             _progressFill.anchorMax = new Vector2(0, 1);
             _progressFill.offsetMin = _progressFill.offsetMax = Vector2.zero;
-            _progressText = UIKit.Label(root, "%0", 32, Theme.TextSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _progressText = UIKit.Label(root, Loc.T("percent", 0), 32, Theme.TextSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
             _progressText.rectTransform.anchorMin = _progressText.rectTransform.anchorMax = new Vector2(0, 1);
             _progressText.rectTransform.pivot = new Vector2(0, 0.5f);
             _progressText.rectTransform.anchoredPosition = new Vector2(424, -132);
@@ -272,7 +272,7 @@ namespace LofiBoya
             if (!feedback) return;
             Tween.Punch(_magicItems[index].img.transform, 0.2f);
             Haptics.Light();
-            Speech.Say(index == 0 ? "Normal boya" : MagicPaint.Names[index] + " boya!", "sihir_" + index);
+            Speech.Say(index == 0 ? Loc.T("magic_normal_say") : Loc.T("magic_say", Loc.T("magic_" + index)), "sihir_" + index);
         }
 
         void SelectStamp(int index, bool feedback)
@@ -282,7 +282,7 @@ namespace LofiBoya
             if (!feedback) return;
             Tween.Punch(_stampItems[index].img.transform, 0.2f);
             Haptics.Light();
-            Speech.Say(Names.Cap(Art.StampNames[index]), "damga_" + index);
+            Speech.Say(Loc.T("stamp_" + index), "damga_" + index);
         }
 
         /// <summary>Seçili kalemin rengine göre sihirli boya önizlemeleri ve damga renkleri.</summary>
@@ -429,9 +429,9 @@ namespace LofiBoya
                 var bg = UIKit.Box(_paletteTabs, "Tab", Theme.Paper, null, 0.9f);
                 bg.raycastTarget = true;
                 var le = bg.gameObject.AddComponent<LayoutElement>();
-                le.preferredWidth = 50 + Theme.Palettes[i].Name.Length * 21;
+                le.preferredWidth = 50 + Loc.T("pal_" + i).Length * 21;
                 le.preferredHeight = 76;
-                var lbl = UIKit.Label(bg.transform, Theme.Palettes[i].Name, 32, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+                var lbl = UIKit.Label(bg.transform, Loc.T("pal_" + i), 32, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
                 lbl.rectTransform.Stretch();
                 var b = bg.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
@@ -503,9 +503,7 @@ namespace LofiBoya
                 if (tool != Tool.Fill && PlayerPrefs.GetInt(key, 0) == 0)
                 {
                     PlayerPrefs.SetInt(key, 1);
-                    Popup.Toast(tool == Tool.Pencil ? "parmağınla çiz · iki parmakla kaydır"
-                        : tool == Tool.Stamp ? "dokun, damga bas! · sağdan şekil seç"
-                        : "sil · dokununca bölgeyi boşaltır");
+                    Popup.Toast(Loc.T(tool == Tool.Pencil ? "tip_pencil" : tool == Tool.Stamp ? "tip_stamp" : "tip_eraser"));
                 }
             }
         }
@@ -549,7 +547,7 @@ namespace LofiBoya
                 _paletteButtons[i].bg.color = on ? Theme.Accent : Theme.Paper;
                 _paletteButtons[i].label.color = on ? Color.white : Theme.Text;
             }
-            _boxLabel.text = _numbers ? "Sayılı Boyama" : Theme.Palettes[index].Name;
+            _boxLabel.text = _numbers ? Loc.T("numbered") : Loc.T("pal_" + index);
 
             foreach (Transform c in _crayonRow) Destroy(c.gameObject);
             _crayons.Clear();
@@ -656,7 +654,7 @@ namespace LofiBoya
 
         void SetNumbers(bool on, bool feedback)
         {
-            if (on && _level.IsBlank) { Popup.Toast("boş sayfada sayı yok, serbestçe çiz!"); return; }
+            if (on && _level.IsBlank) { Popup.Toast(Loc.T("no_numbers_blank")); return; }
             _numbers = on;
             SaveSystem.NumberMode = on;
             _numBtnBg.color = on ? Theme.Accent : Color.clear;
@@ -673,7 +671,7 @@ namespace LofiBoya
             if (feedback)
             {
                 Tween.Punch(_numBtnBg.transform, 0.12f);
-                if (on) Speech.Say("Sayılı boyama! Numarayla aynı rengi seç.");
+                if (on) Speech.Say(Loc.T("numbers_on"));
                 _saveTimer = 1.2f;
             }
         }
@@ -744,7 +742,7 @@ namespace LofiBoya
             Sfx.Wrong();
             if (_numLabels[region] != null) Tween.Punch(_numLabels[region].transform, 0.5f, 0.45f);
             if (want < _crayons.Count) { _crayons[want].LiftVel += 700f; _crayons[want].Wobble = 1f; }
-            Speech.Say("Burası " + (want + 1) + ". " + Names.Cap(_numColors[want].name) + " kalemi seç!");
+            Speech.Say(Loc.T("number_hint", want + 1, Loc.Lang == "tr" ? Names.Cap(_numColors[want].name) : _numColors[want].acc));
             return false;
         }
 
@@ -752,8 +750,8 @@ namespace LofiBoya
 
         void AskClear()
         {
-            if (_canvas.Progress <= 0 && !_canvas.HasPaint) { Popup.Toast("zaten tertemiz"); return; }
-            Popup.Confirm("Temizlensin mi?", "Bu resimdeki bütün boyalar silinecek.", "temizle", "vazgeç", () =>
+            if (_canvas.Progress <= 0 && !_canvas.HasPaint) { Popup.Toast(Loc.T("already_clean")); return; }
+            Popup.Confirm(Loc.T("clear_title"), Loc.T("clear_msg"), Loc.T("clear_yes"), Loc.T("clear_no"), () =>
             {
                 _canvas.ClearAll();
                 _completedShown = false;
@@ -770,7 +768,7 @@ namespace LofiBoya
             if (p > 0 && pct == 0) pct = 1;
             bool allDone = _canvas.AllDone;
             if (allDone) pct = 100;
-            _progressText.text = "%" + pct;
+            _progressText.text = Loc.T("percent", pct);
             RefreshNumberLabels();
             float from = _progressFill.anchorMax.x;
             Tween.To(_progressFill, 0.35f, k => _progressFill.anchorMax = new Vector2(Mathf.Lerp(from, p, k), 1));
@@ -794,8 +792,8 @@ namespace LofiBoya
                 int streak = SaveSystem.Streak;
                 if (streak >= 2)
                 {
-                    Popup.Toast(streak + " gündür boyuyorsun!");
-                    Speech.Say(streak + " gündür boyuyorsun! Süpersin!");
+                    Popup.Toast(Loc.T("streak_toast", streak));
+                    Speech.Say(Loc.T("streak_say", streak));
                 }
             }
             if (showFinish != _finishBtn.gameObject.activeSelf)
@@ -912,12 +910,12 @@ namespace LofiBoya
                 });
             }
 
-            var t = UIKit.Label(card.transform, "Harika!", 110, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var t = UIKit.Label(card.transform, Loc.T("great"), 110, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 140, 110);
             var sh = t.gameObject.AddComponent<Shadow>();
             sh.effectColor = Theme.Accent.WithAlpha(0.6f);
             sh.effectDistance = new Vector2(0, -6);
-            var s = UIKit.Label(card.transform, "resmini tamamladın, çok güzel oldu", 40, Theme.TextSoft);
+            var s = UIKit.Label(card.transform, Loc.T("done_sub"), 40, Theme.TextSoft);
             s.rectTransform.Band(true, 60, 245);
 
             var photoBg = UIKit.Box(card.transform, "PhotoBg", Theme.Paper, null, 1.2f);
@@ -934,7 +932,7 @@ namespace LofiBoya
             fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
             fit.aspectRatio = (float)_level.Width / _level.Height;
 
-            var gallery = UIKit.Button(card.transform, "Galeri", Theme.Lavender, Theme.Text, 44, Exit);
+            var gallery = UIKit.Button(card.transform, Loc.T("gallery"), Theme.Lavender, Theme.Text, 44, Exit);
             var grt = (RectTransform)gallery.transform;
             grt.anchorMin = grt.anchorMax = new Vector2(0.5f, 0);
             grt.sizeDelta = new Vector2(230, 140);
@@ -942,7 +940,7 @@ namespace LofiBoya
 
             // Kaydet: telefonun galerisine
             Button save = null;
-            save = UIKit.Button(card.transform, "Kaydet", Theme.Butter, Theme.Text, 40, () => SaveToPhotos(save));
+            save = UIKit.Button(card.transform, Loc.T("save"), Theme.Butter, Theme.Text, 40, () => SaveToPhotos(save));
             var srt = (RectTransform)save.transform;
             srt.anchorMin = srt.anchorMax = new Vector2(0.5f, 0);
             srt.sizeDelta = new Vector2(240, 140);
@@ -953,7 +951,7 @@ namespace LofiBoya
             dl.type = Image.Type.Simple;
             dl.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(52, 0), new Vector2(46, 46));
 
-            var next = UIKit.Button(card.transform, _level.IsBlank ? "Galeri  ›" : "Sonraki  ›", Theme.Accent, Color.white, 44, NextLevel);
+            var next = UIKit.Button(card.transform, _level.IsBlank ? Loc.T("gallery_next") : Loc.T("next"), Theme.Accent, Color.white, 44, NextLevel);
             var nrt = (RectTransform)next.transform;
             nrt.anchorMin = nrt.anchorMax = new Vector2(0.5f, 0);
             nrt.sizeDelta = new Vector2(230, 140);
@@ -970,7 +968,9 @@ namespace LofiBoya
 
             if (first) SaveSystem.Stars += 3;
             Haptics.Medium();
-            string line = _level.IsBlank ? "Çok güzel bir resim yaptın!" : Names.TryAnimal(Id, out _, out var acc) ? "Harika! " + Names.Cap(acc) + " boyadın!" : "Harika! Resmini bitirdin!";
+            string line = _level.IsBlank ? Loc.T("blank_done_say")
+                : Names.TryAnimal(Id, out _, out var acc) ? Loc.T("done_named", Loc.Lang == "tr" ? Names.Cap(acc) : acc)
+                : Loc.T("done_say");
             Tween.Delay(0.4f, () => Speech.Say(line));
 
             Confetti.Burst(_overlay.transform, 90);
@@ -988,10 +988,10 @@ namespace LofiBoya
             Popup.Toast(msg);
             Sfx.Star();
             Haptics.Medium();
-            Speech.Say("Resmin kaydedildi! Annene babana gösterebilirsin.");
+            Speech.Say(Loc.T("saved_say"));
             if (btn != null)
             {
-                UIKit.ButtonText(btn).text = "Kaydedildi";
+                UIKit.ButtonText(btn).text = Loc.T("saved_btn");
                 UIKit.ButtonText(btn).fontSize = 32;
                 btn.interactable = false;
             }

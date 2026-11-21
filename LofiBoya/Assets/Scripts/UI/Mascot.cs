@@ -15,7 +15,7 @@ namespace LofiBoya
         float _t, _nextBlink, _blinkUntil, _waveUntil, _nextWave, _jumpT = -1, _happyUntil;
         float _size;
 
-        static readonly string[] TapLines = { "Hihi! Gıdıklanıyorum!", "Merhaba!", "Hadi boyayalım!", "Sen harikasın!", "Bugün hangi rengi seçelim?" };
+        static string TapLine() => Loc.T("mascot_" + Random.Range(1, 6));
 
         /// <summary>Maskotu oluşturur. size = genişlik (kanvas birimi).</summary>
         public static Mascot Create(Transform parent, float size, bool holdCrayon = true)
@@ -94,7 +94,7 @@ namespace LofiBoya
             Sfx.Giggle();
             Jump();
             Wave(1.2f);
-            Speech.Say(TapLines[Random.Range(0, TapLines.Length)]);
+            Speech.Say(TapLine());
         }
 
         void Update()

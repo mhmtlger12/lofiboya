@@ -20,7 +20,7 @@ namespace LofiBoya
             ((RectTransform)back.transform).Place(new Vector2(0, 1), new Vector2(110, -110), new Vector2(120, 120));
             StarPill(root, SaveSystem.Stars);
 
-            var title = UIKit.Label(root, "Çıkartmalarım", 84, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var title = UIKit.Label(root, Loc.T("stickers_title"), 84, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Band(true, 110, 200);
 
             // Tüm resimler
@@ -37,7 +37,7 @@ namespace LofiBoya
             // bitenler önce
             all.Sort((a, b) => b.done.CompareTo(a.done));
 
-            var sub = UIKit.Label(root, done == 0 ? "bir resmi bitir, ilk çıkartman gelsin!" : $"{done} / {all.Count} çıkartma topladın", 42, Theme.TextSoft);
+            var sub = UIKit.Label(root, done == 0 ? Loc.T("stickers_none") : Loc.T("stickers_count", done, all.Count), 42, Theme.TextSoft);
             sub.rectTransform.Band(true, 60, 305);
 
             // Kaydırılabilir ızgara

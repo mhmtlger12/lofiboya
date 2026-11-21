@@ -27,7 +27,7 @@ namespace LofiBoya
                 if (status != 0 || _tts == null) return;
                 try
                 {
-                    var locale = new AndroidJavaObject("java.util.Locale", "tr", "TR");
+                    var locale = new AndroidJavaObject("java.util.Locale", Loc.Lang, Loc.TtsCountry);
                     _tts.Call<int>("setLanguage", locale);
                     _tts.Call<int>("setPitch", 1.2f);       // biraz daha tatlı, çocuksu
                     _tts.Call<int>("setSpeechRate", 0.88f); // yavaş ve net
@@ -75,7 +75,13 @@ namespace LofiBoya
             if (!Enabled || string.IsNullOrEmpty(text)) return;
             Said?.Invoke(text);
 
-            var clip = key != null ? Resources.Load<AudioClip>("Voice/" + key) : null;
+            // kayıtlı ses: Voice/<dil>/<anahtar> (Türkçe için eski yer Voice/<anahtar> da olur)
+            AudioClip clip = null;
+            if (key != null)
+            {
+                clip = Resources.Load<AudioClip>("Voice/" + Loc.Lang + "/" + key);
+                if (clip == null && Loc.Lang == "tr") clip = Resources.Load<AudioClip>("Voice/" + key);
+            }
             if (clip != null)
             {
                 if (_source == null)
@@ -92,6 +98,22 @@ namespace LofiBoya
 #if UNITY_ANDROID && !UNITY_EDITOR
             if (_tts == null) Init();
             if (_ready) SpeakNative(text); else _pending = text;
+#endif
+        }
+
+        /// <summary>Dil değişince seslendirme motorunu yeni dile ayarla.</summary>
+        public static void SetLanguage()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                if (_tts != null && _ready)
+                {
+                    using var locale = new AndroidJavaObject("java.util.Locale", Loc.Lang, Loc.TtsCountry);
+                    _tts.Call<int>("setLanguage", locale);
+                }
+            }
+            catch (Exception e) { Debug.LogWarning("TTS: " + e.Message); }
 #endif
         }
 

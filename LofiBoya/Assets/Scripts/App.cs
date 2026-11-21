@@ -42,8 +42,10 @@ namespace LofiBoya
             Application.targetFrameRate = 60;
             Screen.sleepTimeout = SleepTimeout.SystemSetting;
             Input2D();
+            Loc.Init();
             Sfx.Init();
             Speech.Init();
+            Loc.Changed += () => { Speech.SetLanguage(); ShowWelcome(); };
 #if UNITY_EDITOR
             // Editörde ses motoru yok: söylenen cümleyi balonda göster
             Speech.Said += text => Popup.Toast("“" + text + "”");

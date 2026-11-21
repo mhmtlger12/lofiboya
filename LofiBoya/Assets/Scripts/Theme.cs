@@ -53,6 +53,8 @@ namespace LofiBoya
         {
             get
             {
+                var lf = Loc.Font; // Arapça / Rusça için ayrı yazı tipi
+                if (lf != null) return lf;
                 if (_font == null) _font = Resources.Load<Font>("Fonts/Main");
                 if (_font == null) _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 return _font;
@@ -69,9 +71,9 @@ namespace LofiBoya
 
         public static string DifficultyTitle(string id) => id switch
         {
-            "kolay" => "Kolay",
-            "orta" => "Orta",
-            "zor" => "Zor",
+            "kolay" => Loc.T("easy"),
+            "orta" => Loc.T("medium"),
+            "zor" => Loc.T("hard"),
             _ => id
         };
     }

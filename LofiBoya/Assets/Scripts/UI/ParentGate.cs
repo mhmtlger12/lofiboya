@@ -23,9 +23,9 @@ namespace LofiBoya
             for (int i = 0; i < options.Count; i++) { int j = UnityEngine.Random.Range(i, options.Count); (options[i], options[j]) = (options[j], options[i]); }
 
             var (overlay, card, close) = Panel(820, 640);
-            var t = UIKit.Label(card.transform, "Ebeveyn bölümü", 56, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var t = UIKit.Label(card.transform, Loc.T("parents"), 56, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 90, 50);
-            var q = UIKit.Label(card.transform, $"{a} + {b} kaç eder?", 72, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var q = UIKit.Label(card.transform, Loc.T("gate_q", a, b), 72, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             q.rectTransform.Band(true, 120, 170);
             for (int i = 0; i < 3; i++)
             {
@@ -44,15 +44,15 @@ namespace LofiBoya
 
         public static void Settings()
         {
-            var (overlay, card, close) = Panel(860, 1180);
-            var t = UIKit.Label(card.transform, "Ayarlar", 64, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var (overlay, card, close) = Panel(860, 1320);
+            var t = UIKit.Label(card.transform, Loc.T("settings"), 64, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 100, 40);
 
             float y = -190;
-            Toggle(card.transform, ref y, "Müzik", () => SaveSystem.MusicOn, v => { SaveSystem.MusicOn = v; Sfx.ApplySettings(); });
-            Toggle(card.transform, ref y, "Efekt sesleri", () => SaveSystem.SoundOn, v => SaveSystem.SoundOn = v);
-            Toggle(card.transform, ref y, "Konuşma (renk ve hayvan adları)", () => Speech.Enabled, v => Speech.Enabled = v);
-            Toggle(card.transform, ref y, "Titreşim", () => Haptics.Enabled, v => { Haptics.Enabled = v; Haptics.Light(); });
+            Toggle(card.transform, ref y, Loc.T("music"), () => SaveSystem.MusicOn, v => { SaveSystem.MusicOn = v; Sfx.ApplySettings(); });
+            Toggle(card.transform, ref y, Loc.T("sound"), () => SaveSystem.SoundOn, v => SaveSystem.SoundOn = v);
+            Toggle(card.transform, ref y, Loc.T("voice"), () => Speech.Enabled, v => Speech.Enabled = v);
+            Toggle(card.transform, ref y, Loc.T("haptics"), () => Haptics.Enabled, v => { Haptics.Enabled = v; Haptics.Light(); });
 
             // müzik parçası
             var track = UIKit.Button(card.transform, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);
@@ -61,20 +61,63 @@ namespace LofiBoya
             trt.sizeDelta = new Vector2(700, 120);
             trt.anchoredPosition = new Vector2(0, y);
             var tl = UIKit.ButtonText(track);
-            tl.text = "Parça: " + Sfx.TrackName + "  ›";
-            track.onClick.AddListener(() => tl.text = "Parça: " + Sfx.NextTrack() + "  ›");
+            tl.text = Loc.T("track", Sfx.TrackName);
+            track.onClick.AddListener(() => tl.text = Loc.T("track", Sfx.NextTrack()));
+            y -= 140;
+
+            // dil
+            var lang = UIKit.Button(card.transform, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);
+            var lrt = (RectTransform)lang.transform;
+            lrt.anchorMin = lrt.anchorMax = new Vector2(0.5f, 1);
+            lrt.sizeDelta = new Vector2(700, 120);
+            lrt.anchoredPosition = new Vector2(0, y);
+            UIKit.ButtonText(lang).text = Loc.T("language", CurrentLanguageName());
+            lang.onClick.AddListener(() => { close(); LanguagePicker(); });
             y -= 150;
 
-            var info = UIKit.Label(card.transform, "Reklam yok · kişisel veri toplanmaz\nİlerleme yalnızca bu cihazda saklanır.", 34, Theme.TextSoft);
+            var info = UIKit.Label(card.transform, Loc.T("info"), 34, Theme.TextSoft);
             info.rectTransform.anchorMin = info.rectTransform.anchorMax = new Vector2(0.5f, 1);
             info.rectTransform.sizeDelta = new Vector2(760, 120);
             info.rectTransform.anchoredPosition = new Vector2(0, y - 20);
 
-            var ok = UIKit.Button(card.transform, "Tamam", Theme.Accent, Color.white, 50, close);
+            var ok = UIKit.Button(card.transform, Loc.T("ok"), Theme.Accent, Color.white, 50, close);
             var ort = (RectTransform)ok.transform;
             ort.anchorMin = ort.anchorMax = new Vector2(0.5f, 0);
             ort.sizeDelta = new Vector2(360, 130);
             ort.anchoredPosition = new Vector2(0, 110);
+        }
+
+        static string CurrentLanguageName() =>
+            Loc.Setting == "auto" ? Loc.T("lang_auto") + " (" + Loc.NativeNames[Loc.Index] + ")" : Loc.NativeNames[Loc.Index];
+
+        /// <summary>Dil listesi: Otomatik + 10 dil. Seçince oyun o dilde yeniden açılır.</summary>
+        static void LanguagePicker()
+        {
+            int n = Loc.Codes.Length + 1;
+            const float rowH = 104f;
+            var (overlay, card, close) = Panel(720, 120 + rowH * n + 40);
+            for (int i = 0; i < n; i++)
+            {
+                string code = i == 0 ? "auto" : Loc.Codes[i - 1];
+                string label = i == 0 ? Loc.T("lang_auto") + " (" + Loc.NativeNames[System.Array.IndexOf(Loc.Codes, Loc.DeviceLanguage()) is int k && k >= 0 ? k : 0] + ")" : Loc.NativeNames[i - 1];
+                bool selected = Loc.Setting == code;
+                var b = UIKit.Button(card.transform, label, selected ? Theme.Accent : Theme.Paper, selected ? Color.white : Theme.Text, 40, () =>
+                {
+                    close();
+                    if (Loc.Setting != code) Loc.Setting = code; // App ekranı yeni dilde baştan kurar
+                }, 0.8f, false);
+                var rt = (RectTransform)b.transform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1);
+                rt.sizeDelta = new Vector2(600, rowH - 14);
+                rt.anchoredPosition = new Vector2(0, -60 - rowH * (i + 0.5f));
+                // her dil kendi yazı tipiyle görünsün
+                var t = UIKit.ButtonText(b);
+                if (code == "ar") t.font = Resources.Load<Font>("Fonts/Arabic");
+                else if (code == "ru") t.font = Resources.Load<Font>("Fonts/Cyrillic");
+                else t.font = Resources.Load<Font>("Fonts/Main");
+                if (code == "ar") t.text = ArabicShaper.Shape(label);
+                else if (code == "hi") t.text = Devanagari.Reorder(label);
+            }
         }
 
         static void Toggle(Transform parent, ref float y, string label, Func<bool> get, Action<bool> set)

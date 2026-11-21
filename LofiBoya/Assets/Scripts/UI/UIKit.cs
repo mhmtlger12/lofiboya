@@ -147,7 +147,7 @@ namespace LofiBoya
         public static Text Label(Transform parent, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleCenter, FontStyle style = FontStyle.Normal)
         {
             var rt = Node("Text", parent);
-            var t = rt.gameObject.AddComponent<Text>();
+            var t = rt.gameObject.AddComponent<LocText>(); // dile göre şekillenen metin
             t.font = Theme.Font;
             t.text = text;
             t.fontSize = size;

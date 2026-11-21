@@ -33,7 +33,7 @@ namespace LofiBoya
             sh.effectDistance = new Vector2(0, -8);
             _title = title.rectTransform;
 
-            var sub = UIKit.Label(head, "rahatla  •  boya  •  nefes al", 46, Theme.TextSoft);
+            var sub = UIKit.Label(head, Loc.T("app_sub"), 46, Theme.TextSoft);
             sub.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(0, -120), new Vector2(900, 70));
 
             // ---- Polaroid (rastgele bir resim, pastel renklerle) ----
@@ -49,7 +49,7 @@ namespace LofiBoya
             raw.raycastTarget = false;
             var fitter = photo.gameObject.AddComponent<AspectRatioFitter>();
             fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-            var caption = UIKit.Label(card.transform, "~ bugünün resmi ~", 42, Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Italic);
+            var caption = UIKit.Label(card.transform, Loc.T("daily"), 42, Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Italic);
             caption.rectTransform.Band(false, 112, 16);
             LoadPreview(raw, fitter);
             Tween.Pop(_polaroid, 0.15f, 0.6f);
@@ -74,8 +74,8 @@ namespace LofiBoya
             Tween.Pop(mrt, 0.45f, 0.6f);
             // Gün serisi: Pofuduk'un konuşma balonunda
             int streak = SaveSystem.Streak;
-            if (streak >= 2) Bubble(mrt, streak + " gündür" + "\n" + "boyuyorsun!");
-            else if (!SaveSystem.PlayedToday) Bubble(mrt, "bugünün resmi" + "\n" + "seni bekliyor!");
+            if (streak >= 2) Bubble(mrt, Loc.T("bubble_streak", streak));
+            else if (!SaveSystem.PlayedToday) Bubble(mrt, Loc.T("bubble_daily"));
             if (!_greeted)
             {
                 _greeted = true;
@@ -83,20 +83,20 @@ namespace LofiBoya
                 {
                     if (_mascot == null) return;
                     _mascot.Wave(2f);
-                    if (streak >= 2) Speech.Say("Merhaba! " + streak + " gündür boyuyorsun, süpersin!");
-                    else Speech.Say("Merhaba! Ben Pofuduk. Hadi birlikte boyayalım!", "merhaba");
+                    if (streak >= 2) Speech.Say(Loc.T("hello_streak", streak));
+                    else Speech.Say(Loc.T("hello"), "merhaba");
                 });
             }
 
             // ---- Başla ----
-            var start = UIKit.Button(root, "Boyamaya Başla", Theme.Accent, Color.white, 64, () => App.I.ShowGallery());
+            var start = UIKit.Button(root, Loc.T("start"), Theme.Accent, Color.white, 64, () => App.I.ShowGallery());
             _startBtn = (RectTransform)start.transform;
             _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 410), new Vector2(700, 170));
             Tween.Pop(_startBtn, 0.35f);
 
             // ---- Büyük ikonlu butonlar: Öğren / Çıkartmalarım ----
-            BigButton(root, "Öğren", MascotArt.Puzzle, Theme.Hex("54C29A"), Theme.Mint, new Vector2(-200, 225), 0.45f, () => App.I.ShowLearn());
-            var stickers = BigButton(root, "Çıkartmalar", MascotArt.Star, Color.white, Theme.Butter, new Vector2(200, 225), 0.5f, () => App.I.ShowStickers());
+            BigButton(root, Loc.T("learn"), MascotArt.Puzzle, Theme.Hex("54C29A"), Theme.Mint, new Vector2(-200, 225), 0.45f, () => App.I.ShowLearn());
+            var stickers = BigButton(root, Loc.T("stickers_btn"), MascotArt.Star, Color.white, Theme.Butter, new Vector2(200, 225), 0.5f, () => App.I.ShowStickers());
             // yıldız sayısı rozeti
             int stars = SaveSystem.Stars;
             if (stars > 0)
@@ -112,7 +112,7 @@ namespace LofiBoya
             // ---- Üst köşeler: müzik (sol), ebeveyn ayarları (sağ) ----
             var music = UIKit.IconButton(root, Art.Note, Theme.Card.WithAlpha(0.9f), Theme.Text, 110, () =>
             {
-                Popup.Toast("müzik: " + Sfx.NextTrack());
+                Popup.Toast(Loc.T("music_toast", Sfx.NextTrack()));
             }, 0.46f);
             ((RectTransform)music.transform).Place(new Vector2(0, 1), new Vector2(100, -100), new Vector2(110, 110));
             var gear = UIKit.IconButton(root, Art.Gear, Theme.Card.WithAlpha(0.9f), Theme.TextSoft, 110, () => ParentGate.Show(ParentGate.Settings), 0.5f);
@@ -143,7 +143,12 @@ namespace LofiBoya
             rt.Place(new Vector2(0.5f, 0f), pos, new Vector2(380, 150));
             var txt = UIKit.ButtonText(b);
             txt.rectTransform.offsetMin = new Vector2(132, 0);
-            txt.alignment = TextAnchor.MiddleLeft;
+            txt.alignment = Loc.IsArabic ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft;
+            txt.resizeTextForBestFit = true;
+            txt.resizeTextMinSize = 26;
+            txt.resizeTextMaxSize = 42;
+            txt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            txt.rectTransform.offsetMax = new Vector2(-14, 0);
             var bubble = UIKit.Box(b.transform.Find("Face"), "IconBg", Color.white.WithAlpha(0.7f), UIKit.Circle);
             bubble.type = Image.Type.Simple;
             bubble.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(68, 0), new Vector2(100, 100));

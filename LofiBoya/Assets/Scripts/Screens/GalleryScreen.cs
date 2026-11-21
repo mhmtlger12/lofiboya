@@ -30,9 +30,9 @@ namespace LofiBoya
             var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, 120, () => Popup.Toast(Sfx.NextTrack()), 0.5f);
             ((RectTransform)music.transform).Place(new Vector2(1, 1), new Vector2(-110, -110), new Vector2(120, 120));
 
-            var title = UIKit.Label(root, "Boyama Defterim", 84, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var title = UIKit.Label(root, Loc.T("gallery_title"), 84, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Band(true, 110, 200);
-            var sub = UIKit.Label(root, "bugün ne boyamak istersin?", 42, Theme.TextSoft);
+            var sub = UIKit.Label(root, Loc.T("gallery_sub"), 42, Theme.TextSoft);
             sub.rectTransform.Band(true, 60, 305);
 
             // ---- Sekmeler ----
@@ -131,7 +131,7 @@ namespace LofiBoya
             if (levels.Count == 0)
             {
                 var empty = UIKit.Node("Empty", _gridRoot);
-                var msg = UIKit.Label(empty, "Yeni resimler yolda!\n\nŞimdilik Kolay'daki resimleri\nboyamaya ne dersin?", 44, Theme.TextSoft);
+                var msg = UIKit.Label(empty, Loc.T("empty_tab"), 44, Theme.TextSoft);
                 msg.rectTransform.Place(new Vector2(1f, 0.5f), new Vector2(25, -60), new Vector2(900, 300));
                 return;
             }
@@ -192,7 +192,7 @@ namespace LofiBoya
                 fit.aspectRatio = (float)tex.width / tex.height;
             }
 
-            var name = UIKit.Label(face.transform, blank ? "Boş Sayfa" : Names.LevelTitle(entry.id), 36, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var name = UIKit.Label(face.transform, blank ? Loc.T("blank_page") : Names.LevelTitle(entry.id), 36, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             name.rectTransform.anchorMin = new Vector2(0, 0);
             name.rectTransform.anchorMax = new Vector2(1, 0);
             name.rectTransform.pivot = new Vector2(0, 0);
@@ -205,10 +205,10 @@ namespace LofiBoya
 
             // Durum rozeti
             string badge; Color badgeCol;
-            if (blank) { badge = "çiz!"; badgeCol = Theme.Sky; }
-            else if (save == null || save.progress <= 0.001f) { badge = "yeni"; badgeCol = Theme.Lavender; }
-            else if (save.done) { badge = "bitti!"; badgeCol = Theme.Mint; }
-            else { badge = "%" + Mathf.Clamp(Mathf.RoundToInt(save.progress * 100), 1, 99); badgeCol = Theme.Butter; }
+            if (blank) { badge = Loc.T("draw_badge"); badgeCol = Theme.Sky; }
+            else if (save == null || save.progress <= 0.001f) { badge = Loc.T("badge_new"); badgeCol = Theme.Lavender; }
+            else if (save.done) { badge = Loc.T("badge_done"); badgeCol = Theme.Mint; }
+            else { badge = Loc.T("percent", Mathf.Clamp(Mathf.RoundToInt(save.progress * 100), 1, 99)); badgeCol = Theme.Butter; }
             var pill = UIKit.Box(face.transform, "Badge", badgeCol, null, 0.9f);
             pill.rectTransform.anchorMin = pill.rectTransform.anchorMax = new Vector2(1, 0);
             pill.rectTransform.pivot = new Vector2(1, 0);

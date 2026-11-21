@@ -61,12 +61,12 @@ namespace LofiBoya
         {
             _mode = Mode.Menu;
             ClearArea();
-            var title = UIKit.Label(_area, "Öğren", 96, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var title = UIKit.Label(_area, Loc.T("learn"), 96, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Band(true, 120, 200);
-            var sub = UIKit.Label(_area, "hangi oyunu oynayalım?", 44, Theme.TextSoft);
+            var sub = UIKit.Label(_area, Loc.T("learn_sub"), 44, Theme.TextSoft);
             sub.rectTransform.Band(true, 60, 315);
 
-            var colors = MenuCard(new Vector2(0, 230), "Renkler", "rengi bul", Theme.Accent, 0.1f, () => StartGame(Mode.Colors));
+            var colors = MenuCard(new Vector2(0, 230), Loc.T("colors"), Loc.T("colors_sub"), Theme.Accent, 0.1f, () => StartGame(Mode.Colors));
             // kartın üstünde yelpaze gibi açılmış üç kalem
             for (int i = 0; i < 3; i++)
             {
@@ -78,7 +78,7 @@ namespace LofiBoya
                 cr.localRotation = Quaternion.Euler(0, 0, (1 - i) * 20f);
             }
 
-            var animals = MenuCard(new Vector2(0, -230), "Resimler", "hangisi?", Theme.Mint, 0.2f, () => StartGame(Mode.Animals));
+            var animals = MenuCard(new Vector2(0, -230), Loc.T("pictures"), Loc.T("pictures_sub"), Theme.Mint, 0.2f, () => StartGame(Mode.Animals));
             if (_animals.Count > 0)
             {
                 var a = _animals[Random.Range(0, _animals.Count)];
@@ -134,7 +134,7 @@ namespace LofiBoya
         void StartGame(Mode mode)
         {
             _mode = mode;
-            if (mode == Mode.Animals && _animals.Count < 3) { Popup.Toast("yakında!"); _mode = Mode.Menu; return; }
+            if (mode == Mode.Animals && _animals.Count < 3) { Popup.Toast(Loc.T("soon")); _mode = Mode.Menu; return; }
             NextRound();
         }
 
@@ -169,8 +169,8 @@ namespace LofiBoya
             }
             Shuffle(picks);
             var t = Names.Basic[target];
-            _prompt.text = Names.Cap(t.acc) + " bul!";
-            _promptVoice = Names.Cap(t.acc) + " bul!";
+            _promptVoice = Names.Cap(Loc.T("find", t.acc));
+            _prompt.text = _promptVoice;
 
             for (int i = 0; i < 3; i++)
             {
@@ -204,8 +204,8 @@ namespace LofiBoya
             }
             Shuffle(picks);
             var a = _animals[target];
-            _prompt.text = Names.Cap(a.acc) + " bul!";
-            _promptVoice = Names.Cap(a.acc) + " bul!";
+            _promptVoice = Names.Cap(Loc.T("find", a.acc));
+            _prompt.text = _promptVoice;
 
             for (int i = 0; i < 3; i++)
             {
@@ -253,9 +253,9 @@ namespace LofiBoya
                 SaveSystem.Stars += 1;
                 _starText.text = SaveSystem.Stars.ToString();
                 Tween.Punch(_starText.transform.parent, 0.25f);
-                string[] cheers = { "Aferin!", "Süpersin!", "Harika!", "Bravo!" };
-                Speech.Say(cheers[Random.Range(0, cheers.Length)] + " Bu " + name + "!");
-                _prompt.text = cheers[Random.Range(0, cheers.Length)];
+                string cheer = Loc.T("cheer_" + Random.Range(0, 4));
+                Speech.Say(Loc.T("right_say", cheer, Loc.Lang == "tr" ? name : Names.Cap(name)));
+                _prompt.text = cheer;
                 Tween.Delay(2.0f, () => { if (this != null && _mode != Mode.Menu) NextRound(); });
             }
             else
@@ -263,7 +263,7 @@ namespace LofiBoya
                 Sfx.Wrong();
                 var basePos = option.anchoredPosition;
                 Tween.To(option, 0.4f, k => option.anchoredPosition = basePos + new Vector2(Mathf.Sin(k * Mathf.PI * 6) * 18f * (1 - k), 0));
-                Speech.Say("Bu " + name + ". Tekrar dene!");
+                Speech.Say(Loc.T("wrong_say", Loc.Lang == "tr" ? name : Names.Cap(name)));
                 // yanlış seçenek biraz solar ki çocuk diğerlerine baksın
                 if (!option.TryGetComponent<CanvasGroup>(out var cg)) cg = option.gameObject.AddComponent<CanvasGroup>();
                 cg.alpha = 0.45f;

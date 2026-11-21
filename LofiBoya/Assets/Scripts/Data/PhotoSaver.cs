@@ -35,7 +35,7 @@ namespace LofiBoya
                     stream.Call("write", png);
                     stream.Call("flush");
                     stream.Call("close");
-                    return "galeriye kaydedildi!";
+                    return Loc.T("saved_gallery");
                 }
             }
             catch (Exception e) { Debug.LogWarning("Galeriye kaydedilemedi: " + e.Message); }
@@ -48,12 +48,12 @@ namespace LofiBoya
 #if UNITY_EDITOR
                 Debug.Log("Resim kaydedildi: " + Path.Combine(dir, file));
 #endif
-                return "resmin kaydedildi!";
+                return Loc.T("saved_local");
             }
             catch (Exception e)
             {
                 Debug.LogWarning(e.Message);
-                return "kaydedilemedi";
+                return Loc.T("save_failed");
             }
         }
 
