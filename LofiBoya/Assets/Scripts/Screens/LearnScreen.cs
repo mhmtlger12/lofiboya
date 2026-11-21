@@ -14,7 +14,7 @@ namespace LofiBoya
     /// </summary>
     public class LearnScreen : MonoBehaviour, IScreen
     {
-        enum Mode { Menu, Colors, Animals, Shapes, Count }
+        enum Mode { Menu, Colors, Animals, Shapes, Count, Feelings }
 
         Mode _mode = Mode.Menu;
         RectTransform _root, _area;
@@ -69,18 +69,18 @@ namespace LofiBoya
             sub.rectTransform.Band(true, 60, 315);
 
             // 2x2 kart: Renkler, Resimler, Şekiller, Sayılar
-            var colors = MenuCard(new Vector2(-222, 250), Loc.T("colors"), Loc.T("colors_sub"), Theme.Accent, 0.1f, () => StartGame(Mode.Colors));
+            var colors = MenuCard(new Vector2(-222, 400), Loc.T("colors"), Loc.T("colors_sub"), Theme.Accent, 0.1f, () => StartGame(Mode.Colors));
             for (int i = 0; i < 3; i++)
             {
                 var c = Names.Basic[new[] { 0, 2, 4 }[i]].color;
-                var cr = Crayon(colors, c, new Vector2(80, 220));
-                cr.anchorMin = cr.anchorMax = new Vector2(0.5f, 0.62f);
+                var cr = Crayon(colors, c, new Vector2(48, 118));
+                cr.anchorMin = cr.anchorMax = new Vector2(0.5f, 0.80f);
                 cr.pivot = new Vector2(0.5f, 0.15f);
-                cr.anchoredPosition = new Vector2((i - 1) * 34, -80);
+                cr.anchoredPosition = new Vector2((i - 1) * 24, -40);
                 cr.localRotation = Quaternion.Euler(0, 0, (1 - i) * 20f);
             }
 
-            var animals = MenuCard(new Vector2(222, 250), Loc.T("pictures"), Loc.T("pictures_sub"), Theme.Mint, 0.18f, () => StartGame(Mode.Animals));
+            var animals = MenuCard(new Vector2(222, 400), Loc.T("pictures"), Loc.T("pictures_sub"), Theme.Mint, 0.18f, () => StartGame(Mode.Animals));
             if (_animals.Count > 0)
             {
                 var a = _animals[Random.Range(0, _animals.Count)];
@@ -90,8 +90,8 @@ namespace LofiBoya
                     _textures.Add(tex);
                     var pol = UIKit.Card(animals, "Pol", Color.white, 0.5f, 5f);
                     var prt = (RectTransform)pol.transform.parent;
-                    prt.anchorMin = prt.anchorMax = new Vector2(0.5f, 0.62f);
-                    prt.sizeDelta = new Vector2(170, 190);
+                    prt.anchorMin = prt.anchorMax = new Vector2(0.5f, 0.80f);
+                    prt.sizeDelta = new Vector2(88, 98);
                     prt.anchoredPosition = Vector2.zero;
                     prt.localRotation = Quaternion.Euler(0, 0, 6);
                     var raw = UIKit.Node("Photo", pol.transform).Stretch(12, 12, 12, 12).gameObject.AddComponent<RawImage>();
@@ -103,27 +103,39 @@ namespace LofiBoya
                 }
             }
 
-            var shapes = MenuCard(new Vector2(-222, -230), Loc.T("shapes"), Loc.T("shapes_sub"), Theme.Lavender, 0.26f, () => StartGame(Mode.Shapes));
-            var deco = new[] { ("circle", Names.Basic[4].color, new Vector2(-62, 34)), ("triangle", Names.Basic[2].color, new Vector2(56, 40)), ("square", Names.Basic[6].color, new Vector2(0, -50)) };
+            var shapes = MenuCard(new Vector2(-222, 40), Loc.T("shapes"), Loc.T("shapes_sub"), Theme.Lavender, 0.26f, () => StartGame(Mode.Shapes));
+            var deco = new[] { ("circle", Names.Basic[4].color, new Vector2(-36, 14)), ("triangle", Names.Basic[2].color, new Vector2(34, 16)), ("square", Names.Basic[6].color, new Vector2(0, -24)) };
             foreach (var (key, col, pos) in deco)
             {
                 var img = UIKit.Box(shapes, "Shape", col, Art.Shape(key));
                 img.type = Image.Type.Simple;
                 img.raycastTarget = false;
-                img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(0.5f, 0.62f);
+                img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(0.5f, 0.82f);
                 img.rectTransform.anchoredPosition = pos;
-                img.rectTransform.sizeDelta = new Vector2(100, 100);
+                img.rectTransform.sizeDelta = new Vector2(56, 56);
             }
 
-            var count = MenuCard(new Vector2(222, -230), Loc.T("counting"), Loc.T("counting_sub"), Theme.Butter, 0.34f, () => StartGame(Mode.Count));
+            var count = MenuCard(new Vector2(222, 40), Loc.T("counting"), Loc.T("counting_sub"), Theme.Butter, 0.34f, () => StartGame(Mode.Count));
             for (int i = 0; i < 3; i++)
             {
-                var d = UIKit.Label(count, (i + 1).ToString(), 96, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+                var d = UIKit.Label(count, (i + 1).ToString(), 80, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
                 d.raycastTarget = false;
-                d.rectTransform.anchorMin = d.rectTransform.anchorMax = new Vector2(0.5f, 0.62f);
+                d.rectTransform.anchorMin = d.rectTransform.anchorMax = new Vector2(0.5f, 0.80f);
                 d.rectTransform.anchoredPosition = new Vector2((i - 1) * 80, i == 1 ? 14 : -6);
                 d.rectTransform.sizeDelta = new Vector2(90, 130);
                 d.rectTransform.localRotation = Quaternion.Euler(0, 0, (1 - i) * 10f);
+            }
+
+            // Duygular: mutlu ve üzgün iki Pofuduk
+            var feel = MenuCard(new Vector2(0, -320), Loc.T("feelings_game"), Loc.T("feelings_sub"), Theme.Sky, 0.42f, () => StartGame(Mode.Feelings));
+            for (int i = 0; i < 2; i++)
+            {
+                var m = Mascot.Create(feel, 105, false);
+                m.SetMood(i == 0 ? MascotMood.Happy : MascotMood.Sad);
+                m.SetInteractive(false);
+                var mrt = (RectTransform)m.transform;
+                mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0.80f);
+                mrt.anchoredPosition = new Vector2((i == 0 ? -1 : 1) * 62, 0);
             }
         }
 
@@ -131,7 +143,7 @@ namespace LofiBoya
         {
             var b = UIKit.Button(_area, "", color, Theme.Text, 10, onClick, 0.7f);
             var rt = (RectTransform)b.transform;
-            rt.Place(new Vector2(0.5f, 0.5f), pos, new Vector2(420, 440));
+            rt.Place(new Vector2(0.5f, 0.5f), pos, new Vector2(420, 330));
             var face = b.transform.Find("Face");
             var t = UIKit.Label(face, title, 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.anchorMin = new Vector2(0, 0);
@@ -192,6 +204,7 @@ namespace LofiBoya
             if (_mode == Mode.Colors) ColorRound();
             else if (_mode == Mode.Shapes) ShapeRound();
             else if (_mode == Mode.Count) CountRound();
+            else if (_mode == Mode.Feelings) FeelingsRound();
             else AnimalRound();
             Tween.Pop(_prompt.rectTransform, 0.05f, 0.4f);
             Speech.Say(_promptVoice);
@@ -335,6 +348,61 @@ namespace LofiBoya
                     if (right && !_locked) Tween.To(inner, 0.45f, k => inner.color = Color.Lerp(Color.white, fill, k));
                     Answer(right, slot, name);
                 });
+                slot.localScale = Vector3.zero;
+                Tween.Pop(slot, 0.1f + i * 0.08f, 0.45f);
+            }
+        }
+
+        // ================= Duygular: "Üzgün yüzü bul!" =================
+
+        static readonly (string key, MascotMood mood)[] Moods =
+        {
+            ("happy", MascotMood.Happy), ("sad", MascotMood.Sad), ("angry", MascotMood.Angry), ("surprised", MascotMood.Surprised),
+        };
+
+        readonly List<int> _feelBag = new();
+
+        void FeelingsRound()
+        {
+            // torba: dört duygunun hepsi sorulmadan hiçbiri tekrar gelmez (art arda da gelmez)
+            if (_feelBag.Count == 0)
+            {
+                for (int k = 0; k < Moods.Length; k++) _feelBag.Add(k);
+                Shuffle(_feelBag);
+                if (_feelBag[0] == _lastTarget) { _feelBag.RemoveAt(0); _feelBag.Add(_lastTarget); }
+            }
+            int target = _feelBag[0];
+            _feelBag.RemoveAt(0);
+            _lastTarget = target;
+            var picks = new List<int> { target };
+            while (picks.Count < 3)
+            {
+                int o = Random.Range(0, Moods.Length);
+                if (!picks.Contains(o)) picks.Add(o);
+            }
+            Shuffle(picks);
+            var (_, acc) = Names.Feel(Moods[target].key);
+            _promptVoice = Names.Cap(Loc.T("find", acc));
+            _prompt.text = _promptVoice;
+
+            for (int i = 0; i < 3; i++)
+            {
+                int idx = picks[i];
+                var slot = UIKit.Node("Option", _area);
+                var pos = i < 2 ? new Vector2((i == 0 ? -1 : 1) * 235, 60) : new Vector2(0, -380);
+                slot.Place(new Vector2(0.5f, 0.5f), pos, new Vector2(420, 380));
+                var hit = slot.gameObject.AddComponent<Image>();
+                hit.color = Color.clear;
+                var m = Mascot.Create(slot, 400, false);
+                m.SetMood(Moods[idx].mood);
+                m.SetInteractive(false);
+                var mrt = (RectTransform)m.transform;
+                mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0.5f);
+                mrt.anchoredPosition = Vector2.zero;
+                var name = Names.Feel(Moods[idx].key).name;
+                var b = slot.gameObject.AddComponent<Button>();
+                b.transition = Selectable.Transition.None;
+                b.onClick.AddListener(() => { if (idx == target && !_locked) m.Jump(); Answer(idx == target, slot, name); });
                 slot.localScale = Vector3.zero;
                 Tween.Pop(slot, 0.1f + i * 0.08f, 0.45f);
             }

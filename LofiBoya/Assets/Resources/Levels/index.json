@@ -4,6 +4,10 @@
    "name": "kolay",
    "levels": [
     {
+     "id": "lofi-puffy-001",
+     "regions": 38
+    },
+    {
      "id": "lofi-num-1",
      "regions": 4
     },

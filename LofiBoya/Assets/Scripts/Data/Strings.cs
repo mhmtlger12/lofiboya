@@ -174,6 +174,17 @@ break_sub|Rest your eyes, stretch and drink some water. See you soon!|Gözlerini
 break_wait|Play again in: {0}|Tekrar oynamaya kalan: {0}|Wieder spielen in: {0}|Rejouer dans : {0}|Volver a jugar en: {0}|Si rigioca tra: {0}|Voltar a jogar em: {0}|Снова играть через: {0}|اللعب مجددًا بعد: {0}|फिर खेलने में: {0}
 break_continue|Grown-ups: continue|Ebeveyn: devam et|Eltern: weiter|Parents : continuer|Padres: continuar|Genitori: continua|Pais: continuar|Взрослым: продолжить|للوالدين: متابعة|बड़ों के लिए: जारी रखें
 break_over|Break is over! Welcome back.|Mola bitti! Tekrar hoş geldin.|Die Pause ist vorbei! Willkommen zurück.|La pause est finie ! Re-bonjour.|¡Se acabó el descanso! ¡A seguir!|La pausa è finita! Si ricomincia!|A pausa acabou! Vamos continuar!|Перерыв окончен! С возвращением.|انتهت الاستراحة! أهلًا بعودتك.|आराम पूरा हुआ! फिर से स्वागत है।
+feelings_game|Feelings|Duygular|Gefühle|Émotions|Emociones|Emozioni|Emoções|Эмоции|المشاعر|भावनाएँ
+feelings_sub|how does Puffy feel?|Pofuduk nasıl hissediyor?|Wie fühlt sich Puffi?|Comment se sent Pouf ?|¿Cómo se siente Pufi?|Come si sente Puffi?|Como se sente o Fofinho?|Как чувствует себя Пушок?|بماذا يشعر نفنوف؟|पफ़ी कैसा महसूस कर रहा है?
+puffy_name|Puffy|Pofuduk|Puffi|Pouf|Pufi|Puffi|Fofinho|Пушок|نفنوف|पफ़ी
+puffy_more|{0} more pictures|{0} resim daha|noch {0} Bilder|encore {0} dessins|{0} dibujos más|ancora {0} disegni|mais {0} desenhos|ещё картинок: {0}|بقي {0} من الرسومات|{0} चित्र और
+puffy_new|New Puffy sticker! Look in your sticker album.|Yeni Pofuduk çıkartması! Çıkartma albümüne bak.|Neuer Puffi-Sticker! Schau in dein Stickeralbum.|Nouveau sticker Pouf ! Regarde ton album.|¡Nueva pegatina de Pufi! Mira tu álbum.|Nuovo adesivo di Puffi! Guarda il tuo album.|Novo cromo do Fofinho! Vê a tua caderneta.|Новая наклейка с Пушком! Загляни в альбом.|ملصق نفنوف جديد! انظر في ألبومك.|पफ़ी का नया स्टिकर! अपना एल्बम देखो।
+# ---------------- Boyama arkadaşı Pofuduk ----------------
+buddy_25|Great start!|Harika bir başlangıç!|Toller Anfang!|Super début !|¡Buen comienzo!|Ottimo inizio!|Bom começo!|Отличное начало!|بداية رائعة!|बहुत अच्छी शुरुआत!
+buddy_50|Halfway there!|Yarıladık bile!|Schon die Hälfte!|Déjà la moitié !|¡Ya vamos por la mitad!|Siamo già a metà!|Já vamos a meio!|Уже половина!|وصلنا إلى النصف!|आधा हो गया!
+buddy_75|Almost done!|Az kaldı!|Fast fertig!|Presque fini !|¡Casi terminamos!|Quasi finito!|Quase pronto!|Почти готово!|اقتربنا من النهاية!|बस थोड़ा सा बाकी!
+buddy_idle|Shall we color this part?|Burayı boyamaya ne dersin?|Wollen wir diesen Teil anmalen?|On colorie cette partie ?|¿Coloreamos esta parte?|Coloriamo questa parte?|Vamos pintar esta parte?|Раскрасим эту часть?|هل نلوّن هذا الجزء؟|क्या इस हिस्से में रंग भरें?
+buddy_idle_blank|What shall we draw next?|Şimdi ne çizelim?|Was malen wir als Nächstes?|On dessine quoi maintenant ?|¿Qué dibujamos ahora?|Cosa disegniamo adesso?|O que vamos desenhar agora?|Что нарисуем дальше?|ماذا نرسم الآن؟|अब क्या बनाएँ?
 # ---------------- Müzik parçaları ----------------
 track_0|Pink Clouds|Pembe Bulutlar|Rosa Wolken|Nuages roses|Nubes rosas|Nuvole rosa|Nuvens cor-de-rosa|Розовые облака|غيوم وردية|गुलाबी बादल
 track_1|Rainy Café|Yağmurlu Kafe|Regencafé|Café sous la pluie|Café lluvioso|Caffè sotto la pioggia|Café à chuva|Дождливое кафе|مقهى ممطر|बारिश वाला कैफ़े

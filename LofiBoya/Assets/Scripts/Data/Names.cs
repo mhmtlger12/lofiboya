@@ -129,6 +129,7 @@ namespace LofiBoya
             ["lofi-balloons-001"] = "balloons",
             ["lofi-market-001"] = "market",
             ["lofi-bookshelf-001"] = "bookshelf",
+            ["lofi-puffy-001"] = "puffy",
             ["lofi-num-1"] = "num1",
             ["lofi-num-2"] = "num2",
             ["lofi-num-3"] = "num3",
@@ -154,7 +155,7 @@ namespace LofiBoya
         }
 
         /// <summary>Tekil bir nesne değil, sahne/çoğul ad: Türkçede "Bu bir ..." denmez.</summary>
-        static readonly HashSet<string> SceneKeys = new() { "feelings", "toothbrush", "handwash", "instruments", "balloons", "hexflowers", "space" };
+        static readonly HashSet<string> SceneKeys = new() { "puffy", "feelings", "toothbrush", "handwash", "instruments", "balloons", "hexflowers", "space" };
         /// <summary>Desen sayfaları: "Resimler" öğrenme oyununda birbirine benzediği için sorulmaz.</summary>
         static readonly HashSet<string> PatternKeys = new() { "startiles", "hexflowers", "kilim", "tuliptile", "zenfish", "mandala" };
 
@@ -176,6 +177,9 @@ namespace LofiBoya
 
         /// <summary>Şekil adı (yalın, cümle içi): anahtar "circle", "square", "triangle", "rectangle", "star", "heart".</summary>
         public static (string name, string acc) Shape(string key) => Word("shape_" + key);
+
+        /// <summary>Duygu yüzü adı (yalın, cümle içi): "happy", "sad", "angry", "surprised".</summary>
+        public static (string name, string acc) Feel(string key) => Word("feel_" + key);
 
         /// <summary>Resmin adı biliniyorsa (yalın ad, cümle içi biçim).</summary>
         public static bool TryAnimal(string id, out string name, out string accusative)
@@ -362,6 +366,11 @@ flowergarden|flower garden|the flower garden|çiçek bahçesi|çiçek bahçesini
 balloons|hot air balloons|the hot air balloons|sıcak hava balonları|sıcak hava balonlarını|Heißluftballons|die Heißluftballons|montgolfières|les montgolfières|globos aerostáticos|los globos aerostáticos|mongolfiere|le mongolfiere|balões de ar quente|os balões de ar quente|воздушные шары|воздушные шары|المناطيد|المناطيد|गर्म हवा के गुब्बारे|गर्म हवा के गुब्बारों
 market|market stall|the market stall|pazar tezgâhı|pazar tezgâhını|Marktstand|den Marktstand|étal du marché|l'étal du marché|puesto del mercado|el puesto del mercado|bancarella|la bancarella|banca do mercado|a banca do mercado|прилавок на рынке|прилавок на рынке|بسطة السوق|بسطة السوق|बाज़ार की दुकान|बाज़ार की दुकान
 bookshelf|bookshelf|the bookshelf|kitaplık|kitaplığı|Bücherregal|das Bücherregal|bibliothèque|la bibliothèque|estantería|la estantería|libreria|la libreria|estante|a estante|книжная полка|книжную полку|رف الكتب|رف الكتب|किताबों की अलमारी|किताबों की अलमारी
+feel_happy|happy face|the happy face|mutlu yüz|mutlu yüzü|fröhliches Gesicht|das fröhliche Gesicht|visage content|le visage content|cara feliz|la cara feliz|faccina felice|la faccina felice|cara feliz|a cara feliz|весёлое личико|весёлое личико|وجه سعيد|الوجه السعيد|खुश चेहरा|खुश चेहरा
+feel_sad|sad face|the sad face|üzgün yüz|üzgün yüzü|trauriges Gesicht|das traurige Gesicht|visage triste|le visage triste|cara triste|la cara triste|faccina triste|la faccina triste|cara triste|a cara triste|грустное личико|грустное личико|وجه حزين|الوجه الحزين|उदास चेहरा|उदास चेहरा
+feel_angry|angry face|the angry face|kızgın yüz|kızgın yüzü|wütendes Gesicht|das wütende Gesicht|visage fâché|le visage fâché|cara enfadada|la cara enfadada|faccina arrabbiata|la faccina arrabbiata|cara zangada|a cara zangada|сердитое личико|сердитое личико|وجه غاضب|الوجه الغاضب|गुस्से वाला चेहरा|गुस्से वाला चेहरा
+feel_surprised|surprised face|the surprised face|şaşkın yüz|şaşkın yüzü|überraschtes Gesicht|das überraschte Gesicht|visage surpris|le visage surpris|cara de sorpresa|la cara de sorpresa|faccina sorpresa|la faccina sorpresa|cara surpreendida|a cara surpreendida|удивлённое личико|удивлённое личико|وجه متفاجئ|الوجه المتفاجئ|हैरान चेहरा|हैरान चेहरा
+puffy|Puffy|Puffy|Pofuduk|Pofuduk'u|Puffi|Puffi|Pouf|Pouf|Pufi|a Pufi|Puffi|Puffi|Fofinho|o Fofinho|Пушок|Пушка|نفنوف|نفنوف|पफ़ी|पफ़ी
 shape_circle|circle|the circle|daire|daireyi|Kreis|den Kreis|rond|le rond|círculo|el círculo|cerchio|il cerchio|círculo|o círculo|круг|круг|دائرة|الدائرة|गोला|गोले
 shape_square|square|the square|kare|kareyi|Quadrat|das Quadrat|carré|le carré|cuadrado|el cuadrado|quadrato|il quadrato|quadrado|o quadrado|квадрат|квадрат|مربع|المربع|वर्ग|वर्ग
 shape_triangle|triangle|the triangle|üçgen|üçgeni|Dreieck|das Dreieck|triangle|le triangle|triángulo|el triángulo|triangolo|il triangolo|triângulo|o triângulo|треугольник|треугольник|مثلث|المثلث|त्रिभुज|त्रिभुज

@@ -81,10 +81,26 @@ namespace LofiBoya
             }
             if (n == 0)
             {
+                // boş albüm: Pofuduk balonla davet eder ("Yeni çizim" kartını gösterir gibi)
                 var hint = UIKit.Node("Empty", _gridRoot);
-                var msg = UIKit.Label(hint, Loc.T("album_empty"), 40, Theme.TextSoft);
-                msg.rectTransform.Stretch(10, 40, 10, 40);
+                var m = Mascot.Create(hint, 280);
+                var mrt = (RectTransform)m.transform;
+                mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0f);
+                mrt.pivot = new Vector2(0.5f, 0f);
+                mrt.anchoredPosition = new Vector2(0, 20);
+                var bub = UIKit.Card(hint, "Bubble", Color.white, 0.6f, 4f);
+                var brt = (RectTransform)bub.transform.parent;
+                brt.anchorMin = new Vector2(0, 1); brt.anchorMax = new Vector2(1, 1);
+                brt.pivot = new Vector2(0.5f, 1f);
+                brt.offsetMin = new Vector2(10, -250); brt.offsetMax = new Vector2(-10, -10);
+                var msg = UIKit.Label(bub.transform, Loc.T("album_empty"), 36, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+                msg.rectTransform.Stretch(18, 12, 18, 12);
                 msg.horizontalOverflow = HorizontalWrapMode.Wrap;
+                msg.resizeTextForBestFit = true;
+                msg.resizeTextMinSize = 24;
+                msg.resizeTextMaxSize = 36;
+                brt.gameObject.AddComponent<Floaty>().Init(6f, 0.8f);
+                Tween.Delay(0.8f, () => { if (m != null) m.Wave(2f); });
             }
             LayoutRebuilder.ForceRebuildLayoutImmediate(_gridRoot);
             _scroll.verticalNormalizedPosition = 1f;

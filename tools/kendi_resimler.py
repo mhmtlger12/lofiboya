@@ -2412,6 +2412,66 @@ def bookshelf():
     p.save("zor", "lofi-bookshelf-001")
 
 
+def puffy():
+    """Pofuduk boyama sayfası: oyunun maskotu, oyundakiyle aynı bulut biçimi (MascotArt.CloudSdf)."""
+    import numpy as np
+    p = Pen()
+    sc, ox, base = 1000.0, 200.0, 1345.0
+    # gökyüzü süsleri
+    for x, y, r in ((200, 260, 55), (1180, 330, 45), (1250, 620, 30)):
+        obj_star(p, x, y, r)
+    obj_heart(p, 420, 300, 45)
+    obj_heart(p, 1020, 200, 38)
+    # zemin ve çiçekler
+    p.poly(curve([(170, 1250), (700, 1210), (1230, 1250), (1230, 1480), (170, 1480)], 8), fill=255)
+    # bulut gövde: oyundaki SDF ile aynı
+    H2, W2 = H * S, W * S
+    ys, xs = np.mgrid[0:H2, 0:W2].astype(np.float32)
+    u = (xs / S - ox) / sc
+    v = (base - ys / S) / sc
+    def circ(x, y, r): return np.sqrt((u - x) ** 2 + (v - y) ** 2) - r
+    def smin(a, b, k):
+        h = np.clip(0.5 + 0.5 * (b - a) / k, 0, 1)
+        return b * (1 - h) + a * h - k * h * (1 - h)
+    d = circ(0.50, 0.36, 0.27)
+    d = smin(d, circ(0.25, 0.33, 0.17), 0.06)
+    d = smin(d, circ(0.75, 0.33, 0.17), 0.06)
+    d = smin(d, circ(0.36, 0.56, 0.17), 0.05)
+    d = smin(d, circ(0.62, 0.58, 0.18), 0.05)
+    d = smin(d, circ(0.15, 0.22, 0.10), 0.05)
+    d = smin(d, circ(0.85, 0.22, 0.10), 0.05)
+    d = np.maximum(d, 0.115 - v)
+    a = np.asarray(p.im).copy()
+    a[d < 0.007] = 255                       # içi beyaz (arkadaki zemini örter)
+    a[np.abs(d) < 0.007] = 0                 # kontur
+    p.im = Image.fromarray(a)
+    p.d = ImageDraw.Draw(p.im)
+    def P(uu, vv): return (ox + uu * sc, base - vv * sc)
+    # parlama, yanaklar
+    x, y = P(0.40, 0.66); p.ellipse(x, y, 80, 35, w=10)
+    for uu in (0.33, 0.67):
+        x, y = P(uu, 0.33); p.ellipse(x, y, 55, 35, w=10)
+    # gözler
+    for uu in (0.40, 0.60):
+        x, y = P(uu, 0.43)
+        p.d.ellipse([(x - 36) * S, (y - 50) * S, (x + 36) * S, (y + 50) * S], fill=0)
+        p.d.ellipse([(x - 25) * S, (y - 35) * S, (x - 1) * S, (y - 11) * S], fill=255)
+    # ağız (açık gülüş) ve dil
+    x, y = P(0.5, 0.345)
+    p.poly([(x + math.cos(math.radians(t)) * 52, y + math.sin(math.radians(t)) * 52) for t in range(0, 181, 10)], fill=255, w=12)
+    p.ellipse(x, y + 32, 24, 13, w=8)
+    # sallanan el (solda) ve boya kalemi tutan el (sağda)
+    x, y = P(0.04, 0.42); p.circle(x, y, 62, fill=255)
+    pencil_obj(p, 980, 1060, -62, 260, 44)
+    x, y = P(0.86, 0.26); p.circle(x, y, 60, fill=255)
+    for x in (330, 1070):                                                       # çimendeki çiçekler (önde)
+        obj_flower(p, x, 1380, 50)
+    for x in (520, 880):
+        leaf(p, x, 1400, -70, 70, 22, w=8)
+        leaf(p, x, 1400, -110, 70, 22, w=8)
+    p.save("kolay", "lofi-puffy-001")
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:                       # yalnızca adı verilenleri çiz: python kendi_resimler.py bus train

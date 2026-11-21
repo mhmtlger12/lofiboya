@@ -65,11 +65,47 @@ namespace LofiBoya
             content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             sr.content = content;
 
+            // Pofuduk koleksiyonu: resim bitirdikçe şapkalı Pofuduklar açılır
+            for (int i = 0; i < PuffyStickers.Hats.Length; i++)
+                PuffySticker(content, i, done);
+
             for (int i = 0; i < all.Count; i++)
             {
                 var e = all[i];
                 Sticker(content, e.g, e.id, e.done, i);
             }
+        }
+
+        void PuffySticker(Transform parent, int i, int done)
+        {
+            var (hat, need) = PuffyStickers.Hats[i];
+            bool open = done >= need;
+            var cell = UIKit.Node("Puffy", parent);
+            var holder = UIKit.Node("Sticker", cell);
+            holder.Place(new Vector2(0.5f, 0.5f), new Vector2(0, 14), new Vector2(270, 270));
+            holder.localRotation = Quaternion.Euler(0, 0, (i % 2 == 0 ? -1 : 1) * 4f);
+            if (open)
+            {
+                var face = UIKit.Card(holder, "Paper", Theme.Butter, 0.45f, 6f);
+                ((RectTransform)face.transform.parent).Stretch();
+            }
+            else
+            {
+                var face = UIKit.Box(holder, "Slot", Theme.Text.WithAlpha(0.06f), null, 0.45f);
+                face.rectTransform.Stretch();
+            }
+            var m = Mascot.Create(holder, 200, false);
+            m.SetHat(hat);
+            var mrt = (RectTransform)m.transform;
+            mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0.38f);
+            mrt.anchoredPosition = Vector2.zero;
+            if (!open)
+            {
+                m.SetInteractive(false);
+                m.gameObject.AddComponent<CanvasGroup>().alpha = 0.25f;
+            }
+            var label = UIKit.Label(cell, open ? Loc.T("puffy_name") : Loc.T("puffy_more", need - done), 30, open ? Theme.Text : Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            label.rectTransform.Band(false, 44, 0);
         }
 
         void Sticker(Transform parent, string group, string id, bool done, int index)

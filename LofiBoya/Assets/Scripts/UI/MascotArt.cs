@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace LofiBoya
 {
+    public enum MascotMood { Normal, Happy, Sad, Angry, Surprised }
+    public enum MascotHat { None, Party, Crown, Chef, Firefighter, Doctor, Flower, Astronaut }
+
     /// <summary>
     /// Maskot "Pofuduk": konturlu, sticker gibi yumuşak bir bulut.
     /// Gövde, açık göz, kapalı göz ve el ayrı katmanlar: göz kırpma ve el sallama için.
@@ -91,7 +94,9 @@ namespace LofiBoya
             return d;
         }
 
-        static void DrawBody(Canvas c)
+        static void DrawBody(Canvas c) => DrawBody(c, true);
+
+        static void DrawBody(Canvas c, bool mouth)
         {
             // yumuşak gölge
             c.Fill(p => CloudSdf(p + new Vector2(0, 0.018f)) - 0.004f, new Color(0.37f, 0.29f, 0.43f, 0.18f));
@@ -105,8 +110,7 @@ namespace LofiBoya
             c.Fill(p => Ellipse(p, 0.33f, 0.33f, 0.055f, 0.035f), new Color(1f, 0.62f, 0.7f, 0.75f));
             c.Fill(p => Ellipse(p, 0.67f, 0.33f, 0.055f, 0.035f), new Color(1f, 0.62f, 0.7f, 0.75f));
             // gülümseme (ağız açık, içi pembe)
-            c.Fill(p => Mathf.Max(Circle(p, 0.5f, 0.345f, 0.052f), p.y - 0.345f), Ink);
-            c.Fill(p => Mathf.Max(Circle(p, 0.5f, 0.345f, 0.036f), p.y - 0.335f), Theme.Hex("FF8FA3"));
+            if (mouth) DrawSmile(c);
         }
 
         static void DrawEyes(Canvas c, int mode)
@@ -200,6 +204,169 @@ namespace LofiBoya
                 if ((c1 && c2 && c3) || (!c1 && !c2 && !c3)) s = -s;
             }
             return s * Mathf.Sqrt(d);
+        }
+
+        // ---------------- duygular ----------------
+        static void DrawSmile(Canvas c)
+        {
+            c.Fill(p => Mathf.Max(Circle(p, 0.5f, 0.345f, 0.052f), p.y - 0.345f), Ink);
+            c.Fill(p => Mathf.Max(Circle(p, 0.5f, 0.345f, 0.036f), p.y - 0.335f), Theme.Hex("FF8FA3"));
+        }
+
+        static float Seg(Vector2 p, Vector2 a, Vector2 b, float r)
+        {
+            var pa = p - a; var ba = b - a;
+            float h = Mathf.Clamp01(Vector2.Dot(pa, ba) / Vector2.Dot(ba, ba));
+            return (pa - ba * h).magnitude - r;
+        }
+
+        static Sprite _bodyPlain;
+        /// <summary>Ağızsız gövde: duygu yüzleri üstüne gelir.</summary>
+        public static Sprite BodyPlain => _bodyPlain != null ? _bodyPlain : (_bodyPlain = Make(W, H, c => DrawBody(c, false)));
+
+        static readonly Sprite[] _faces = new Sprite[5];
+        /// <summary>Duygu yüzü (göz + kaş + ağız), BodyPlain üstüne.</summary>
+        public static Sprite Face(MascotMood m)
+        {
+            int i = (int)m;
+            if (_faces[i] == null) _faces[i] = Make(W, H, c => DrawFace(c, m));
+            return _faces[i];
+        }
+
+        static void OpenEye(Canvas c, float x, float y, float rx, float ry)
+        {
+            c.Fill(p => Ellipse(p, x, y, rx, ry), Ink);
+            c.Fill(p => Circle(p, x - 0.012f, y + 0.022f, 0.013f), Color.white);
+        }
+
+        static void DrawFace(Canvas c, MascotMood m)
+        {
+            switch (m)
+            {
+                case MascotMood.Happy:
+                    foreach (var x in new[] { 0.40f, 0.60f })
+                        c.Fill(p => Mathf.Max(Mathf.Abs(Circle(p, x, 0.415f, 0.035f)) - 0.009f, 0.415f - p.y), Ink);
+                    DrawSmile(c);
+                    break;
+                case MascotMood.Sad:
+                    OpenEye(c, 0.40f, 0.425f, 0.034f, 0.046f);
+                    OpenEye(c, 0.60f, 0.425f, 0.034f, 0.046f);
+                    c.Fill(p => Seg(p, new Vector2(0.355f, 0.49f), new Vector2(0.43f, 0.515f), 0.008f), Ink);   // iç uçları yukarı kaşlar
+                    c.Fill(p => Seg(p, new Vector2(0.645f, 0.49f), new Vector2(0.57f, 0.515f), 0.008f), Ink);
+                    c.Fill(p => Mathf.Max(Mathf.Abs(Circle(p, 0.5f, 0.30f, 0.045f)) - 0.008f, 0.30f - p.y), Ink);   // ters gülüş
+                    c.Fill(p => Ellipse(p, 0.635f, 0.37f, 0.014f, 0.022f), Theme.Hex("7EC8F5"));                  // gözyaşı
+                    break;
+                case MascotMood.Angry:
+                    OpenEye(c, 0.40f, 0.42f, 0.034f, 0.04f);
+                    OpenEye(c, 0.60f, 0.42f, 0.034f, 0.04f);
+                    c.Fill(p => Seg(p, new Vector2(0.35f, 0.505f), new Vector2(0.44f, 0.475f), 0.01f), Ink);    // iç uçları aşağı kaşlar
+                    c.Fill(p => Seg(p, new Vector2(0.65f, 0.505f), new Vector2(0.56f, 0.475f), 0.01f), Ink);
+                    c.Fill(p => Seg(p, new Vector2(0.46f, 0.325f), new Vector2(0.54f, 0.325f), 0.009f), Ink);   // düz ağız
+                    break;
+                case MascotMood.Surprised:
+                    foreach (var x in new[] { 0.40f, 0.60f })
+                    {
+                        c.Fill(p => Circle(p, x, 0.43f, 0.045f), Ink);
+                        c.Fill(p => Circle(p, x, 0.43f, 0.03f), Color.white);
+                        c.Fill(p => Circle(p, x, 0.425f, 0.018f), Ink);
+                        c.Fill(p => Mathf.Max(Mathf.Abs(Circle(p, x, 0.49f, 0.04f)) - 0.007f, 0.505f - p.y), Ink);   // kalkık kaşlar
+                    }
+                    c.Fill(p => Ellipse(p, 0.5f, 0.32f, 0.032f, 0.042f), Ink);                                  // "O" ağız
+                    c.Fill(p => Ellipse(p, 0.5f, 0.32f, 0.019f, 0.028f), Theme.Hex("FF8FA3"));
+                    break;
+                default:
+                    DrawEyes(c, 0);
+                    DrawSmile(c);
+                    break;
+            }
+        }
+
+        // ---------------- şapkalar ----------------
+        static readonly Sprite[] _hats = new Sprite[8];
+        /// <summary>Başa takılan aksesuar. Astronot kaskı gövdeyle aynı boyda (W x H).</summary>
+        public static Sprite Hat(MascotHat h)
+        {
+            int i = (int)h;
+            if (h == MascotHat.None) return null;
+            if (_hats[i] == null) _hats[i] = h == MascotHat.Astronaut ? Make(W, H, DrawHelmet) : Make(160, 160, c => DrawHat(c, h));
+            return _hats[i];
+        }
+
+        static void Outlined(Canvas c, Func<Vector2, float> sdf, Func<Vector2, Color> col, float w = 0.035f)
+        {
+            c.Fill(p => sdf(p) - w, Ink);
+            c.Fill(sdf, col);
+        }
+
+        static void Outlined(Canvas c, Func<Vector2, float> sdf, Color col, float w = 0.035f) => Outlined(c, sdf, _ => col, w);
+
+        static void DrawHat(Canvas c, MascotHat h)
+        {
+            var pink = Theme.Hex("FF8FC7"); var yellow = Theme.Hex("FFD93D"); var red = Theme.Hex("FF5A5F"); var blue = Theme.Hex("7EC8F5");
+            switch (h)
+            {
+                case MascotHat.Party:
+                {
+                    var tri = new[] { new Vector2(0.28f, 0.12f), new Vector2(0.72f, 0.12f), new Vector2(0.5f, 0.82f) };
+                    Outlined(c, p => Polygon(p, tri), p => Mathf.Repeat(p.x * 4f + p.y * 3f, 1f) < 0.5f ? pink : Theme.Hex("FFD1E8"));
+                    Outlined(c, p => Circle(p, 0.5f, 0.84f, 0.075f), yellow);
+                    break;
+                }
+                case MascotHat.Crown:
+                {
+                    var cr = new[] { new Vector2(0.18f, 0.14f), new Vector2(0.82f, 0.14f), new Vector2(0.86f, 0.62f), new Vector2(0.68f, 0.40f),
+                                     new Vector2(0.5f, 0.70f), new Vector2(0.32f, 0.40f), new Vector2(0.14f, 0.62f) };
+                    Outlined(c, p => Polygon(p, cr), p => Color.Lerp(Theme.Hex("FFC93C"), Theme.Hex("FFE58A"), p.y));
+                    Outlined(c, p => Circle(p, 0.5f, 0.72f, 0.05f), pink, 0.025f);
+                    Outlined(c, p => Circle(p, 0.14f, 0.64f, 0.045f), blue, 0.025f);
+                    Outlined(c, p => Circle(p, 0.86f, 0.64f, 0.045f), blue, 0.025f);
+                    Outlined(c, p => Circle(p, 0.5f, 0.26f, 0.05f), red, 0.025f);
+                    break;
+                }
+                case MascotHat.Chef:
+                {
+                    float Puff(Vector2 p) => Mathf.Min(Mathf.Min(Circle(p, 0.30f, 0.48f, 0.17f), Circle(p, 0.5f, 0.58f, 0.2f)), Circle(p, 0.70f, 0.48f, 0.17f));
+                    Outlined(c, Puff, Color.white);
+                    Outlined(c, p => RoundBox(p, new Vector2(0.5f, 0.22f), new Vector2(0.30f, 0.09f), 0.03f), Color.white);
+                    break;
+                }
+                case MascotHat.Firefighter:
+                {
+                    Outlined(c, p => Mathf.Max(Ellipse(p, 0.5f, 0.24f, 0.30f, 0.34f), 0.24f - p.y), red);
+                    Outlined(c, p => Ellipse(p, 0.5f, 0.22f, 0.42f, 0.065f), red);
+                    Outlined(c, p => RoundBox(p, new Vector2(0.5f, 0.42f), new Vector2(0.07f, 0.08f), 0.02f), yellow, 0.025f);
+                    break;
+                }
+                case MascotHat.Doctor:
+                {
+                    Outlined(c, p => RoundBox(p, new Vector2(0.5f, 0.32f), new Vector2(0.27f, 0.17f), 0.06f), Color.white);
+                    c.Fill(p => RoundBox(p, new Vector2(0.5f, 0.32f), new Vector2(0.035f, 0.11f), 0.01f), red);
+                    c.Fill(p => RoundBox(p, new Vector2(0.5f, 0.32f), new Vector2(0.11f, 0.035f), 0.01f), red);
+                    break;
+                }
+                case MascotHat.Flower:
+                {
+                    for (int k = 0; k < 5; k++)
+                    {
+                        float a = Mathf.PI / 2 + k * Mathf.PI * 2 / 5;
+                        float px = 0.5f + Mathf.Cos(a) * 0.17f, py = 0.42f + Mathf.Sin(a) * 0.17f;
+                        Outlined(c, p => Circle(p, px, py, 0.12f), pink, 0.03f);
+                    }
+                    Outlined(c, p => Circle(p, 0.5f, 0.42f, 0.09f), yellow, 0.03f);
+                    break;
+                }
+            }
+        }
+
+        static void DrawHelmet(Canvas c)
+        {
+            // cam fanus: ince kontur halkası + çok hafif mavi cam + parlama
+            c.Fill(p => Mathf.Abs(Circle(p, 0.5f, 0.43f, 0.405f)) - 0.012f, Ink);
+            c.Fill(p => Circle(p, 0.5f, 0.43f, 0.393f), new Color(0.6f, 0.85f, 1f, 0.12f));
+            c.Fill(p => Mathf.Max(Mathf.Abs(Circle(p, 0.5f, 0.43f, 0.34f)) - 0.012f, Mathf.Max(p.x - 0.36f, 0.62f - p.y)), new Color(1, 1, 1, 0.85f));
+            // yaka halkası
+            c.Fill(p => RoundBox(p, new Vector2(0.5f, 0.07f), new Vector2(0.33f, 0.045f), 0.03f) - 0.01f, Ink);
+            c.Fill(p => RoundBox(p, new Vector2(0.5f, 0.07f), new Vector2(0.33f, 0.045f), 0.03f), Theme.Hex("D9DEE8"));
         }
     }
 }

@@ -30,6 +30,7 @@ SRC = os.path.join(ROOT, "resimler")
 DST = os.path.join(ROOT, "LofiBoya", "Assets", "Resources", "Levels")
 PREVIEW = os.path.join(ROOT, "tools", "onizleme")
 DIFFICULTIES = ["kolay", "orta", "zor"]
+PINNED = {"lofi-puffy-001"}   # oyunun maskotu Pofuduk her zaman en başta
 
 MAX_SIDE = 1600        # mobilde bellek/hız dengesi
 LINE_THRESHOLD = 165   # bu parlaklığın altı çizgi sayılır
@@ -185,7 +186,7 @@ def main():
 
     os.makedirs(DST, exist_ok=True)
     # Her grupta basitten zora (az bölgeden çok bölgeye): çocuk kademeli ilerler
-    groups = [{"name": d, "levels": sorted(index[d], key=lambda e: (e["regions"], e["id"]))} for d in DIFFICULTIES]
+    groups = [{"name": d, "levels": sorted(index[d], key=lambda e: (e["id"] not in PINNED, e["regions"], e["id"]))} for d in DIFFICULTIES]
     with open(os.path.join(DST, "index.json"), "w", encoding="utf-8") as f:
         json.dump({"groups": groups}, f, ensure_ascii=False, indent=1)
     total = sum(len(v) for v in index.values())

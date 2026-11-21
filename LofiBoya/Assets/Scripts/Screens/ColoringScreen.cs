@@ -34,6 +34,10 @@ namespace LofiBoya
         readonly List<(Image img, Image ring)> _magicItems = new();
         readonly List<(Image img, Image ring)> _stampItems = new();
         readonly List<Sprite> _previewSprites = new();
+        // Boyama arkadaşı Pofuduk
+        Buddy _buddy;
+        int _milestone;                 // 0..3: %25 / %50 / %75 söylendi mi
+        float _lastActivity, _lastIdlePeek = -999f;
 
         // Sayılı mod (1-5): her bölgenin bir numarası, her numaranın bir rengi var
         bool _numbers;
@@ -91,8 +95,18 @@ namespace LofiBoya
             if (_level.IsBlank && startTool == Tool.Fill) startTool = Tool.Pencil; // boş sayfada kalemle başla
             SelectTool(startTool, false);
             if (SaveSystem.NumberMode && !_level.IsBlank) SetNumbers(true, false);
+            _buddy = Buddy.Create(root, 610);
+            var hat = Buddy.HatFor(Id);
+            if (hat != MascotHat.None)
+            {
+                _buddy.SetHat(hat);
+                Tween.Delay(1.3f, () => { if (this != null && _buddy != null) _buddy.Peek(null, 3f); });
+            }
+            _lastActivity = Time.unscaledTime;
             _canvas.Changed += OnChanged;
             OnChanged();
+            float p0 = _canvas.Progress;
+            _milestone = p0 >= 0.75f ? 3 : p0 >= 0.5f ? 2 : p0 >= 0.25f ? 1 : 0;
             _saveTimer = -1;
             _ready = true;
 
@@ -800,6 +814,13 @@ namespace LofiBoya
             bool allDone = _canvas.AllDone;
             if (allDone) pct = 100;
             _progressText.text = Loc.T("percent", pct);
+            _lastActivity = Time.unscaledTime;
+            // Pofuduk: çeyrek, yarı ve üç çeyrekte kısa bir cesaretlendirme (not değil, sevinç)
+            if (_ready && _buddy != null && !_level.IsBlank && !_completedShown && !allDone)
+            {
+                int m = p >= 0.75f ? 3 : p >= 0.5f ? 2 : p >= 0.25f ? 1 : 0;
+                if (m > _milestone) { _milestone = m; _buddy.Peek(Loc.T("buddy_" + m * 25)); }
+            }
             RefreshNumberLabels();
             float from = _progressFill.anchorMax.x;
             Tween.To(_progressFill, 0.35f, k => _progressFill.anchorMax = new Vector2(Mathf.Lerp(from, p, k), 1));
@@ -856,6 +877,18 @@ namespace LofiBoya
                 {
                     _fitBtn.gameObject.SetActive(zoomed);
                     if (zoomed) Tween.Pop(_fitBtn, 0f, 0.3f);
+                }
+            }
+            // uzun süre hiçbir şey olmadıysa Pofuduk yardıma gelir (dakikada en çok bir kez)
+            if (_ready && _buddy != null && !_completedShown && !BreakTimer.Active)
+            {
+                float now = Time.unscaledTime;
+                if (now - _lastActivity > 30f && now - _lastIdlePeek > 60f)
+                {
+                    _lastIdlePeek = now;
+                    _lastActivity = now;
+                    if (_level.IsBlank) _buddy.Peek(Loc.T("buddy_idle_blank"));
+                    else if (_canvas.ShowHint()) _buddy.Peek(Loc.T("buddy_idle"));
                 }
             }
             if (_saveTimer > 0)
@@ -1000,6 +1033,19 @@ namespace LofiBoya
             Tween.Delay(2.2f, () => { if (mascot != null) mascot.Jump(); });
 
             if (first) SaveSystem.Stars += 3;
+            // yeni Pofuduk çıkartması açıldıysa kutlama kartında şapkasıyla haber ver
+            var newHat = first && !_level.IsBlank ? PuffyStickers.UnlockedAt(PuffyStickers.DoneCount()) : MascotHat.None;
+            if (newHat != MascotHat.None)
+            {
+                mascot.SetHat(newHat);
+                Tween.Delay(2.6f, () =>
+                {
+                    if (this == null) return;
+                    Popup.Toast(Loc.T("puffy_new"));
+                    Speech.Say(Loc.T("puffy_new"));
+                    Sfx.Star();
+                });
+            }
             Haptics.Medium();
             string line = _level.IsBlank ? Loc.T("blank_done_say")
                 : Names.TryAnimal(Id, out _, out var acc) ? Loc.T("done_named", Loc.Lang == "tr" ? Names.Cap(acc) : acc)

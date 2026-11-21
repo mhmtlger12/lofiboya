@@ -14,6 +14,50 @@ namespace LofiBoya
         Image _eyes;
         float _t, _nextBlink, _blinkUntil, _waveUntil, _nextWave, _jumpT = -1, _happyUntil;
         float _size;
+        Image _bodyImg, _hit;
+        MascotMood _mood = MascotMood.Normal;
+        Image _hat;
+
+        /// <summary>Sabit bir duygu yüzü (Normal = canlı, göz kırpan hâl).</summary>
+        public void SetMood(MascotMood m)
+        {
+            _mood = m;
+            _bodyImg.sprite = m == MascotMood.Normal ? MascotArt.Body : MascotArt.BodyPlain;
+            if (m != MascotMood.Normal) _eyes.sprite = MascotArt.Face(m);
+        }
+
+        /// <summary>Başa aksesuar takar (None = çıkar).</summary>
+        public void SetHat(MascotHat h)
+        {
+            if (_hat != null) { Destroy(_hat.gameObject); _hat = null; }
+            if (h == MascotHat.None) return;
+            _hat = UIKit.Box(_body, "Hat", Color.white, MascotArt.Hat(h));
+            _hat.type = Image.Type.Simple;
+            _hat.raycastTarget = false;
+            var rt = _hat.rectTransform;
+            if (h == MascotHat.Astronaut)
+            {
+                rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+                rt.offsetMin = new Vector2(-_size * 0.06f, -_size * 0.02f);
+                rt.offsetMax = new Vector2(_size * 0.06f, _size * 0.12f);
+            }
+            else
+            {
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.80f);
+                rt.pivot = new Vector2(0.5f, 0.12f);
+                rt.sizeDelta = new Vector2(_size * 0.42f, _size * 0.42f);
+                rt.localRotation = Quaternion.Euler(0, 0, -8f);
+            }
+        }
+
+        /// <summary>false: dokununca kıkırdamaz, dokunuşlar alttaki butona geçer (oyunlarda seçenek olarak).</summary>
+        public void SetInteractive(bool on)
+        {
+            // Yalnızca dokunma alanını değil, gövde/göz/el resimlerini de kapat:
+            // yoksa dokunuş Pofuduk'ta kalır, alttaki seçenek butonuna hiç ulaşmaz.
+            foreach (var g in GetComponentsInChildren<Graphic>(true)) g.raycastTarget = on && g == _hit;
+            _hit.raycastTarget = on;
+        }
 
         static string TapLine() => Loc.T("mascot_" + Random.Range(1, 6));
 
@@ -33,6 +77,7 @@ namespace LofiBoya
             _root = (RectTransform)transform;
             var hit = _root.gameObject.AddComponent<Image>();
             hit.color = Color.clear; // dokunma alanı
+            _hit = hit;
 
             _body = UIKit.Node("Body", _root);
             _body.anchorMin = _body.anchorMax = new Vector2(0.5f, 0f);
@@ -56,6 +101,7 @@ namespace LofiBoya
 
             var body = UIKit.Box(_body, "Cloud", Color.white, MascotArt.Body);
             body.type = Image.Type.Simple;
+            _bodyImg = body;
             body.rectTransform.Stretch();
             _eyes = UIKit.Box(_body, "Eyes", Color.white, MascotArt.EyesOpen);
             _eyes.type = Image.Type.Simple;
@@ -91,6 +137,7 @@ namespace LofiBoya
 
         public void OnPointerClick(PointerEventData e)
         {
+            if (!_hit.raycastTarget) return;
             Sfx.Giggle();
             Jump();
             Wave(1.2f);
@@ -123,8 +170,9 @@ namespace LofiBoya
             _body.anchoredPosition = new Vector2(0, y);
             _body.localScale = new Vector3(sx, sy, 1);
 
-            // gözler: mutlu / kırpma / açık
-            if (_t < _happyUntil) _eyes.sprite = MascotArt.EyesHappy;
+            // gözler: mutlu / kırpma / açık (sabit duygu yüzünde dokunma)
+            if (_mood != MascotMood.Normal) { }
+            else if (_t < _happyUntil) _eyes.sprite = MascotArt.EyesHappy;
             else if (_t < _blinkUntil) _eyes.sprite = MascotArt.EyesClosed;
             else _eyes.sprite = MascotArt.EyesOpen;
             if (_t > _nextBlink)
