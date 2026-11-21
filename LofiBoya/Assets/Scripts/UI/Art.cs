@@ -19,6 +19,59 @@ namespace LofiBoya
         public static Sprite Eraser => _eraser != null ? _eraser : (_eraser = Icon(EraserSdf));
         public static Sprite Note => _note != null ? _note : (_note = Icon(NoteSdf));
         public static Sprite Dot => _dot != null ? _dot : (_dot = Icon(p => p.magnitude - 0.8f));
+        static Sprite _undo, _bulb, _trash, _fit;
+        public static Sprite UndoIcon => _undo != null ? _undo : (_undo = Icon(UndoSdf));
+        public static Sprite Bulb => _bulb != null ? _bulb : (_bulb = Icon(BulbSdf));
+        public static Sprite Trash => _trash != null ? _trash : (_trash = Icon(TrashSdf));
+        public static Sprite Fit => _fit != null ? _fit : (_fit = Icon(FitSdf));
+
+        static float UndoSdf(Vector2 p)
+        {
+            var c = new Vector2(0.12f, -0.02f);
+            const float R = 0.52f;
+            var d = p - c;
+            float ring = Mathf.Abs(d.magnitude - R) - 0.11f;
+            float ang = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+            if (ang < -100f) ring = Mathf.Max(ring, 0.2f); // sol altta boşluk
+            // ok ucu: yayın sol ucunda, aşağı bakar
+            var head = new[] { new Vector2(c.x - R - 0.27f, c.y + 0.04f), new Vector2(c.x - R + 0.27f, c.y + 0.04f), new Vector2(c.x - R, c.y - 0.30f) };
+            float tri = Polygon(p, head) - 0.03f;
+            return Mathf.Min(ring, tri);
+        }
+
+        static float BulbSdf(Vector2 p)
+        {
+            float glass = (p - new Vector2(0, 0.2f)).magnitude - 0.5f;
+            var neck = new[] { new Vector2(-0.30f, -0.12f), new Vector2(0.30f, -0.12f), new Vector2(0.22f, -0.38f), new Vector2(-0.22f, -0.38f) };
+            float b = Mathf.Min(glass, Polygon(p, neck));
+            float base1 = RoundBox(p, new Vector2(0, -0.52f), new Vector2(0.22f, 0.07f), 0.05f);
+            float base2 = RoundBox(p, new Vector2(0, -0.70f), new Vector2(0.15f, 0.06f), 0.05f);
+            // camın içinde parıltı (boşluk)
+            float shine = Capsule(p, new Vector2(-0.24f, 0.30f), new Vector2(-0.10f, 0.50f), 0.06f);
+            b = Mathf.Max(b, -shine);
+            return Mathf.Min(b, Mathf.Min(base1, base2));
+        }
+
+        static float TrashSdf(Vector2 p)
+        {
+            float lid = RoundBox(p, new Vector2(0, 0.48f), new Vector2(0.58f, 0.08f), 0.05f);
+            float handle = Mathf.Abs(RoundBox(p, new Vector2(0, 0.62f), new Vector2(0.18f, 0.10f), 0.06f)) - 0.05f;
+            handle = Mathf.Max(handle, -(p.y - 0.52f));
+            var body = new[] { new Vector2(-0.44f, 0.32f), new Vector2(0.44f, 0.32f), new Vector2(0.35f, -0.78f), new Vector2(-0.35f, -0.78f) };
+            float b = Polygon(p, body) - 0.04f;
+            for (int i = -1; i <= 1; i++)
+                b = Mathf.Max(b, -Capsule(p, new Vector2(i * 0.17f, 0.16f), new Vector2(i * 0.14f, -0.58f), 0.045f));
+            return Mathf.Min(Mathf.Min(lid, handle), b);
+        }
+
+        static float FitSdf(Vector2 p)
+        {
+            // dört köşe parantezi: "resmi sığdır"
+            var q = new Vector2(Mathf.Abs(p.x), Mathf.Abs(p.y));
+            float h = Capsule(q, new Vector2(0.30f, 0.70f), new Vector2(0.70f, 0.70f), 0.09f);
+            float v = Capsule(q, new Vector2(0.70f, 0.30f), new Vector2(0.70f, 0.70f), 0.09f);
+            return Mathf.Min(h, v);
+        }
 
         // ------------------------------------------------------------------
         // Boya kalemi (uç yukarıda). Gövde gri tonlu: renk ile çarpılınca gölgeli görünür.

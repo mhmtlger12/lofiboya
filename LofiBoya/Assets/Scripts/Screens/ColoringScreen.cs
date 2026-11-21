@@ -14,6 +14,9 @@ namespace LofiBoya
         Text _progressText;
         RectTransform _progressFill, _finishBtn, _crayonRow, _paletteTabs, _sizePicker;
         Text _boxLabel;
+        Image _cardFace;
+        RectTransform _fitBtn;
+        Coroutine _cardTween;
         Button _undoBtn;
         readonly List<Crayon> _crayons = new();
         readonly List<(Image bg, Text label)> _paletteButtons = new();
@@ -66,20 +69,28 @@ namespace LofiBoya
             var back = UIKit.CircleButton(root, "‹", Theme.Card, Theme.Text, 116, 90, Exit);
             ((RectTransform)back.transform).Place(new Vector2(0, 1), new Vector2(100, -100), new Vector2(116, 116));
 
-            var hint = UIKit.Button(root, "ipucu", Theme.Butter, Theme.Text, 36, () =>
+            // Sağdan sola: ipucu, geri al, temizle, müzik — hepsi çizilmiş ikonlu yuvarlak butonlar
+            const float size = 100f, gap = 112f;
+            var hint = UIKit.IconButton(root, Art.Bulb, Theme.Butter, Theme.Text, size, () =>
             {
                 if (!_canvas.ShowHint()) Popup.Toast("her yer boyanmış");
-            });
-            ((RectTransform)hint.transform).Place(new Vector2(1, 1), new Vector2(-110, -100), new Vector2(170, 104));
+            }, 0.56f);
+            ((RectTransform)hint.transform).Place(new Vector2(1, 1), new Vector2(-90, -100), new Vector2(size, size));
 
-            _undoBtn = UIKit.Button(root, "geri al", Theme.Card, Theme.Text, 36, () => _canvas.Undo());
-            ((RectTransform)_undoBtn.transform).Place(new Vector2(1, 1), new Vector2(-305, -100), new Vector2(190, 104));
+            _undoBtn = UIKit.IconButton(root, Art.UndoIcon, Theme.Card, Theme.Text, size, () => _canvas.Undo(), 0.5f);
+            ((RectTransform)_undoBtn.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap, -100), new Vector2(size, size));
+
+            var clear = UIKit.IconButton(root, Art.Trash, Theme.Card, Theme.Text, size, AskClear, 0.5f);
+            ((RectTransform)clear.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap * 2, -100), new Vector2(size, size));
+
+            var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, size, () => Popup.Toast(Sfx.NextTrack()), 0.48f);
+            ((RectTransform)music.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap * 3, -100), new Vector2(size, size));
 
             var title = UIKit.Label(root, Level.PrettyName(Id), 46, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0, 1);
             title.rectTransform.pivot = new Vector2(0, 0.5f);
-            title.rectTransform.anchoredPosition = new Vector2(190, -78);
-            title.rectTransform.sizeDelta = new Vector2(400, 60);
+            title.rectTransform.anchoredPosition = new Vector2(180, -78);
+            title.rectTransform.sizeDelta = new Vector2(330, 60);
             title.horizontalOverflow = HorizontalWrapMode.Wrap;
             title.resizeTextForBestFit = true;
             title.resizeTextMinSize = 26;
@@ -89,8 +100,8 @@ namespace LofiBoya
             var track = UIKit.Box(root, "Track", Theme.Card.WithAlpha(0.8f), null, 3f);
             track.rectTransform.anchorMin = track.rectTransform.anchorMax = new Vector2(0, 1);
             track.rectTransform.pivot = new Vector2(0, 0.5f);
-            track.rectTransform.anchoredPosition = new Vector2(190, -132);
-            track.rectTransform.sizeDelta = new Vector2(300, 24);
+            track.rectTransform.anchoredPosition = new Vector2(180, -132);
+            track.rectTransform.sizeDelta = new Vector2(230, 22);
             var fill = UIKit.Box(track.transform, "Fill", Theme.Accent, null, 3f);
             _progressFill = fill.rectTransform;
             _progressFill.anchorMin = Vector2.zero;
@@ -99,19 +110,27 @@ namespace LofiBoya
             _progressText = UIKit.Label(root, "%0", 32, Theme.TextSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
             _progressText.rectTransform.anchorMin = _progressText.rectTransform.anchorMax = new Vector2(0, 1);
             _progressText.rectTransform.pivot = new Vector2(0, 0.5f);
-            _progressText.rectTransform.anchoredPosition = new Vector2(505, -132);
+            _progressText.rectTransform.anchoredPosition = new Vector2(424, -132);
             _progressText.rectTransform.sizeDelta = new Vector2(120, 40);
         }
 
         void BuildCanvasCard(RectTransform root, LevelSave save)
         {
-            var card = UIKit.Card(root, "CanvasCard", Theme.Card, 0.7f);
+            // Kart = kâğıt. Rengi resmin arka plan bölgesiyle aynı olur, böylece resim kenara kadar uzanır.
+            var card = UIKit.Card(root, "CanvasCard", Theme.Paper, 0.7f);
+            _cardFace = card;
             var cardRt = (RectTransform)card.transform.parent;
-            cardRt.Stretch(40, 200, 40, 590);
+            cardRt.Stretch(36, 190, 36, 590);
             Tween.Pop(cardRt, 0.05f, 0.5f);
 
-            var vp = UIKit.Node("Viewport", card.transform).Stretch(16, 16, 16, 16);
-            vp.gameObject.AddComponent<RectMask2D>();
+            // Yuvarlak köşeli maske: yakınlaşınca resim kartın köşelerinden taşmaz
+            var vp = UIKit.Node("Viewport", card.transform).Stretch();
+            var maskImg = vp.gameObject.AddComponent<Image>();
+            maskImg.sprite = UIKit.Rounded;
+            maskImg.type = Image.Type.Sliced;
+            maskImg.pixelsPerUnitMultiplier = 0.7f;
+            maskImg.raycastTarget = false;
+            vp.gameObject.AddComponent<Mask>().showMaskGraphic = false;
             var content = UIKit.Node("Content", vp);
             content.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(100, 100));
             var raw = content.gameObject.AddComponent<RawImage>();
@@ -126,23 +145,14 @@ namespace LofiBoya
             _canvas.Init(_level, save, paint);
             if (paint != null) Destroy(paint);
 
-            // Sağ alt: görünümü sıfırla + müzik
-            var reset = UIKit.CircleButton(card.transform, "1x", Theme.Paper, Theme.TextSoft, 84, 34, () => _canvas.ResetView());
-            var rrt = (RectTransform)reset.transform;
-            rrt.anchorMin = rrt.anchorMax = new Vector2(1, 0);
-            rrt.anchoredPosition = new Vector2(-66, 66);
+            _cardFace.color = _canvas.BorderColor;
 
-            var music = UIKit.IconButton(card.transform, Art.Note, Theme.Paper, Theme.TextSoft, 84, () => Popup.Toast(Sfx.NextTrack()), 0.5f);
-            var mrt = (RectTransform)music.transform;
-            mrt.anchorMin = mrt.anchorMax = new Vector2(1, 0);
-            mrt.anchoredPosition = new Vector2(-170, 66);
-
-            // Sol alt: tümünü temizle (onay ister)
-            var clear = UIKit.Button(card.transform, "temizle", Theme.Paper, Theme.TextSoft, 32, AskClear);
-            var crt = (RectTransform)clear.transform;
-            crt.anchorMin = crt.anchorMax = new Vector2(0, 0);
-            crt.sizeDelta = new Vector2(170, 84);
-            crt.anchoredPosition = new Vector2(115, 66);
+            // Sağ alt: yalnızca yakınlaştırınca çıkan "resmi sığdır" butonu
+            var fitBtn = UIKit.IconButton(card.transform, Art.Fit, Theme.Card.WithAlpha(0.95f), Theme.Text, 92, () => _canvas.ResetView(), 0.5f);
+            _fitBtn = (RectTransform)fitBtn.transform;
+            _fitBtn.anchorMin = _fitBtn.anchorMax = new Vector2(1, 0);
+            _fitBtn.anchoredPosition = new Vector2(-72, 72);
+            _fitBtn.gameObject.SetActive(false);
 
             // Sol kenar: kalem kalınlığı (kalem/silgi seçiliyken görünür)
             _sizePicker = UIKit.Node("SizePicker", card.transform);
@@ -459,13 +469,24 @@ namespace LofiBoya
             float p = _canvas.Progress;
             int pct = Mathf.FloorToInt(p * 100);
             if (p > 0 && pct == 0) pct = 1;
-            if (_canvas.AllFilled) pct = 100;
+            bool allDone = _canvas.AllDone;
+            if (allDone) pct = 100;
             _progressText.text = "%" + pct;
             float from = _progressFill.anchorMax.x;
             Tween.To(_progressFill, 0.35f, k => _progressFill.anchorMax = new Vector2(Mathf.Lerp(from, p, k), 1));
             SetUndoVisible(_canvas.CanUndo);
 
-            bool showFinish = p >= 0.9f && !_canvas.AllFilled && !_completedShown;
+            // Kartın rengi arka plan bölgesini takip eder: resim kâğıda kenarsız uzanır
+            var targetCol = _canvas.BorderColor;
+            if (_cardFace.color != targetCol)
+            {
+                var startCol = _cardFace.color;
+                Tween.Stop(_cardTween);
+                _cardTween = Tween.To(_cardFace, 0.45f, k => _cardFace.color = Color.Lerp(startCol, targetCol, k), Tween.InOutSine);
+            }
+
+            // Neredeyse bitince (ya da kalemle çalışırken) "Bitir" her zaman ulaşılabilir olsun
+            bool showFinish = p >= 0.8f && !_completedShown;
             if (showFinish != _finishBtn.gameObject.activeSelf)
             {
                 _finishBtn.gameObject.SetActive(showFinish);
@@ -473,8 +494,8 @@ namespace LofiBoya
             }
             _saveTimer = 1.2f;
 
-            if (_canvas.AllFilled && !_completedShown && !_wasDone)
-                Tween.Delay(0.55f, () => { if (this != null && _canvas.AllFilled) ShowComplete(); });
+            if (allDone && !_completedShown && !_wasDone)
+                Tween.Delay(0.6f, () => { if (this != null && _canvas != null && _canvas.AllDone && !_completedShown) ShowComplete(); });
         }
 
         void SetUndoVisible(bool on)
@@ -487,6 +508,16 @@ namespace LofiBoya
         void Update()
         {
             AnimateCrayons(Mathf.Min(Time.unscaledDeltaTime, 1f / 30f));
+            // "sığdır" butonu yalnızca yakınlaştırılmışken görünür
+            if (_canvas != null && _fitBtn != null)
+            {
+                bool zoomed = _canvas.Zoom > 1.05f;
+                if (zoomed != _fitBtn.gameObject.activeSelf)
+                {
+                    _fitBtn.gameObject.SetActive(zoomed);
+                    if (zoomed) Tween.Pop(_fitBtn, 0f, 0.3f);
+                }
+            }
             if (_saveTimer > 0)
             {
                 _saveTimer -= Time.unscaledDeltaTime;

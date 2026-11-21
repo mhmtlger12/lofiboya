@@ -107,7 +107,25 @@ namespace LofiBoya
             }
         }
 
+        /// <summary>Her bölge kova ya da kalemle boyandı mı.</summary>
+        public bool AllDone
+        {
+            get
+            {
+                if (Level == null) return false;
+                for (int i = 1; i <= Level.Count; i++) if (!Filled[i] && !Brushed[i]) return false;
+                return true;
+            }
+        }
+
         public bool CanUndo => _undo.Count > 0;
+        public float Zoom => _zoom;
+
+        /// <summary>Resmin kenarına değen arka plan bölgesi (kart rengi bununla eşleşir).</summary>
+        public int BorderRegion { get; private set; }
+
+        /// <summary>Arka plan bölgesinin şu anki görünen rengi.</summary>
+        public Color BorderColor => BorderRegion > 0 && Filled[BorderRegion] ? (Color)RegionColors[BorderRegion] : Theme.Paper;
 
         void OnEnable()
         {
@@ -166,12 +184,13 @@ namespace LofiBoya
             Material.SetColor(IdHintColor, Theme.Accent);
             Image.texture = level.Lines;
             Image.material = Material;
+            BorderRegion = level.RegionAt(1, 1);
             Fit();
         }
 
         public LevelSave ToSave()
         {
-            var s = new LevelSave { colors = new int[Level.Count + 1], done = AllFilled, progress = Progress, brushed = (bool[])Brushed.Clone() };
+            var s = new LevelSave { colors = new int[Level.Count + 1], done = AllDone, progress = Progress, brushed = (bool[])Brushed.Clone() };
             s.colors[0] = -1;
             for (int i = 1; i <= Level.Count; i++)
             {
@@ -192,7 +211,7 @@ namespace LofiBoya
             if (Level == null) return;
             var vs = Viewport.rect.size;
             _lastViewportSize = vs;
-            float s = Mathf.Min(vs.x / Level.Width, vs.y / Level.Height) * 0.94f;
+            float s = Mathf.Min(vs.x / Level.Width, vs.y / Level.Height) * 0.97f;
             Content.sizeDelta = new Vector2(Level.Width * s, Level.Height * s);
             _zoom = 1f;
             Content.localScale = Vector3.one;
@@ -487,7 +506,7 @@ namespace LofiBoya
         void FlushStroke()
         {
             if (Tool == Tool.Eraser) Paint.Flush(-1, 1f, 0.5f, 0.25f);
-            else Paint.Flush(_strokeRegion, 0.95f, 0.45f, 0.9f);
+            else Paint.Flush(_strokeRegion, 1f, 0.5f, 0.85f);
         }
 
         void EndStroke()

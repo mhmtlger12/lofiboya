@@ -55,7 +55,8 @@ Shader "Hidden/LofiBoya/BrushStamp"
                 // kâğıdın pürüzü: iki ölçekli doku + eşik. Kenarlarda daha çok boşluk kalır.
                 float g = tex2D(_Grain, i.uv * _GrainScale.xy).r;
                 float g2 = tex2D(_Grain, i.uv * _GrainScale.xy * 2.7 + 0.37).r;
-                float tooth = smoothstep(0.22 + 0.25 * (1.0 - a), 0.62, g * 0.55 + g2 * 0.6);
+                float tooth = smoothstep(0.02 + 0.22 * (1.0 - a), 0.40, g * 0.55 + g2 * 0.6);
+                tooth = 0.55 + 0.45 * tooth; // çukurlar da hafifçe boyanır: boşluk değil, doku kalır
                 a *= lerp(1.0, tooth, _GrainAmount) * _Opacity;
                 if (_Region >= 0)
                 {
