@@ -17,7 +17,6 @@ namespace LofiBoya
         ScrollRect _scroll;
         readonly List<Texture2D> _textures = new();
         readonly List<(Text label, int index)> _tabLabels = new();
-        Text _musicLabel;
 
         void Start()
         {
@@ -28,10 +27,8 @@ namespace LofiBoya
             var back = UIKit.CircleButton(root, "‹", Theme.Card, Theme.Text, 120, 90, () => App.I.ShowWelcome());
             ((RectTransform)back.transform).Place(new Vector2(0, 1), new Vector2(110, -110), new Vector2(120, 120));
 
-            var music = UIKit.CircleButton(root, "♪", Theme.Card, Theme.Text, 120, 64, () => { Popup.Toast("♪  " + Sfx.NextTrack()); RefreshMusic(); });
+            var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, 120, () => Popup.Toast(Sfx.NextTrack()), 0.5f);
             ((RectTransform)music.transform).Place(new Vector2(1, 1), new Vector2(-110, -110), new Vector2(120, 120));
-            _musicLabel = UIKit.ButtonText(music);
-            RefreshMusic();
 
             var title = UIKit.Label(root, "Boyama Defterim", 84, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Band(true, 110, 200);
@@ -207,13 +204,6 @@ namespace LofiBoya
             string group = Group, id = entry.id;
             btn.onClick.AddListener(() => { Sfx.Tap(); App.I.ShowColoring(group, id); });
             inner.gameObject.AddComponent<PressFeedback>().pressedScale = 0.95f;
-        }
-
-        void RefreshMusic()
-        {
-            var face = _musicLabel.transform.parent.GetComponent<Image>();
-            face.color = SaveSystem.MusicOn ? Theme.Card : Theme.Card.WithAlpha(0.5f);
-            _musicLabel.color = SaveSystem.MusicOn ? Theme.Text : Theme.TextSoft;
         }
 
         public bool OnBack()

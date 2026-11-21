@@ -62,6 +62,10 @@ namespace LofiBoya
             var music = UIKit.Button(root, "", Theme.Card.WithAlpha(0.85f), Theme.Text, 40, () => { Sfx.NextTrack(); RefreshMusic(); }, 1f, false);
             ((RectTransform)music.transform).Place(new Vector2(0.5f, 0f), new Vector2(-60, 170), new Vector2(480, 110));
             _musicLabel = UIKit.ButtonText(music);
+            _musicLabel.rectTransform.offsetMin = new Vector2(70, 0);
+            var note = UIKit.Box(music.transform.Find("Face"), "Note", Theme.Text, Art.Note);
+            note.type = Image.Type.Simple;
+            note.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(62, 0), new Vector2(46, 46));
             // Sessiz / sesli
             var mute = UIKit.CircleButton(root, "", Theme.Card.WithAlpha(0.85f), Theme.Text, 110, 40, ToggleMusic);
             ((RectTransform)mute.transform).Place(new Vector2(0.5f, 0f), new Vector2(260, 170), new Vector2(110, 110));
@@ -124,7 +128,7 @@ namespace LofiBoya
 
         void RefreshMusic()
         {
-            _musicLabel.text = SaveSystem.MusicOn ? "♪  " + Sfx.TrackName + "  ›" : "♪  müzik kapalı";
+            _musicLabel.text = SaveSystem.MusicOn ? Sfx.TrackName + "  ›" : "müzik kapalı";
             _muteLabel.text = SaveSystem.MusicOn ? "ses" : "sessiz";
             _muteLabel.fontSize = SaveSystem.MusicOn ? 34 : 26;
             _muteLabel.color = SaveSystem.MusicOn ? Theme.Text : Theme.TextSoft;

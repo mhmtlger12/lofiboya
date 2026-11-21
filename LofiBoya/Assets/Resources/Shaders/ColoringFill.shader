@@ -9,6 +9,10 @@ Shader "LofiBoya/ColoringFill"
         [PerRendererData] _MainTex ("Lines", 2D) = "white" {}
         _RegionTex ("Regions", 2D) = "black" {}
         _ColorTex ("Colors", 2D) = "white" {}
+        _PaintTex ("Paint", 2D) = "black" {}
+        _StrokeTex ("Stroke", 2D) = "black" {}
+        _StrokeColor ("Stroke Color", Color) = (1,1,1,1)
+        _StrokeMode ("Stroke Mode", Float) = 0
         _ColorRows ("Color Rows", Float) = 1
         _TexSize ("Texture Size", Vector) = (1,1,0,0)
         _FillRegion ("Fill Region", Float) = -1
@@ -59,9 +63,9 @@ Shader "LofiBoya/ColoringFill"
             struct appdata { float4 vertex : POSITION; float4 color : COLOR; float2 uv : TEXCOORD0; };
             struct v2f { float4 pos : SV_POSITION; float4 color : COLOR; float2 uv : TEXCOORD0; float4 worldPos : TEXCOORD1; };
 
-            sampler2D _MainTex, _RegionTex, _ColorTex;
-            float _ColorRows, _FillRegion, _FillRadius, _HintRegion;
-            float4 _TexSize, _FillCenter, _FillColor, _HintColor, _ClipRect;
+            sampler2D _MainTex, _RegionTex, _ColorTex, _PaintTex, _StrokeTex;
+            float _ColorRows, _FillRegion, _FillRadius, _HintRegion, _StrokeMode;
+            float4 _TexSize, _FillCenter, _FillColor, _HintColor, _ClipRect, _StrokeColor;
 
             v2f vert (appdata v)
             {
@@ -98,6 +102,17 @@ Shader "LofiBoya/ColoringFill"
                     float p = 0.5 + 0.5 * sin(_Time.y * 6.0);
                     c.rgb = lerp(c.rgb, _HintColor.rgb, 0.25 + 0.45 * p);
                 }
+
+                // Boya kalemi katmanı (premultiplied)
+                float4 paint = tex2D(_PaintTex, i.uv);
+                // şu an çizilmekte olan çizgi (parmak kalkınca katmana işlenir)
+                if (_StrokeMode > 0.5)
+                {
+                    float sa = tex2D(_StrokeTex, i.uv).r;
+                    if (_StrokeMode < 1.5) paint = float4(_StrokeColor.rgb * sa, sa) + paint * (1.0 - sa);
+                    else paint *= (1.0 - sa);
+                }
+                c.rgb = c.rgb * (1.0 - paint.a) + paint.rgb;
 
                 c.rgb *= lum;
                 c.a = i.color.a;

@@ -43,6 +43,13 @@ namespace LofiBoya
             _fx = gameObject.AddComponent<AudioSource>();
             _fx.playOnAwake = false;
 
+            // Kalemin kâğıtta hışırtısı: döngüdeki dokulu gürültü, sesi çizim hızına göre açılır
+            _scribble = gameObject.AddComponent<AudioSource>();
+            _scribble.loop = true;
+            _scribble.playOnAwake = false;
+            _scribble.volume = 0;
+            _scribble.clip = MakeScribble();
+
             _pop = Synth("pop", 0.16f, (t, k) => Mathf.Sin(2 * Mathf.PI * (520 + 380 * Mathf.Exp(-t * 40)) * t) * Mathf.Exp(-t * 26) * 0.55f);
             _tap = Synth("tap", 0.06f, (t, k) => Mathf.Sin(2 * Mathf.PI * 1250 * t) * Mathf.Exp(-t * 70) * 0.3f);
             _undo = Synth("undo", 0.14f, (t, k) => Mathf.Sin(2 * Mathf.PI * (700 - 1800 * t) * t) * Mathf.Exp(-t * 28) * 0.35f);
@@ -60,6 +67,53 @@ namespace LofiBoya
             });
 
             ApplySettings();
+        }
+
+        AudioSource _scribble;
+
+        static AudioClip MakeScribble()
+        {
+            const int sr = 44100;
+            int n = sr * 2;
+            var data = new float[n];
+            var rnd = new System.Random(9);
+            float lp = 0, lp2 = 0, env = 0;
+            for (int i = 0; i < n; i++)
+            {
+                float w = (float)rnd.NextDouble() * 2f - 1f;
+                lp += (w - lp) * 0.45f;
+                lp2 += (lp - lp2) * 0.12f;
+                float band = lp - lp2; // ~1-5 kHz arası hışırtı
+                if (rnd.NextDouble() < 0.004) env = 0.6f + (float)rnd.NextDouble() * 0.4f; // kâğıt lifine takılma
+                env *= 0.9992f;
+                float t = i / (float)sr;
+                float wobble = 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(t * Mathf.PI * 3.3f)); // ileri-geri el hareketi
+                data[i] = band * (0.35f + env) * wobble * 0.9f;
+            }
+            // döngü dikişi görünmesin: baş ve sonu çapraz karıştır
+            int fade = 2000;
+            for (int i = 0; i < fade; i++)
+            {
+                float k = i / (float)fade;
+                data[i] = data[i] * k + data[n - fade + i] * (1 - k);
+            }
+            var clip = AudioClip.Create("scribble", n - fade, 1, sr, false);
+            var trimmed = new float[n - fade];
+            System.Array.Copy(data, trimmed, n - fade);
+            clip.SetData(trimmed, 0);
+            return clip;
+        }
+
+        /// <summary>0..1 kalem hışırtısı şiddeti (her karede çağrılır).</summary>
+        public static void Scribble(float intensity)
+        {
+            if (_i == null || _i._scribble == null) return;
+            var s = _i._scribble;
+            float target = SaveSystem.SoundOn ? Mathf.Clamp01(intensity) * 0.55f : 0f;
+            s.volume = Mathf.MoveTowards(s.volume, target, Time.unscaledDeltaTime * 6f);
+            s.pitch = 0.9f + 0.25f * Mathf.Clamp01(intensity);
+            if (s.volume > 0.001f) { if (!s.isPlaying) s.Play(); }
+            else if (s.isPlaying) s.Pause();
         }
 
         delegate float Wave(float t, float k);

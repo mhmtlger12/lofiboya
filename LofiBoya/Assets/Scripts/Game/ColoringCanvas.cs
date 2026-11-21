@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,9 +10,12 @@ using ETouch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace LofiBoya
 {
+    public enum Tool { Fill, Pencil, Eraser }
+
     /// <summary>
-    /// Boyama tuvali: dokun = bölgeyi boya, sürükle = kaydır, iki parmak / tekerlek = yakınlaştır.
-    /// Bölge renkleri küçük bir dokuda tutulur, shader çizgilerle çarpıp çizer.
+    /// Boyama tuvali.
+    /// Kova: dokun = bölgeyi boya. Kalem: sürükle = çizgilerin dışına taşmadan boya. Silgi: kalem izini sil, dokununca bölgeyi boşalt.
+    /// Tek parmak / sol tık sürükle = kaydır (kova modunda), iki parmak / tekerlek / sağ tık = yakınlaştır ve kaydır.
     /// </summary>
     public class ColoringCanvas : MonoBehaviour
     {
@@ -25,15 +27,34 @@ namespace LofiBoya
         public Level Level { get; private set; }
         public Color32[] RegionColors { get; private set; }
         public bool[] Filled { get; private set; }
+        public bool[] Brushed { get; private set; }
+        public PaintLayer Paint { get; private set; }
         public Color CurrentColor = Color.white;
+        public Tool Tool = Tool.Fill;
+        public int BrushSize = 1;
         public float MaxZoom = 8f;
 
+        /// <summary>Kalem çapı (ekran/kanvas biriminde) — küçük, orta, büyük.</summary>
+        public static readonly float[] BrushDiameters = { 18f, 38f, 76f };
+
         public event Action Changed;
+
+        class UndoStep
+        {
+            public int Region = -1;            // bölge dolgusu değiştiyse
+            public Color32 Color;
+            public bool WasFilled;
+            public RenderTexture Paint;        // kalem/silgi çizgisi öncesi kopya
+            public int BrushedRegion = -1;
+            public bool WasBrushed;
+        }
+
+        const int MaxPaintSnapshots = 12;
+        readonly List<UndoStep> _undo = new();
 
         Texture2D _colorTex;
         int _colorRows;
         long _totalArea;
-        readonly Stack<(int id, Color32 color, bool filled)> _undo = new();
         Coroutine _fillAnim;
         int _animRegion = -1;
         Color32 _animColor;
@@ -43,12 +64,22 @@ namespace LofiBoya
         Coroutine _hintCo;
 
         // Dokunma durumu
-        bool _gesture, _moved, _multi;
+        bool _gesture, _moved, _multi, _panOnly;
         Vector2 _startPos, _lastPos;
         float _lastPinchDist;
         Vector2 _lastPinchMid;
 
+        // Çizgi durumu
+        bool _stroking;
+        int _strokeRegion;
+        Vector2 _lastStampUv;
+        float _strokeStartTime, _strokeLength;
+        UndoStep _strokeUndo;
+        float _scribble;
+
         static readonly int IdRegionTex = Shader.PropertyToID("_RegionTex"), IdColorTex = Shader.PropertyToID("_ColorTex"),
+            IdPaintTex = Shader.PropertyToID("_PaintTex"), IdStrokeTex = Shader.PropertyToID("_StrokeTex"),
+            IdStrokeColor = Shader.PropertyToID("_StrokeColor"), IdStrokeMode = Shader.PropertyToID("_StrokeMode"),
             IdRows = Shader.PropertyToID("_ColorRows"), IdTexSize = Shader.PropertyToID("_TexSize"),
             IdFillRegion = Shader.PropertyToID("_FillRegion"), IdFillCenter = Shader.PropertyToID("_FillCenter"),
             IdFillRadius = Shader.PropertyToID("_FillRadius"), IdFillColor = Shader.PropertyToID("_FillColor"),
@@ -60,11 +91,12 @@ namespace LofiBoya
             {
                 if (Level == null || _totalArea == 0) return 0;
                 long a = 0;
-                for (int i = 1; i <= Level.Count; i++) if (Filled[i]) a += Level.Meta.area[i - 1];
+                for (int i = 1; i <= Level.Count; i++) if (Filled[i] || Brushed[i]) a += Level.Meta.area[i - 1];
                 return (float)((double)a / _totalArea);
             }
         }
 
+        /// <summary>Her bölge kova ile boyandı mı (otomatik kutlama için).</summary>
         public bool AllFilled
         {
             get
@@ -84,12 +116,13 @@ namespace LofiBoya
 #endif
         }
 
-        public void Init(Level level, LevelSave save)
+        public void Init(Level level, LevelSave save, Texture2D savedPaint)
         {
             Level = level;
             int n = level.Count;
             RegionColors = new Color32[n + 1];
             Filled = new bool[n + 1];
+            Brushed = new bool[n + 1];
             _totalArea = 0;
             foreach (var a in level.Meta.area) _totalArea += a;
 
@@ -115,11 +148,17 @@ namespace LofiBoya
                     _colorTex.SetPixel(i % 256, i / 256, RegionColors[i]);
                 }
             }
+            if (save?.brushed != null && save.brushed.Length == n + 1) Array.Copy(save.brushed, Brushed, n + 1);
             _colorTex.Apply(false);
+
+            Paint = new PaintLayer(level);
+            if (savedPaint != null) Paint.Load(savedPaint);
+            Paint.Dirty = false;
 
             Material = new Material(Resources.Load<Shader>("Shaders/ColoringFill"));
             Material.SetTexture(IdRegionTex, level.Regions);
             Material.SetTexture(IdColorTex, _colorTex);
+            Material.SetTexture(IdPaintTex, Paint.Texture);
             Material.SetFloat(IdRows, _colorRows);
             Material.SetVector(IdTexSize, new Vector4(level.Width, level.Height, 0, 0));
             Material.SetFloat(IdFillRegion, -1);
@@ -132,14 +171,20 @@ namespace LofiBoya
 
         public LevelSave ToSave()
         {
-            var s = new LevelSave { colors = new int[Level.Count + 1], done = AllFilled, progress = Progress };
+            var s = new LevelSave { colors = new int[Level.Count + 1], done = AllFilled, progress = Progress, brushed = (bool[])Brushed.Clone() };
             s.colors[0] = -1;
             for (int i = 1; i <= Level.Count; i++)
             {
                 var c = RegionColors[i];
                 s.colors[i] = Filled[i] ? (c.r << 16) | (c.g << 8) | c.b : -1;
             }
+            s.hasPaint = HasAnyBrush;
             return s;
+        }
+
+        public bool HasAnyBrush
+        {
+            get { foreach (var b in Brushed) if (b) return true; return false; }
         }
 
         void Fit()
@@ -171,9 +216,12 @@ namespace LofiBoya
             if (Level == null) return;
             if (Viewport.rect.size != _lastViewportSize) Fit();
             HandleInput();
+            // kalem sesi: hıza göre yumuşakça açılır/kapanır
+            _scribble = Mathf.MoveTowards(_scribble, 0f, Time.unscaledDeltaTime * 4f);
+            Sfx.Scribble(_scribble);
         }
 
-        // ---------------- Girdi ----------------
+        // ================= Girdi =================
 
         void HandleInput()
         {
@@ -181,6 +229,12 @@ namespace LofiBoya
             var touches = ETouch.activeTouches;
             if (touches.Count >= 2)
             {
+                if (_stroking)
+                {
+                    // ikinci parmak hemen geldiyse bu bir yakınlaştırmadır: çizgiyi iptal et
+                    if (Time.unscaledTime - _strokeStartTime < 0.3f || _strokeLength < 30f) CancelStroke();
+                    else EndStroke();
+                }
                 var a = touches[0].screenPosition;
                 var b = touches[1].screenPosition;
                 float dist = Vector2.Distance(a, b);
@@ -201,25 +255,27 @@ namespace LofiBoya
             {
                 var t = touches[0];
                 var p = t.screenPosition;
+                bool ended = t.phase is UnityEngine.InputSystem.TouchPhase.Ended or UnityEngine.InputSystem.TouchPhase.Canceled;
                 if (!_gesture)
                 {
                     if (t.phase != UnityEngine.InputSystem.TouchPhase.Began || !InViewport(p)) return;
-                    BeginGesture(p);
+                    BeginGesture(p, false);
                 }
                 else if (_multi)
                 {
-                    // iki parmaktan teke düşünce yeniden başla, ama dokunma sayma
+                    // iki parmaktan teke düştü: sadece kaydır, çizme
                     _lastPos = p;
                     _multi = false;
-                    return;
+                    _panOnly = true;
+                    _moved = true;
                 }
-                DragTo(p);
-                if (t.phase is UnityEngine.InputSystem.TouchPhase.Ended or UnityEngine.InputSystem.TouchPhase.Canceled) EndGesture(p);
+                PointerMove(p);
+                if (ended) PointerUp(p);
                 return;
             }
-            if (_gesture && Touchscreen.current != null && touches.Count == 0 && _multi)
+            if (_gesture && touches.Count == 0 && (_multi || _panOnly) && Touchscreen.current != null && Mouse.current == null)
             {
-                _gesture = false; _multi = false;
+                _gesture = false; _multi = false; _panOnly = false;
                 return;
             }
 
@@ -228,30 +284,46 @@ namespace LofiBoya
             var mp = mouse.position.ReadValue();
             float scroll = mouse.scroll.ReadValue().y;
             if (Mathf.Abs(scroll) > 0.01f && InViewport(mp)) ZoomAt(mp, scroll > 0 ? 1.15f : 1f / 1.15f);
-            if (mouse.leftButton.wasPressedThisFrame && InViewport(mp)) BeginGesture(mp);
-            else if (_gesture && mouse.leftButton.isPressed) DragTo(mp);
-            else if (_gesture && mouse.leftButton.wasReleasedThisFrame) EndGesture(mp);
+
+            bool panBtnDown = mouse.rightButton.wasPressedThisFrame || mouse.middleButton.wasPressedThisFrame;
+            bool panBtnHeld = mouse.rightButton.isPressed || mouse.middleButton.isPressed;
+            if (!_gesture)
+            {
+                if (mouse.leftButton.wasPressedThisFrame && InViewport(mp)) { BeginGesture(mp, false); PointerMove(mp); }
+                else if (panBtnDown && InViewport(mp)) BeginGesture(mp, true);
+                return;
+            }
+            if (mouse.leftButton.isPressed || panBtnHeld) PointerMove(mp);
+            else PointerUp(mp);
 #endif
         }
 
-        void BeginGesture(Vector2 p)
+        void BeginGesture(Vector2 p, bool panOnly)
         {
-            _gesture = true; _moved = false; _multi = false;
+            _gesture = true; _moved = false; _multi = false; _panOnly = panOnly;
             _startPos = _lastPos = p;
+            if (!panOnly && Tool != Tool.Fill) BeginStroke(p);
         }
 
-        void DragTo(Vector2 p)
+        void PointerMove(Vector2 p)
         {
+            if (_stroking) { StrokeTo(p); _lastPos = p; return; }
             float slop = Screen.dpi > 0 ? Screen.dpi * 0.06f : 14f;
             if (!_moved && Vector2.Distance(p, _startPos) > slop) _moved = true;
-            if (_moved) Pan(p - _lastPos);
+            if (_moved && (Tool == Tool.Fill || _panOnly)) Pan(p - _lastPos);
             _lastPos = p;
         }
 
-        void EndGesture(Vector2 p)
+        void PointerUp(Vector2 p)
         {
-            if (!_moved && !_multi) TapAt(p);
-            _gesture = false; _moved = false; _multi = false;
+            if (_stroking)
+            {
+                bool tap = _strokeLength < 6f;
+                EndStroke();
+                if (tap && Tool == Tool.Eraser) EraseRegionAt(p);
+            }
+            else if (!_moved && !_multi && !_panOnly && Tool == Tool.Fill) TapAt(p);
+            _gesture = false; _moved = false; _multi = false; _panOnly = false;
         }
 
         bool InViewport(Vector2 screen) => RectTransformUtility.RectangleContainsScreenPoint(Viewport, screen, null);
@@ -288,15 +360,24 @@ namespace LofiBoya
             Content.anchoredPosition = new Vector2(Mathf.Clamp(p.x, -mx, mx), Mathf.Clamp(p.y, -my, my));
         }
 
-        // ---------------- Boyama ----------------
+        bool ScreenToUv(Vector2 screen, out Vector2 uv)
+        {
+            uv = default;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(Image.rectTransform, screen, null, out var local)) return false;
+            uv = Rect.PointToNormalized(Image.rectTransform.rect, local);
+            // PointToNormalized sınırda kırpar; gerçek dışarıyı ayrıca kontrol et
+            var r = Image.rectTransform.rect;
+            return local.x >= r.xMin && local.x <= r.xMax && local.y >= r.yMin && local.y <= r.yMax;
+        }
+
+        int RegionAtUv(Vector2 uv) => Level.RegionAt(Mathf.FloorToInt(uv.x * Level.Width), Mathf.FloorToInt(uv.y * Level.Height));
+
+        // ================= Kova =================
 
         void TapAt(Vector2 screen)
         {
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(Image.rectTransform, screen, null, out var local)) return;
-            var uv = Rect.PointToNormalized(Image.rectTransform.rect, local);
-            if (uv.x <= 0 || uv.x >= 1 || uv.y <= 0 || uv.y >= 1) return;
-            int x = Mathf.FloorToInt(uv.x * Level.Width), y = Mathf.FloorToInt(uv.y * Level.Height);
-            int id = Level.RegionAt(x, y);
+            if (!ScreenToUv(screen, out var uv)) return;
+            int id = RegionAtUv(uv);
             if (id <= 0) return;
             Fill(id, uv, CurrentColor);
         }
@@ -306,8 +387,7 @@ namespace LofiBoya
             Color32 c = color;
             if (Filled[id] && RegionColors[id].Equals(c)) { Sfx.Tap(); return; }
             CommitAnimation();
-            _undo.Push((id, RegionColors[id], Filled[id]));
-            if (_undo.Count > 300) TrimUndo();
+            PushUndo(new UndoStep { Region = id, Color = RegionColors[id], WasFilled = Filled[id] });
 
             RegionColors[id] = c;
             Filled[id] = true;
@@ -338,25 +418,159 @@ namespace LofiBoya
             _animRegion = -1;
         }
 
-        void TrimUndo()
+        void SetRegion(int id, Color32 color, bool filled)
         {
-            var arr = _undo.ToArray();
-            _undo.Clear();
-            for (int i = 199; i >= 0; i--) _undo.Push(arr[i]);
-        }
-
-        public void Undo()
-        {
-            if (_undo.Count == 0) return;
-            CommitAnimation();
-            var (id, color, filled) = _undo.Pop();
             RegionColors[id] = color;
             Filled[id] = filled;
             _colorTex.SetPixel(id % 256, id / 256, filled ? color : (Color32)Theme.Paper);
             _colorTex.Apply(false);
+        }
+
+        // ================= Kalem / silgi =================
+
+        float BrushRadiusPaintPx()
+        {
+            float diam = BrushDiameters[Mathf.Clamp(BrushSize, 0, BrushDiameters.Length - 1)] * (Tool == Tool.Eraser ? 1.5f : 1f);
+            return diam * 0.5f * Paint.Width / (Content.sizeDelta.x * _zoom);
+        }
+
+        void BeginStroke(Vector2 screen)
+        {
+            if (!ScreenToUv(screen, out var uv)) return;
+            _strokeRegion = Tool == Tool.Eraser ? -1 : RegionAtUv(uv);
+            if (Tool == Tool.Pencil && _strokeRegion <= 0) return;
+            CommitAnimation();
+            _stroking = true;
+            _strokeStartTime = Time.unscaledTime;
+            _strokeLength = 0;
+            _strokeUndo = new UndoStep();
+            Material.SetTexture(IdStrokeTex, Paint.Stroke);
+            Material.SetColor(IdStrokeColor, CurrentColor);
+            Material.SetFloat(IdStrokeMode, Tool == Tool.Eraser ? 2 : 1);
+            if (Tool == Tool.Pencil)
+            {
+                _strokeUndo.BrushedRegion = _strokeRegion;
+                _strokeUndo.WasBrushed = Brushed[_strokeRegion];
+                if (_strokeRegion == _hintRegion) StopHint();
+            }
+            _lastStampUv = uv;
+            Paint.AddStamp(uv, BrushRadiusPaintPx());
+            FlushStroke();
+        }
+
+        void StrokeTo(Vector2 screen)
+        {
+            if (!_stroking) return;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(Image.rectTransform, screen, null, out var local);
+            var r = Image.rectTransform.rect;
+            var uv = new Vector2((local.x - r.xMin) / r.width, (local.y - r.yMin) / r.height);
+            float radius = BrushRadiusPaintPx();
+            var a = new Vector2(_lastStampUv.x * Paint.Width, _lastStampUv.y * Paint.Height);
+            var b = new Vector2(uv.x * Paint.Width, uv.y * Paint.Height);
+            float dist = Vector2.Distance(a, b);
+            float spacing = Mathf.Max(0.75f, radius * 0.22f);
+            if (dist < spacing) return;
+            int steps = Mathf.Min(400, Mathf.FloorToInt(dist / spacing));
+            for (int i = 1; i <= steps; i++)
+            {
+                var p = Vector2.Lerp(a, b, i * spacing / dist);
+                Paint.AddStamp(new Vector2(p.x / Paint.Width, p.y / Paint.Height), radius * UnityEngine.Random.Range(0.92f, 1.04f));
+            }
+            var last = Vector2.Lerp(a, b, steps * spacing / dist);
+            _lastStampUv = new Vector2(last.x / Paint.Width, last.y / Paint.Height);
+            float screenDist = dist / Paint.Width * Content.sizeDelta.x * _zoom;
+            _strokeLength += screenDist;
+            _scribble = Mathf.Clamp01(_scribble + screenDist / 120f);
+            FlushStroke();
+        }
+
+        void FlushStroke()
+        {
+            if (Tool == Tool.Eraser) Paint.Flush(-1, 1f, 0.5f, 0.25f);
+            else Paint.Flush(_strokeRegion, 0.95f, 0.45f, 0.9f);
+        }
+
+        void EndStroke()
+        {
+            if (!_stroking) return;
+            _stroking = false;
+            _strokeUndo.Paint = Paint.Snapshot(); // işlenmeden önceki hâl
+            Paint.Commit(CurrentColor, Tool == Tool.Eraser);
+            Material.SetFloat(IdStrokeMode, 0);
+            if (Tool == Tool.Pencil && _strokeRegion > 0) Brushed[_strokeRegion] = true;
+            PushUndo(_strokeUndo);
+            _strokeUndo = null;
+            Changed?.Invoke();
+        }
+
+        void CancelStroke()
+        {
+            if (!_stroking) return;
+            _stroking = false;
+            Paint.CancelStroke();
+            Material.SetFloat(IdStrokeMode, 0);
+            _strokeUndo = null;
+        }
+
+        void EraseRegionAt(Vector2 screen)
+        {
+            if (!ScreenToUv(screen, out var uv)) return;
+            int id = RegionAtUv(uv);
+            if (id <= 0) return;
+            // silgiyle dokunma: önce kalem izini sildi (aynı adım); bölgede dolgu varsa onu da kaldır
+            var last = _undo.Count > 0 ? _undo[^1] : null;
+            if (Filled[id] && last != null)
+            {
+                last.Region = id;
+                last.Color = RegionColors[id];
+                last.WasFilled = true;
+                SetRegion(id, Theme.Paper, false);
+                Sfx.Undo();
+                Changed?.Invoke();
+            }
+        }
+
+        // ================= Geri alma =================
+
+        void PushUndo(UndoStep step)
+        {
+            _undo.Add(step);
+            // eski kalem kopyalarını bırak (bellek)
+            int snaps = 0;
+            for (int i = _undo.Count - 1; i >= 0; i--)
+            {
+                if (_undo[i].Paint == null) continue;
+                if (++snaps > MaxPaintSnapshots)
+                {
+                    // bu adımdan öncesine geri dönülemez: hepsini at
+                    for (int k = 0; k <= i; k++) Release(_undo[k]);
+                    _undo.RemoveRange(0, i + 1);
+                    break;
+                }
+            }
+            if (_undo.Count > 300) { Release(_undo[0]); _undo.RemoveAt(0); }
+        }
+
+        static void Release(UndoStep s)
+        {
+            if (s?.Paint != null) { s.Paint.Release(); Destroy(s.Paint); s.Paint = null; }
+        }
+
+        public void Undo()
+        {
+            if (_undo.Count == 0 || _stroking) return;
+            CommitAnimation();
+            var s = _undo[^1];
+            _undo.RemoveAt(_undo.Count - 1);
+            if (s.Paint != null) Paint.Restore(s.Paint);
+            if (s.BrushedRegion > 0) Brushed[s.BrushedRegion] = s.WasBrushed;
+            if (s.Region > 0) SetRegion(s.Region, s.Color, s.WasFilled);
+            Release(s);
             Sfx.Undo();
             Changed?.Invoke();
         }
+
+        // ================= İpucu =================
 
         /// <summary>Boyanmamış en büyük bölgeyi parlatır ve gerekirse oraya yakınlaşır.</summary>
         public bool ShowHint()
@@ -364,13 +578,12 @@ namespace LofiBoya
             int best = -1;
             int bestArea = -1;
             for (int i = 1; i <= Level.Count; i++)
-                if (!Filled[i] && Level.Meta.area[i - 1] > bestArea) { bestArea = Level.Meta.area[i - 1]; best = i; }
+                if (!Filled[i] && !Brushed[i] && Level.Meta.area[i - 1] > bestArea) { bestArea = Level.Meta.area[i - 1]; best = i; }
             if (best < 0) return false;
             StopHint();
             _hintRegion = best;
             Material.SetFloat(IdHint, best);
 
-            // Küçük bölgeye yakınlaş
             float r = Level.Meta.radius[best - 1];
             float targetZoom = Mathf.Clamp(Level.Width * 0.06f / Mathf.Max(4f, r), 1f, MaxZoom * 0.75f);
             var uv = new Vector2((Level.Meta.cx[best - 1] + 0.5f) / Level.Width, (Level.Meta.cy[best - 1] + 0.5f) / Level.Height);
@@ -395,32 +608,43 @@ namespace LofiBoya
             if (Material != null) Material.SetFloat(IdHint, -1);
         }
 
-        public Texture2D MakeThumbnail()
+        // ================= Kayıt yardımcıları =================
+
+        /// <summary>Galeri küçük resmi; boya katmanı varsa onu da içerir.</summary>
+        public Texture2D MakeThumbnail(Texture2D paintReadback)
         {
             CommitAnimation();
             var cols = new Color32[RegionColors.Length];
             for (int i = 0; i < cols.Length; i++) cols[i] = Filled[i] ? RegionColors[i] : (Color32)Theme.Paper;
-            return Level.RenderThumbnail(cols);
+            return Level.RenderThumbnail(cols, paintReadback);
         }
 
-        /// <summary>Tüm boyamayı temizle.</summary>
+        /// <summary>Tüm boyamayı temizle (geri alınamaz).</summary>
         public void ClearAll()
         {
             CommitAnimation();
+            foreach (var s in _undo) Release(s);
             _undo.Clear();
             Color32 paper = Theme.Paper;
             for (int i = 1; i <= Level.Count; i++)
             {
                 Filled[i] = false;
+                Brushed[i] = false;
                 RegionColors[i] = paper;
                 _colorTex.SetPixel(i % 256, i / 256, paper);
             }
             _colorTex.Apply(false);
+            Paint.Clear();
+            Paint.Dirty = true;
             Changed?.Invoke();
         }
 
         void OnDestroy()
         {
+            Sfx.Scribble(0);
+            foreach (var s in _undo) Release(s);
+            Release(_strokeUndo);
+            Paint?.Release();
             if (Material) Destroy(Material);
             if (_colorTex) Destroy(_colorTex);
         }

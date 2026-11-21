@@ -197,5 +197,21 @@ namespace LofiBoya
         }
 
         public static Text ButtonText(Button b) => b.GetComponentInChildren<Text>();
+
+        /// <summary>Ortasında çizilmiş ikon olan yuvarlak buton.</summary>
+        public static Button IconButton(Transform parent, Sprite icon, Color bg, Color fg, float size, Action onClick, float iconScale = 0.55f, bool shadow = true)
+        {
+            var b = CircleButton(parent, "", bg, fg, size, 10, onClick);
+            if (!shadow) b.transform.Find("Shadow").gameObject.SetActive(false);
+            var face = b.transform.Find("Face");
+            var img = Box(face, "Icon", fg, icon);
+            img.type = Image.Type.Simple;
+            img.preserveAspect = true;
+            float s = size * iconScale;
+            img.rectTransform.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(s, s));
+            return b;
+        }
+
+        public static Image ButtonIcon(Button b) => b.transform.Find("Face/Icon")?.GetComponent<Image>();
     }
 }

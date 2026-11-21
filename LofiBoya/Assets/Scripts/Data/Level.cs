@@ -105,8 +105,13 @@ namespace LofiBoya
         }
 
         /// <summary>Verilen bölge renkleriyle küçük bir renkli önizleme üretir (galeri için).</summary>
-        public Texture2D RenderThumbnail(Color32[] regionColors, int maxSide = 360)
+        public Texture2D RenderThumbnail(Color32[] regionColors, int maxSide = 360) => RenderThumbnail(regionColors, null, maxSide);
+
+        /// <param name="paint">Boya kalemi katmanı (premultiplied sRGB), yoksa null.</param>
+        public Texture2D RenderThumbnail(Color32[] regionColors, Texture2D paint, int maxSide = 360)
         {
+            Color32[] paintPix = paint != null ? paint.GetPixels32() : null;
+            int pw = paint != null ? paint.width : 0, ph = paint != null ? paint.height : 0;
             float s = Mathf.Min(1f, (float)maxSide / Mathf.Max(Width, Height));
             int tw = Mathf.Max(1, Mathf.RoundToInt(Width * s)), th = Mathf.Max(1, Mathf.RoundToInt(Height * s));
             var px = new Color32[tw * th];
@@ -120,6 +125,17 @@ namespace LofiBoya
                     var rc = _regionPix[i];
                     int id = rc.r + rc.g * 256;
                     Color32 c = id > 0 && id < regionColors.Length ? regionColors[id] : (Color32)Theme.Paper;
+                    if (paintPix != null)
+                    {
+                        int px2 = Mathf.Min(pw - 1, (int)((x + 0.5f) / tw * pw));
+                        int py2 = Mathf.Min(ph - 1, (int)((y + 0.5f) / th * ph));
+                        var p = paintPix[py2 * pw + px2];
+                        if (p.a > 0)
+                        {
+                            int ia = 255 - p.a;
+                            c = new Color32((byte)Mathf.Min(255, c.r * ia / 255 + p.r), (byte)Mathf.Min(255, c.g * ia / 255 + p.g), (byte)Mathf.Min(255, c.b * ia / 255 + p.b), 255);
+                        }
+                    }
                     // komşu piksellerin çizgi değerinin ortalaması: küçültürken çizgiler kaybolmasın
                     int l = _linePix[i].r;
                     if (sx + 1 < Width) l = Mathf.Min(l, _linePix[i + 1].r);

@@ -11,6 +11,9 @@ namespace LofiBoya
         public int[] colors;
         public bool done;
         public float progress;
+        /// <summary>Kalemle boyanmış bölgeler (ilerleme için).</summary>
+        public bool[] brushed;
+        public bool hasPaint;
     }
 
     /// <summary>İlerlemeyi cihazda saklar (Application.persistentDataPath/saves).</summary>
@@ -43,12 +46,16 @@ namespace LofiBoya
             }
         }
 
-        public static void Save(string key, LevelSave save, Texture2D thumb)
+        static string PaintPath(string key) => Path.Combine(Dir, key + "_paint.png");
+
+        public static void Save(string key, LevelSave save, Texture2D thumb, Texture2D paint = null)
         {
             try
             {
                 File.WriteAllText(JsonPath(key), JsonUtility.ToJson(save));
                 if (thumb != null) File.WriteAllBytes(ThumbPath(key), thumb.EncodeToPNG());
+                if (paint != null && save.hasPaint) File.WriteAllBytes(PaintPath(key), paint.EncodeToPNG());
+                else if (!save.hasPaint && File.Exists(PaintPath(key))) File.Delete(PaintPath(key));
             }
             catch (Exception e)
             {
@@ -62,6 +69,7 @@ namespace LofiBoya
             {
                 if (File.Exists(JsonPath(key))) File.Delete(JsonPath(key));
                 if (File.Exists(ThumbPath(key))) File.Delete(ThumbPath(key));
+                if (File.Exists(PaintPath(key))) File.Delete(PaintPath(key));
             }
             catch (Exception e) { Debug.LogWarning(e.Message); }
         }
@@ -72,6 +80,27 @@ namespace LofiBoya
             if (!File.Exists(p)) return null;
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             return tex.LoadImage(File.ReadAllBytes(p), true) ? tex : null;
+        }
+
+        /// <summary>Kalem katmanı (premultiplied, sRGB baytları olduğu gibi).</summary>
+        public static Texture2D LoadPaint(string key)
+        {
+            var p = PaintPath(key);
+            if (!File.Exists(p)) return null;
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, false);
+            return tex.LoadImage(File.ReadAllBytes(p), false) ? tex : null;
+        }
+
+        public static int ToolIndex
+        {
+            get => PlayerPrefs.GetInt("tool", 0);
+            set => PlayerPrefs.SetInt("tool", value);
+        }
+
+        public static int BrushSize
+        {
+            get => PlayerPrefs.GetInt("brushSize", 1);
+            set => PlayerPrefs.SetInt("brushSize", value);
         }
 
         public static bool MusicOn
