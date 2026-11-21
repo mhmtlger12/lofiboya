@@ -20,6 +20,9 @@ namespace LofiBoya
             public float PluckDensity = 0.5f;
             public float Drums = 1f;
             public float Rain;          // 0 = yok, 1 = belirgin yağmur
+            public float Bell;          // 0 = elektrik piyano, 1 = müzik kutusu çanı
+            public float Birds;         // kuş cıvıltısı
+            public float Waves;         // deniz dalgası
             public int Seed = 1234;
         }
 
@@ -49,6 +52,25 @@ namespace LofiBoya
                 Chords = new[] { new[] { 55, 59, 62, 66 }, new[] { 54, 57, 62, 64 }, new[] { 55, 59, 60, 64 }, new[] { 54, 57, 59, 62 } },
                 Roots = new[] { 43, 47, 48, 50 },
             },
+            new Preset
+            {
+                // ninni gibi: davulsuz, çan sesli müzik kutusu
+                Name = "Müzik Kutusu", Bpm = 64, Seed = 55, Brightness = 0.22f, PluckDensity = 0.85f, Drums = 0f, Bell = 1f,
+                Chords = new[] { new[] { 60, 64, 67, 72 }, new[] { 57, 60, 64, 69 }, new[] { 53, 57, 60, 65 }, new[] { 55, 59, 62, 67 } },
+                Roots = new[] { 48, 45, 41, 43 },
+            },
+            new Preset
+            {
+                Name = "Kuş Bahçesi", Bpm = 80, Seed = 66, Brightness = 0.18f, PluckDensity = 0.55f, Drums = 0.6f, Birds = 1f, Bell = 0.4f,
+                Chords = new[] { new[] { 55, 59, 62, 67 }, new[] { 52, 55, 59, 64 }, new[] { 48, 52, 55, 60 }, new[] { 50, 54, 57, 62 } },
+                Roots = new[] { 43, 40, 36, 38 },
+            },
+            new Preset
+            {
+                Name = "Deniz Kenarı", Bpm = 68, Seed = 77, Brightness = 0.13f, PluckDensity = 0.4f, Drums = 0.5f, Waves = 1f,
+                Chords = new[] { new[] { 52, 56, 59, 63 }, new[] { 49, 52, 56, 59 }, new[] { 45, 49, 52, 56 }, new[] { 47, 51, 54, 57 } },
+                Roots = new[] { 40, 37, 45, 47 },
+            },
         };
 
         const int SR = 44100;
@@ -60,6 +82,9 @@ namespace LofiBoya
         double _lp1, _lp2, _hissLp, _crackle, _bassPhase, _kickPhase;
         double _pluckPhase, _pluckFreq, _pluckAmp, _pluckPan;
         double _rainLp, _rainLp2, _drop, _dropLp;
+        double _birdT = 10, _birdPhase, _birdF0, _birdPan, _birdDur, _nextBird = 2;
+        int _birdNotes;
+        double _waveLp, _waveLp2;
         long _lastEighth = -1;
         double _kickT = 10, _snareT = 10, _hatT = 10, _hatSwing;
         float _fade;
@@ -146,8 +171,11 @@ namespace LofiBoya
             _pluckPhase += _pluckFreq * dt;
             if (_pluckPhase > 1) _pluckPhase -= 1;
             double pp = _pluckPhase * 2 * Math.PI;
-            double pluck = (Math.Sin(pp) + 0.3 * Math.Sin(2 * pp) * _pluckAmp * 6) * _pluckAmp;
-            _pluckAmp *= 0.99988;
+            double ep = Math.Sin(pp) + 0.3 * Math.Sin(2 * pp) * _pluckAmp * 6;
+            // müzik kutusu: uyumsuz yüksek kısmi sesler = çan/metal dil
+            double bell = Math.Sin(pp) + 0.4 * Math.Sin(pp * 2.76) + 0.2 * Math.Sin(pp * 5.4);
+            double pluck = (ep * (1 - _p.Bell) + bell * _p.Bell * 0.8) * _pluckAmp;
+            _pluckAmp *= _p.Bell > 0.5f ? 0.99992 : 0.99988;
 
             // Bas
             double bassF = Mtof(_p.Roots[chordIdx]);
@@ -194,6 +222,48 @@ namespace LofiBoya
                 rainR = (wash * swell * 0.9 - _dropLp * 0.6 + (Rand() * 2 - 1) * 0.004) * _p.Rain;
             }
 
+            // Kuşlar: ara sıra 2-5 notalık hızlı cıvıltı
+            double bird = 0;
+            if (_p.Birds > 0)
+            {
+                _birdT += dt;
+                if (_birdT > _nextBird)
+                {
+                    _birdT = 0;
+                    _birdNotes = 2 + _rng.Next(4);
+                    _birdF0 = 2600 + Rand() * 1600;
+                    _birdDur = 0.07 + Rand() * 0.05;
+                    _birdPan = Rand() * 1.2 - 0.6;
+                    _nextBird = 1.5 + Rand() * 4.5;
+                }
+                double total = _birdNotes * _birdDur * 1.4;
+                if (_birdT < total)
+                {
+                    double nt = _birdT % (_birdDur * 1.4);
+                    if (nt < _birdDur)
+                    {
+                        double k = nt / _birdDur;
+                        double f = _birdF0 * (1 + 0.35 * Math.Sin(k * Math.PI)) * (1 - 0.06 * (int)(_birdT / (_birdDur * 1.4)));
+                        _birdPhase += f * dt;
+                        bird = Math.Sin(_birdPhase * 2 * Math.PI) * Math.Sin(k * Math.PI) * 0.035 * _p.Birds;
+                    }
+                }
+            }
+
+            // Dalgalar: yavaşça gelip giden kumlu hışırtı
+            double waveL = 0, waveR = 0;
+            if (_p.Waves > 0)
+            {
+                double n3 = Rand() * 2 - 1;
+                _waveLp += (n3 - _waveLp) * 0.06;
+                _waveLp2 += (_waveLp - _waveLp2) * 0.01;
+                double cyc = (t / 7.5) % 1.0;
+                double swell = Math.Pow(Math.Sin(Math.PI * cyc), 3);
+                double w = (_waveLp - _waveLp2 * 0.6) * 0.22 * swell * _p.Waves;
+                waveL = w * (0.8 + 0.2 * Math.Sin(t * 0.3));
+                waveR = w * (0.8 - 0.2 * Math.Sin(t * 0.3));
+            }
+
             // Pad + pluck'ı tozlu bir lowpass'ten geçir
             double tonal = pad + pluck * 0.55;
             _lp1 += (tonal - _lp1) * _p.Brightness;
@@ -202,8 +272,8 @@ namespace LofiBoya
             double mono = _lp2 + bass + kick + snare * 0.8 + vinyl;
             _fade = Math.Min(1f, _fade + 1f / (SR * 3f));
             double g = Volume * _fade;
-            double l = Math.Tanh((mono + pluck * 0.15 * (0.5 - _pluckPan) + hat * 0.6 + rainL) * 1.2) * g;
-            double r = Math.Tanh((mono + pluck * 0.15 * (0.5 + _pluckPan) + hat * 1.2 + rainR) * 1.2) * g;
+            double l = Math.Tanh((mono + pluck * 0.15 * (0.5 - _pluckPan) + hat * 0.6 + rainL + waveL + bird * (0.5 - _birdPan)) * 1.2) * g;
+            double r = Math.Tanh((mono + pluck * 0.15 * (0.5 + _pluckPan) + hat * 1.2 + rainR + waveR + bird * (0.5 + _birdPan)) * 1.2) * g;
             outL = (float)l;
             outR = (float)r;
         }

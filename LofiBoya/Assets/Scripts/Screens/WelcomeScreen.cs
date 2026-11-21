@@ -8,8 +8,10 @@ namespace LofiBoya
     {
         RectTransform _polaroid, _title, _startBtn;
         Texture2D _preview;
-        Text _musicLabel, _muteLabel;
+        Mascot _mascot;
         float _t0;
+        static bool _greeted;
+        const float PolX = 40f, PolY = 70f;
 
         void Start()
         {
@@ -35,42 +37,86 @@ namespace LofiBoya
 
             // ---- Polaroid (rastgele bir resim, pastel renklerle) ----
             _polaroid = UIKit.Node("Polaroid", root);
-            _polaroid.Place(new Vector2(0.5f, 0.5f), new Vector2(0, 20), new Vector2(600, 700));
+            _polaroid.Place(new Vector2(0.5f, 0.5f), new Vector2(PolX, PolY), new Vector2(600, 700));
             _polaroid.localRotation = Quaternion.Euler(0, 0, -5);
             var card = UIKit.Card(_polaroid, "Card", Theme.Card);
             ((RectTransform)card.transform.parent).Stretch();
             var photoBg = UIKit.Box(card.transform, "PhotoBg", Theme.Paper, null, 2.2f);
-            photoBg.rectTransform.Stretch(36, 36, 36, 150);
+            photoBg.rectTransform.Stretch(34, 34, 34, 140);
             var photo = UIKit.Node("Photo", photoBg.transform).Stretch(16, 16, 16, 16);
             var raw = photo.gameObject.AddComponent<RawImage>();
             raw.raycastTarget = false;
             var fitter = photo.gameObject.AddComponent<AspectRatioFitter>();
             fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-            var caption = UIKit.Label(card.transform, "~ bugünün resmi ~", 44, Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Italic);
-            caption.rectTransform.Band(false, 120, 18);
+            var caption = UIKit.Label(card.transform, "~ bugünün resmi ~", 42, Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Italic);
+            caption.rectTransform.Band(false, 112, 16);
             LoadPreview(raw, fitter);
             Tween.Pop(_polaroid, 0.15f, 0.6f);
+
+            // ---- Pofuduk: polaroidin köşesinde oturur, dokununca kıkırdar ----
+            _mascot = Mascot.Create(root, 320);
+            var mrt = (RectTransform)_mascot.transform;
+            mrt.Place(new Vector2(0.5f, 0.5f), new Vector2(-300, -250), mrt.sizeDelta);
+            Tween.Pop(mrt, 0.45f, 0.6f);
+            if (!_greeted)
+            {
+                _greeted = true;
+                Tween.Delay(1.1f, () =>
+                {
+                    if (_mascot == null) return;
+                    _mascot.Wave(2f);
+                    Speech.Say("Merhaba! Ben Pofuduk. Hadi birlikte boyayalım!", "merhaba");
+                });
+            }
 
             // ---- Başla ----
             var start = UIKit.Button(root, "Boyamaya Başla", Theme.Accent, Color.white, 64, () => App.I.ShowGallery());
             _startBtn = (RectTransform)start.transform;
-            _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 360), new Vector2(700, 180));
+            _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 410), new Vector2(700, 170));
             Tween.Pop(_startBtn, 0.35f);
 
-            // ---- Müzik anahtarı ----
-            // Parça adı: dokununca sıradaki lofi havasına geçer
-            var music = UIKit.Button(root, "", Theme.Card.WithAlpha(0.85f), Theme.Text, 40, () => { Sfx.NextTrack(); RefreshMusic(); }, 1f, false);
-            ((RectTransform)music.transform).Place(new Vector2(0.5f, 0f), new Vector2(-60, 170), new Vector2(480, 110));
-            _musicLabel = UIKit.ButtonText(music);
-            _musicLabel.rectTransform.offsetMin = new Vector2(70, 0);
-            var note = UIKit.Box(music.transform.Find("Face"), "Note", Theme.Text, Art.Note);
-            note.type = Image.Type.Simple;
-            note.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(62, 0), new Vector2(46, 46));
-            // Sessiz / sesli
-            var mute = UIKit.CircleButton(root, "", Theme.Card.WithAlpha(0.85f), Theme.Text, 110, 40, ToggleMusic);
-            ((RectTransform)mute.transform).Place(new Vector2(0.5f, 0f), new Vector2(260, 170), new Vector2(110, 110));
-            _muteLabel = UIKit.ButtonText(mute);
-            RefreshMusic();
+            // ---- Büyük ikonlu butonlar: Öğren / Çıkartmalarım ----
+            BigButton(root, "Öğren", MascotArt.Puzzle, Theme.Hex("54C29A"), Theme.Mint, new Vector2(-200, 225), 0.45f, () => App.I.ShowLearn());
+            var stickers = BigButton(root, "Çıkartmalar", MascotArt.Star, Color.white, Theme.Butter, new Vector2(200, 225), 0.5f, () => App.I.ShowStickers());
+            // yıldız sayısı rozeti
+            int stars = SaveSystem.Stars;
+            if (stars > 0)
+            {
+                var badge = UIKit.Box(stickers.transform, "Badge", Theme.Accent, null, 0.5f);
+                badge.rectTransform.anchorMin = badge.rectTransform.anchorMax = new Vector2(1, 1);
+                badge.rectTransform.sizeDelta = new Vector2(46 + stars.ToString().Length * 26, 64);
+                badge.rectTransform.anchoredPosition = new Vector2(-24, -4);
+                var bl = UIKit.Label(badge.transform, stars.ToString(), 38, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+                bl.rectTransform.Stretch(0, 0, 0, 4);
+            }
+
+            // ---- Üst köşeler: müzik (sol), ebeveyn ayarları (sağ) ----
+            var music = UIKit.IconButton(root, Art.Note, Theme.Card.WithAlpha(0.9f), Theme.Text, 110, () =>
+            {
+                Popup.Toast("müzik: " + Sfx.NextTrack());
+            }, 0.46f);
+            ((RectTransform)music.transform).Place(new Vector2(0, 1), new Vector2(100, -100), new Vector2(110, 110));
+            var gear = UIKit.IconButton(root, Art.Gear, Theme.Card.WithAlpha(0.9f), Theme.TextSoft, 110, () => ParentGate.Show(ParentGate.Settings), 0.5f);
+            ((RectTransform)gear.transform).Place(new Vector2(1, 1), new Vector2(-100, -100), new Vector2(110, 110));
+        }
+
+        static Button BigButton(Transform parent, string label, Sprite icon, Color iconColor, Color bg, Vector2 pos, float delay, System.Action onClick)
+        {
+            var b = UIKit.Button(parent, label, bg, Theme.Text, 42, onClick);
+            var rt = (RectTransform)b.transform;
+            rt.Place(new Vector2(0.5f, 0f), pos, new Vector2(380, 150));
+            var txt = UIKit.ButtonText(b);
+            txt.rectTransform.offsetMin = new Vector2(132, 0);
+            txt.alignment = TextAnchor.MiddleLeft;
+            var bubble = UIKit.Box(b.transform.Find("Face"), "IconBg", Color.white.WithAlpha(0.7f), UIKit.Circle);
+            bubble.type = Image.Type.Simple;
+            bubble.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(68, 0), new Vector2(100, 100));
+            var img = UIKit.Box(bubble.transform, "Icon", iconColor, icon);
+            img.type = Image.Type.Simple;
+            img.preserveAspect = true;
+            img.rectTransform.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80, 80));
+            Tween.Pop(rt, delay);
+            return b;
         }
 
         static void Cloud(Transform parent, Vector2 pos, float scale)
@@ -119,27 +165,12 @@ namespace LofiBoya
             fitter.aspectRatio = (float)_preview.width / _preview.height;
         }
 
-        void ToggleMusic()
-        {
-            SaveSystem.MusicOn = !SaveSystem.MusicOn;
-            Sfx.ApplySettings();
-            RefreshMusic();
-        }
-
-        void RefreshMusic()
-        {
-            _musicLabel.text = SaveSystem.MusicOn ? Sfx.TrackName + "  ›" : "müzik kapalı";
-            _muteLabel.text = SaveSystem.MusicOn ? "ses" : "sessiz";
-            _muteLabel.fontSize = SaveSystem.MusicOn ? 34 : 26;
-            _muteLabel.color = SaveSystem.MusicOn ? Theme.Text : Theme.TextSoft;
-        }
-
         void Update()
         {
             float t = Time.unscaledTime - _t0;
             if (_polaroid != null && t > 0.8f)
             {
-                _polaroid.anchoredPosition = new Vector2(0, 20 + Mathf.Sin(t * 1.1f) * 14f);
+                _polaroid.anchoredPosition = new Vector2(PolX, PolY + Mathf.Sin(t * 1.1f) * 14f);
                 _polaroid.localRotation = Quaternion.Euler(0, 0, -5 + Mathf.Sin(t * 0.7f) * 2f);
             }
             if (_title != null) _title.anchoredPosition = new Vector2(0, 10 + Mathf.Sin(t * 1.6f) * 6f);

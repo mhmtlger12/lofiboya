@@ -38,6 +38,16 @@ namespace LofiBoya
         public static readonly float[] BrushDiameters = { 18f, 38f, 76f };
 
         public event Action Changed;
+        /// <summary>Kova ile dokunuldu (ekran noktası) — kova animasyonu için.</summary>
+        public event Action<Vector2> Tapped;
+        /// <summary>Sayılı mod: false dönerse bölge boyanmaz (yanlış renk).</summary>
+        public Func<int, Color, bool> CanFill;
+
+        /// <summary>Elde kalem imleci için: parmak/fare nerede, çiziliyor mu, tuval üstünde mi.</summary>
+        public Vector2 PointerScreen { get; private set; }
+        public bool PointerOver { get; private set; }
+        public bool Stroking => _stroking;
+        public bool TouchInput { get; private set; }
 
         class UndoStep
         {
@@ -246,6 +256,8 @@ namespace LofiBoya
         {
 #if ENABLE_INPUT_SYSTEM
             var touches = ETouch.activeTouches;
+            if (touches.Count > 0) TouchInput = true;
+            PointerOver = false;
             if (touches.Count >= 2)
             {
                 if (_stroking)
@@ -274,6 +286,8 @@ namespace LofiBoya
             {
                 var t = touches[0];
                 var p = t.screenPosition;
+                PointerScreen = p;
+                PointerOver = InViewport(p);
                 bool ended = t.phase is UnityEngine.InputSystem.TouchPhase.Ended or UnityEngine.InputSystem.TouchPhase.Canceled;
                 if (!_gesture)
                 {
@@ -301,6 +315,11 @@ namespace LofiBoya
             var mouse = Mouse.current;
             if (mouse == null) return;
             var mp = mouse.position.ReadValue();
+            if (!TouchInput)
+            {
+                PointerScreen = mp;
+                PointerOver = InViewport(mp);
+            }
             float scroll = mouse.scroll.ReadValue().y;
             if (Mathf.Abs(scroll) > 0.01f && InViewport(mp)) ZoomAt(mp, scroll > 0 ? 1.15f : 1f / 1.15f);
 
@@ -398,6 +417,8 @@ namespace LofiBoya
             if (!ScreenToUv(screen, out var uv)) return;
             int id = RegionAtUv(uv);
             if (id <= 0) return;
+            if (CanFill != null && !CanFill(id, CurrentColor)) return;
+            Tapped?.Invoke(screen);
             Fill(id, uv, CurrentColor);
         }
 
@@ -436,6 +457,23 @@ namespace LofiBoya
             Material.SetFloat(IdFillRegion, -1);
             _animRegion = -1;
         }
+
+        /// <summary>Animasyonsuz, geri alınamaz boyama (sayılı modda minik bölgeler için).</summary>
+        public void FillSilently(int id, Color color)
+        {
+            CommitAnimation();
+            SetRegion(id, color, true);
+        }
+
+        /// <summary>Bölgenin ortası tuval (Content) yerel koordinatında.</summary>
+        public Vector2 RegionLocalCenter(int id)
+        {
+            var uv = new Vector2((Level.Meta.cx[id - 1] + 0.5f) / Level.Width, (Level.Meta.cy[id - 1] + 0.5f) / Level.Height);
+            return (uv - new Vector2(0.5f, 0.5f)) * Content.sizeDelta;
+        }
+
+        /// <summary>Bölgenin iç yarıçapı tuval biriminde (yakınlaştırma hariç).</summary>
+        public float RegionLocalRadius(int id) => Level.Meta.radius[id - 1] * Content.sizeDelta.x / Level.Width;
 
         void SetRegion(int id, Color32 color, bool filled)
         {

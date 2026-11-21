@@ -66,8 +66,47 @@ namespace LofiBoya
                 return s * 0.16f;
             });
 
+            // Kıkırdama: dört kısa, inen "hi" hecesi
+            _giggle = Synth("giggle", 0.55f, (t, k) =>
+            {
+                float s = 0;
+                for (int i = 0; i < 4; i++)
+                {
+                    float st = t - i * 0.115f;
+                    if (st < 0 || st > 0.09f) continue;
+                    float f0 = 640f - i * 45f + 30f * Mathf.Sin(st * 60f);
+                    float env = Mathf.Sin(st / 0.09f * Mathf.PI);
+                    s += Mathf.Sin(2 * Mathf.PI * f0 * st) * (0.6f + 0.4f * Mathf.Sin(2 * Mathf.PI * f0 * 3f * st)) * env;
+                }
+                return s * 0.32f;
+            });
+            // Alkış: üç kısa gürültü patlaması
+            var rnd = new System.Random(3);
+            _clap = Synth("clap", 0.9f, (t, k) =>
+            {
+                float s = 0;
+                for (int i = 0; i < 4; i++)
+                {
+                    float st = t - i * 0.2f;
+                    if (st < 0) continue;
+                    s += ((float)rnd.NextDouble() * 2 - 1) * Mathf.Exp(-st * 38f);
+                }
+                return s * 0.35f;
+            });
+            // Yıldız: parıltılı çınlama
+            _star = Synth("star", 0.9f, (t, k) =>
+                (Mathf.Sin(2 * Mathf.PI * 1568f * t) * 0.6f + Mathf.Sin(2 * Mathf.PI * 2093f * t) * 0.4f * Mathf.Sin(t * 40f)) * Mathf.Exp(-t * 5f) * 0.25f);
+            // Yanlış: yumuşak, üzmeyen bir "bıp"
+            _wrong = Synth("wrong", 0.3f, (t, k) => Mathf.Sin(2 * Mathf.PI * (320f - 160f * t) * t) * Mathf.Exp(-t * 9f) * 0.4f);
+
             ApplySettings();
         }
+
+        AudioClip _giggle, _clap, _star, _wrong;
+        public static void Giggle() => Play(_i ? _i._giggle : null, 0.08f);
+        public static void Clap() => Play(_i ? _i._clap : null, 0.05f);
+        public static void Star() => Play(_i ? _i._star : null, 0.06f);
+        public static void Wrong() => Play(_i ? _i._wrong : null, 0.02f);
 
         AudioSource _scribble;
 

@@ -24,6 +24,18 @@ namespace LofiBoya
         public static Sprite Bulb => _bulb != null ? _bulb : (_bulb = Icon(BulbSdf));
         public static Sprite Trash => _trash != null ? _trash : (_trash = Icon(TrashSdf));
         public static Sprite Fit => _fit != null ? _fit : (_fit = Icon(FitSdf));
+        static Sprite _gear;
+        public static Sprite Gear => _gear != null ? _gear : (_gear = Icon(GearSdf));
+
+        static float GearSdf(Vector2 p)
+        {
+            float r = p.magnitude;
+            float ang = Mathf.Atan2(p.y, p.x);
+            float teeth = Mathf.Clamp(Mathf.Cos(ang * 8f) * 2.4f, -1f, 1f) * 0.5f + 0.5f;
+            float outer = r - (0.6f + 0.2f * teeth);
+            float hole = 0.25f - r;
+            return Mathf.Max(outer, hole);
+        }
 
         static float UndoSdf(Vector2 p)
         {

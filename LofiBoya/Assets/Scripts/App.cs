@@ -43,6 +43,11 @@ namespace LofiBoya
             Screen.sleepTimeout = SleepTimeout.SystemSetting;
             Input2D();
             Sfx.Init();
+            Speech.Init();
+#if UNITY_EDITOR
+            // Editörde ses motoru yok: söylenen cümleyi balonda göster
+            Speech.Said += text => Popup.Toast("“" + text + "”");
+#endif
             BuildCanvas();
             ShowWelcome();
         }
@@ -141,5 +146,7 @@ namespace LofiBoya
         public void ShowWelcome() => Show<WelcomeScreen>();
         public void ShowGallery(string group = null) => Show<GalleryScreen>(s => s.Group = group);
         public void ShowColoring(string group, string id) => Show<ColoringScreen>(s => { s.Group = group; s.Id = id; });
+        public void ShowStickers() => Show<StickerScreen>();
+        public void ShowLearn() => Show<LearnScreen>();
     }
 }

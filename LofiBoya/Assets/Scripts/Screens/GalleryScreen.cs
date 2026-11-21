@@ -174,7 +174,7 @@ namespace LofiBoya
                 fit.aspectRatio = (float)tex.width / tex.height;
             }
 
-            var name = UIKit.Label(face.transform, Level.PrettyName(entry.id), 36, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var name = UIKit.Label(face.transform, Names.LevelTitle(entry.id), 36, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             name.rectTransform.anchorMin = new Vector2(0, 0);
             name.rectTransform.anchorMax = new Vector2(1, 0);
             name.rectTransform.pivot = new Vector2(0, 0);

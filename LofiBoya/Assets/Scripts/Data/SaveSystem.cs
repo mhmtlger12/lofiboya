@@ -91,6 +91,20 @@ namespace LofiBoya
             return tex.LoadImage(File.ReadAllBytes(p), false) ? tex : null;
         }
 
+        /// <summary>Toplanan yıldızlar (boyama bitirme ve öğrenme oyunları).</summary>
+        public static int Stars
+        {
+            get => PlayerPrefs.GetInt("stars", 0);
+            set { PlayerPrefs.SetInt("stars", Mathf.Max(0, value)); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>Sayılı mod (1-5) açık mı.</summary>
+        public static bool NumberMode
+        {
+            get => PlayerPrefs.GetInt("numbers", 0) == 1;
+            set => PlayerPrefs.SetInt("numbers", value ? 1 : 0);
+        }
+
         public static int ToolIndex
         {
             get => PlayerPrefs.GetInt("tool", 0);
