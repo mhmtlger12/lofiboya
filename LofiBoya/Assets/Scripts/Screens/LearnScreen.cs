@@ -926,7 +926,8 @@ namespace LofiBoya
             }
         }
 
-        static string Pieces0(string s) { var p = Speech.Pieces(s); return p.Count > 0 ? p[0] : s; }
+        // "Aferin! Üzgün birine..." -> ilk cümle ("Aferin!") ekranda görünür
+        static string Pieces0(string s) { int i = s.IndexOfAny(new[] { '.', '!', '?' }); return i >= 0 ? s.Substring(0, i + 1) : s; }
 
         static void Shuffle(List<int> l)
         {

@@ -60,6 +60,4 @@ key.properties
 LofiBoya/.utmp/
 LofiBoya/*_BackUpThisFolder_ButDontShipItWithYourGame/
 
-# ses üretim araçları (büyük, yerelde kalır)
-tools/ses_env/
-tools/ses_deneme/
+Builds/
