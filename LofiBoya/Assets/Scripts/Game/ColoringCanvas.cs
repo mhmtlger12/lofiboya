@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
@@ -88,6 +89,7 @@ namespace LofiBoya
 
         // Çizgi durumu
         bool _stroking;
+        double _lastTouchTime;
         int _strokeRegion;
         Vector2 _lastStampUv;
         float _strokeStartTime, _strokeLength;
@@ -291,7 +293,7 @@ namespace LofiBoya
                 Vector2 mid = (a + b) * 0.5f;
                 if (!_multi || !_gesture)
                 {
-                    if (!_gesture && !InViewport(mid)) return;
+                    if (!_gesture && (!InViewport(mid) || OverOtherUI(mid))) return;
                     _gesture = true; _multi = true; _moved = true;
                     _lastPinchDist = dist; _lastPinchMid = mid;
                     return;
@@ -310,7 +312,8 @@ namespace LofiBoya
                 bool ended = t.phase is UnityEngine.InputSystem.TouchPhase.Ended or UnityEngine.InputSystem.TouchPhase.Canceled;
                 if (!_gesture)
                 {
-                    if (t.phase != UnityEngine.InputSystem.TouchPhase.Began || !InViewport(p)) return;
+                    // önünde pencere/buton/panel varsa (ör. "Temizle" onayı) tuval bu dokunuşu almaz
+                    if (t.phase != UnityEngine.InputSystem.TouchPhase.Began || !InViewport(p) || OverOtherUI(p)) return;
                     BeginGesture(p, false);
                 }
                 else if (_multi)
@@ -321,6 +324,19 @@ namespace LofiBoya
                     _panOnly = true;
                     _moved = true;
                 }
+                // bu karede gelen ara dokunuş noktaları (telefonlar 120-240 Hz okur): çizgi parmağı birebir izlesin
+                if (_stroking)
+                {
+                    var hist = t.history;
+                    for (int h = hist.Count - 1; h >= 0; h--)
+                    {
+                        var e = hist[h];
+                        if (e.time <= _lastTouchTime) continue;
+                        _lastTouchTime = e.time;
+                        StrokeTo(e.screenPosition);
+                    }
+                }
+                _lastTouchTime = t.time;
                 PointerMove(p);
                 if (ended) PointerUp(p);
                 return;
@@ -340,14 +356,14 @@ namespace LofiBoya
                 PointerOver = InViewport(mp);
             }
             float scroll = mouse.scroll.ReadValue().y;
-            if (Mathf.Abs(scroll) > 0.01f && InViewport(mp)) ZoomAt(mp, scroll > 0 ? 1.15f : 1f / 1.15f);
+            if (Mathf.Abs(scroll) > 0.01f && InViewport(mp) && !OverOtherUI(mp)) ZoomAt(mp, scroll > 0 ? 1.15f : 1f / 1.15f);
 
             bool panBtnDown = mouse.rightButton.wasPressedThisFrame || mouse.middleButton.wasPressedThisFrame;
             bool panBtnHeld = mouse.rightButton.isPressed || mouse.middleButton.isPressed;
             if (!_gesture)
             {
-                if (mouse.leftButton.wasPressedThisFrame && InViewport(mp)) { BeginGesture(mp, false); PointerMove(mp); }
-                else if (panBtnDown && InViewport(mp)) BeginGesture(mp, true);
+                if (mouse.leftButton.wasPressedThisFrame && InViewport(mp) && !OverOtherUI(mp)) { BeginGesture(mp, false); PointerMove(mp); }
+                else if (panBtnDown && InViewport(mp) && !OverOtherUI(mp)) BeginGesture(mp, true);
                 return;
             }
             if (mouse.leftButton.isPressed || panBtnHeld) PointerMove(mp);
@@ -382,6 +398,21 @@ namespace LofiBoya
             else if (!_moved && !_multi && !_panOnly && Tool == Tool.Fill) TapAt(p);
             else if (!_moved && !_multi && !_panOnly && Tool == Tool.Stamp) StampAt(p);
             _gesture = false; _moved = false; _multi = false; _panOnly = false;
+        }
+
+        static readonly List<RaycastResult> _hits = new();
+
+        /// <summary>Bu noktada tuvalin önünde dokunulabilir bir arayüz öğesi var mı.</summary>
+        bool OverOtherUI(Vector2 screen)
+        {
+            var es = EventSystem.current;
+            if (es == null) return false;
+            var ped = new PointerEventData(es) { position = screen };
+            _hits.Clear();
+            es.RaycastAll(ped, _hits);
+            foreach (var h in _hits)
+                if (h.gameObject != null && !h.gameObject.transform.IsChildOf(Viewport)) return true;
+            return false;
         }
 
         bool InViewport(Vector2 screen) => RectTransformUtility.RectangleContainsScreenPoint(Viewport, screen, null);

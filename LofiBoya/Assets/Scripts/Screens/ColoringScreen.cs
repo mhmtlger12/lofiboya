@@ -56,6 +56,9 @@ namespace LofiBoya
         void Start()
         {
             var root = (RectTransform)transform;
+            // çizerken gecikme az olsun: ekran 90/120 Hz ise o hızda çalış (çıkınca 60'a döner)
+            int hz = Mathf.RoundToInt((float)Screen.currentResolution.refreshRateRatio.value);
+            Application.targetFrameRate = Mathf.Clamp(hz, 60, 120);
             _level = Level.Load(Group, Id);
             if (_level == null) { App.I.ShowGallery(Group); return; }
             var save = SaveSystem.Load(_level.Key);
@@ -1019,6 +1022,7 @@ namespace LofiBoya
 
         void OnDestroy()
         {
+            Application.targetFrameRate = 60;
             foreach (var sp in _previewSprites) if (sp != null) { Destroy(sp.texture); Destroy(sp); }
             if (_canvas != null && _canvas.Level != null && _saveTimer > 0) SaveNow();
             _level?.Unload();
