@@ -19,7 +19,7 @@ namespace LofiBoya
         float _alpha, _tilt, _press, _idle;
         bool _placed;
 
-        const float Len = 300f, Wid = 75f, BaseAngle = 150f;
+        const float Len = 230f, Wid = 58f, BaseAngle = 150f;
         /// <summary>Kalem sprite'ında ucun gerçek yüksekliği (Art.CrayonSdf: 3.725 / 4.0).</summary>
         const float TipV = 0.93f;
 
@@ -64,8 +64,8 @@ namespace LofiBoya
             var shine = UIKit.Box(_crayon, "Shine", Color.white, Art.CrayonShine);
             shine.type = Image.Type.Simple;
             shine.rectTransform.Stretch();
-            // tutan el: Pofuduk'un pamuk eli, kalemin ortasında
-            AddHand(_crayon, new Vector2(0.5f, 0.38f), 96f);
+            // tutan el: Pofuduk'un pamuk eli, gerçek tutuş gibi uca yakın
+            AddHand(_crayon, new Vector2(0.5f, 0.6f), 80f);
 
             // Silgi: pembe, yumuşak köşeli
             _eraser = UIKit.Node("Eraser", _root);
@@ -96,7 +96,9 @@ namespace LofiBoya
         {
             if (_canvas == null) return;
             float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
-            bool drawTool = _canvas.Tool == Tool.Pencil || _canvas.Tool == Tool.Eraser;
+            // Dokunmatikte parmak zaten kalemdir: çizilen kalem boyanan yeri kapatmasın diye gösterilmez.
+            // Yalnızca farede (imlecin yerini görmek için) görünür.
+            bool drawTool = (_canvas.Tool == Tool.Pencil || _canvas.Tool == Tool.Eraser) && !_canvas.TouchInput;
             bool eraser = _canvas.Tool == Tool.Eraser;
 
             // görünürlük: çizerken her zaman; farede tuvalin üstündeyken; dokunmatikte parmak kalkınca kısa süre kalır
