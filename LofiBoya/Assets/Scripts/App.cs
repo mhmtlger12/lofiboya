@@ -1,0 +1,145 @@
+using System;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+#endif
+
+namespace LofiBoya
+{
+    public interface IScreen
+    {
+        /// <summary>Android geri tuşu / Esc. true dönerse işlendi.</summary>
+        bool OnBack();
+    }
+
+    /// <summary>
+    /// Oyunun giriş noktası. Sahneye bir şey eklemeye gerek yok: oyun açılınca kendini kurar.
+    /// Arka plan + süzülen baloncuklar kalıcıdır, ekranlar üstünde yumuşak geçişlerle değişir.
+    /// </summary>
+    public class App : MonoBehaviour
+    {
+        public static App I { get; private set; }
+        public Canvas Canvas { get; private set; }
+        public RectTransform SafeRoot { get; private set; }
+
+        RectTransform _screens;
+        GameObject _current;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void Boot()
+        {
+            if (FindAnyObjectByType<App>() == null) new GameObject("LofiBoya").AddComponent<App>();
+        }
+
+        void Awake()
+        {
+            if (I != null) { Destroy(gameObject); return; }
+            I = this;
+            DontDestroyOnLoad(gameObject);
+            Application.targetFrameRate = 60;
+            Screen.sleepTimeout = SleepTimeout.SystemSetting;
+            Input2D();
+            Sfx.Init();
+            BuildCanvas();
+            ShowWelcome();
+        }
+
+        void Input2D()
+        {
+            if (FindAnyObjectByType<EventSystem>() != null) return;
+            var es = new GameObject("EventSystem", typeof(EventSystem));
+            DontDestroyOnLoad(es);
+#if ENABLE_INPUT_SYSTEM
+            var module = es.AddComponent<InputSystemUIInputModule>();
+            if (module.actionsAsset == null) module.AssignDefaultActions();
+#else
+            es.AddComponent<StandaloneInputModule>();
+#endif
+        }
+
+        void BuildCanvas()
+        {
+            var cam = Camera.main;
+            if (cam != null)
+            {
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = Theme.BgMid;
+            }
+
+            var go = new GameObject("Canvas", typeof(RectTransform));
+            go.layer = 5;
+            go.transform.SetParent(transform, false);
+            Canvas = go.AddComponent<Canvas>();
+            Canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            Canvas.pixelPerfect = false;
+            var scaler = go.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080, 1920);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = Screen.height > Screen.width * 1.5f ? 0f : 1f;
+            scaler.referencePixelsPerUnit = 100;
+            go.AddComponent<GraphicRaycaster>();
+
+            // Kalıcı arka plan
+            var bg = UIKit.Node("Background", go.transform).Stretch();
+            var raw = bg.gameObject.AddComponent<RawImage>();
+            raw.texture = UIKit.Gradient(Theme.BgTop, Theme.BgMid, Theme.BgBottom);
+            raw.raycastTarget = false;
+            var decor = UIKit.Node("Decor", go.transform).Stretch();
+            decor.gameObject.AddComponent<BackgroundDecor>();
+
+            SafeRoot = UIKit.Node("Safe", go.transform).Stretch();
+            SafeRoot.gameObject.AddComponent<SafeArea>();
+            _screens = UIKit.Node("Screens", SafeRoot).Stretch();
+        }
+
+        void Update()
+        {
+#if ENABLE_INPUT_SYSTEM
+            var kb = Keyboard.current;
+            if (kb != null && kb.escapeKey.wasPressedThisFrame) Back();
+#else
+            if (Input.GetKeyDown(KeyCode.Escape)) Back();
+#endif
+        }
+
+        void Back()
+        {
+            if (_current != null && _current.TryGetComponent<IScreen>(out var s) && s.OnBack()) return;
+        }
+
+        /// <summary>Yeni ekranı kurar; eskisi solarak kaybolur, yenisi hafifçe yukarı kayarak gelir.</summary>
+        public T Show<T>(Action<T> setup = null) where T : MonoBehaviour
+        {
+            if (_current != null)
+            {
+                var old = _current;
+                var og = old.GetComponent<CanvasGroup>();
+                og.interactable = false;
+                og.blocksRaycasts = false;
+                Tween.Fade(og, og.alpha, 0f, 0.22f, () => Destroy(old));
+            }
+
+            var rt = UIKit.Node(typeof(T).Name, _screens).Stretch();
+            var cg = rt.gameObject.AddComponent<CanvasGroup>();
+            var screen = rt.gameObject.AddComponent<T>();
+            setup?.Invoke(screen);
+            _current = rt.gameObject;
+            cg.alpha = 0;
+            rt.anchoredPosition = new Vector2(0, -40);
+            Tween.To(rt, 0.4f, k =>
+            {
+                cg.alpha = k;
+                rt.anchoredPosition = new Vector2(0, -40 * (1 - k));
+            }, Tween.OutCubic, 0.08f);
+            return screen;
+        }
+
+        public void ShowWelcome() => Show<WelcomeScreen>();
+        public void ShowGallery(string group = null) => Show<GalleryScreen>(s => s.Group = group);
+        public void ShowColoring(string group, string id) => Show<ColoringScreen>(s => { s.Group = group; s.Id = id; });
+    }
+}

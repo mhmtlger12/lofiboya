@@ -1,0 +1,149 @@
+{
+ "groups": [
+  {
+   "name": "kolay",
+   "levels": [
+    {
+     "id": "artrose-easter-6122817",
+     "regions": 73
+    },
+    {
+     "id": "artrose-easter-6122832",
+     "regions": 128
+    },
+    {
+     "id": "artrose-easter-6122870",
+     "regions": 21
+    },
+    {
+     "id": "artrose-easter-6122901",
+     "regions": 13
+    },
+    {
+     "id": "artrose-snowman-6879787",
+     "regions": 19
+    },
+    {
+     "id": "clker-free-vector-images-teddybear-294011",
+     "regions": 23
+    },
+    {
+     "id": "gdj-deer-6387533",
+     "regions": 33
+    },
+    {
+     "id": "gdj-dog-6387529",
+     "regions": 18
+    },
+    {
+     "id": "gdj-dolphin-6387856",
+     "regions": 7
+    },
+    {
+     "id": "gdj-duck-6387883",
+     "regions": 45
+    },
+    {
+     "id": "gdj-elephant-6387514",
+     "regions": 29
+    },
+    {
+     "id": "gdj-elephant-6392146",
+     "regions": 24
+    },
+    {
+     "id": "gdj-fox-6387510",
+     "regions": 24
+    },
+    {
+     "id": "gdj-giraffe-6387882",
+     "regions": 47
+    },
+    {
+     "id": "gdj-ice-cream-cone-6387867",
+     "regions": 24
+    },
+    {
+     "id": "gdj-lion-6387505",
+     "regions": 28
+    },
+    {
+     "id": "gdj-owl-6387500",
+     "regions": 19
+    },
+    {
+     "id": "gdj-panda-6387498",
+     "regions": 12
+    },
+    {
+     "id": "gdj-polar-bear-6387496",
+     "regions": 30
+    },
+    {
+     "id": "gdj-strawberry-6387870",
+     "regions": 21
+    },
+    {
+     "id": "gdj-tiger-6387491",
+     "regions": 54
+    },
+    {
+     "id": "gdj-tiger-6387887",
+     "regions": 33
+    },
+    {
+     "id": "gdj-unicorn-6387489",
+     "regions": 18
+    },
+    {
+     "id": "gdj-unicorn-6387875",
+     "regions": 27
+    },
+    {
+     "id": "gdj-watermelon-slice-6387869",
+     "regions": 17
+    },
+    {
+     "id": "gdj-wolf-6387485",
+     "regions": 40
+    },
+    {
+     "id": "purepageart-coloring-page-9943298",
+     "regions": 8
+    },
+    {
+     "id": "purepageart-coloring-page-9943301",
+     "regions": 13
+    },
+    {
+     "id": "purepageart-cute-9005708",
+     "regions": 64
+    },
+    {
+     "id": "purepageart-cute-9069178",
+     "regions": 11
+    },
+    {
+     "id": "purepageart-ghost-9081041",
+     "regions": 11
+    },
+    {
+     "id": "purepageart-puppy-9620804",
+     "regions": 9
+    },
+    {
+     "id": "tanrica-witch-7488176",
+     "regions": 58
+    }
+   ]
+  },
+  {
+   "name": "orta",
+   "levels": []
+  },
+  {
+   "name": "zor",
+   "levels": []
+  }
+ ]
+}
