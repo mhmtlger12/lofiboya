@@ -200,7 +200,14 @@ namespace LofiBoya
             _colorTex.Apply(false);
 
             Paint = new PaintLayer(level);
-            if (savedPaint != null) { Paint.Load(savedPaint); _stamped = true; }
+            if (savedPaint != null)
+            {
+                // eski kayıt (resmin kendi oranında) genişletilmiş kartın ortasına yerleşir
+                float pa = (float)savedPaint.width / savedPaint.height, la = (float)level.Width / level.Height;
+                if (Mathf.Abs(pa - la) > 0.01f * la) Paint.Load(savedPaint, level.OriginalRect);
+                else Paint.Load(savedPaint);
+                _stamped = true;
+            }
             Paint.Dirty = false;
 
             Material = new Material(Resources.Load<Shader>("Shaders/ColoringFill"));
@@ -244,7 +251,7 @@ namespace LofiBoya
             if (Level == null) return;
             var vs = Viewport.rect.size;
             _lastViewportSize = vs;
-            float s = Mathf.Min(vs.x / Level.Width, vs.y / Level.Height) * 0.97f;
+            float s = Mathf.Min(vs.x / Level.Width, vs.y / Level.Height);
             Content.sizeDelta = new Vector2(Level.Width * s, Level.Height * s);
             _zoom = 1f;
             Content.localScale = Vector3.one;
@@ -612,7 +619,9 @@ namespace LofiBoya
         void FlushStroke()
         {
             if (Tool == Tool.Eraser) Paint.Flush(-1, 1f, 0.5f, 0.25f);
-            else Paint.Flush(_strokeRegion, 1f, 0.5f, 0.85f);
+            // Küçükler için kalem başladığı bölgenin dışına taşmaz; büyükler ayarlardan kapatıp
+            // çizgiye kendisi uymayı dener (ince motor becerisi).
+            else Paint.Flush(SaveSystem.PencilStaysInside ? _strokeRegion : -1, 1f, 0.5f, 0.85f);
         }
 
         void EndStroke()

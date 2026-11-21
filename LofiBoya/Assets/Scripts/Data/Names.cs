@@ -70,6 +70,7 @@ namespace LofiBoya
             ["scarecrow"] = "scarecrow", ["rose"] = "rose", ["alligator"] = "alligator", ["crab"] = "crab",
             ["cricket"] = "cricket", ["mandala"] = "mandala", ["pineapple"] = "pineapple", ["seal"] = "seal",
             ["christmas"] = "christmastree", ["apple"] = "apple", ["acorn"] = "acorn",
+            ["rocket"] = "rocket", ["house"] = "house", ["fish"] = "fish", ["turtle"] = "turtle", ["snail"] = "snail", ["car"] = "car",
         };
 
         /// <summary>Dosya adından anlaşılmayan resimler.</summary>
@@ -111,6 +112,9 @@ namespace LofiBoya
             var k = Key(id);
             return Cap(k != null ? Word(k).name : Loc.T("picture"));
         }
+
+        /// <summary>Şekil adı (yalın, cümle içi): anahtar "circle", "square", "triangle", "rectangle", "star", "heart".</summary>
+        public static (string name, string acc) Shape(string key) => Word("shape_" + key);
 
         /// <summary>Resmin adı biliniyorsa (yalın ad, cümle içi biçim).</summary>
         public static bool TryAnimal(string id, out string name, out string accusative)
@@ -230,6 +234,18 @@ fireplace|fireplace|the fireplace|şömine|şömineyi|Kamin|den Kamin|cheminée|
 princess|princess|the princess|prenses|prensesi|Prinzessin|die Prinzessin|princesse|la princesse|princesa|la princesa|principessa|la principessa|princesa|a princesa|принцесса|принцессу|أميرة|الأميرة|राजकुमारी|राजकुमारी
 girl|girl|the girl|kız|kızı|Mädchen|das Mädchen|fille|la fille|niña|la niña|bambina|la bambina|menina|a menina|девочка|девочку|بنت|البنت|लड़की|लड़की
 beach|beach|the beach|plaj|plajı|Strand|den Strand|plage|la plage|playa|la playa|spiaggia|la spiaggia|praia|a praia|пляж|пляж|شاطئ|الشاطئ|समुद्र तट|समुद्र तट
+rocket|rocket|the rocket|roket|roketi|Rakete|die Rakete|fusée|la fusée|cohete|el cohete|razzo|il razzo|foguete|o foguete|ракета|ракету|صاروخ|الصاروخ|रॉकेट|रॉकेट
+house|house|the house|ev|evi|Haus|das Haus|maison|la maison|casa|la casa|casa|la casa|casa|a casa|дом|дом|بيت|البيت|घर|घर
+fish|fish|the fish|balık|balığı|Fisch|den Fisch|poisson|le poisson|pez|el pez|pesce|il pesce|peixe|o peixe|рыбка|рыбку|سمكة|السمكة|मछली|मछली
+turtle|turtle|the turtle|kaplumbağa|kaplumbağayı|Schildkröte|die Schildkröte|tortue|la tortue|tortuga|la tortuga|tartaruga|la tartaruga|tartaruga|a tartaruga|черепаха|черепаху|سلحفاة|السلحفاة|कछुआ|कछुए
+snail|snail|the snail|salyangoz|salyangozu|Schnecke|die Schnecke|escargot|l'escargot|caracol|el caracol|lumaca|la lumaca|caracol|o caracol|улитка|улитку|حلزون|الحلزون|घोंघा|घोंघे
+car|car|the car|araba|arabayı|Auto|das Auto|voiture|la voiture|coche|el coche|macchina|la macchina|carro|o carro|машинка|машинку|سيارة|السيارة|गाड़ी|गाड़ी
+shape_circle|circle|the circle|daire|daireyi|Kreis|den Kreis|rond|le rond|círculo|el círculo|cerchio|il cerchio|círculo|o círculo|круг|круг|دائرة|الدائرة|गोला|गोले
+shape_square|square|the square|kare|kareyi|Quadrat|das Quadrat|carré|le carré|cuadrado|el cuadrado|quadrato|il quadrato|quadrado|o quadrado|квадрат|квадрат|مربع|المربع|वर्ग|वर्ग
+shape_triangle|triangle|the triangle|üçgen|üçgeni|Dreieck|das Dreieck|triangle|le triangle|triángulo|el triángulo|triangolo|il triangolo|triângulo|o triângulo|треугольник|треугольник|مثلث|المثلث|त्रिभुज|त्रिभुज
+shape_rectangle|rectangle|the rectangle|dikdörtgen|dikdörtgeni|Rechteck|das Rechteck|rectangle|le rectangle|rectángulo|el rectángulo|rettangolo|il rettangolo|retângulo|o retângulo|прямоугольник|прямоугольник|مستطيل|المستطيل|आयत|आयत
+shape_star|star|the star|yıldız|yıldızı|Stern|den Stern|étoile|l'étoile|estrella|la estrella|stella|la stella|estrela|a estrela|звезда|звезду|نجمة|النجمة|तारा|तारे
+shape_heart|heart|the heart|kalp|kalbi|Herz|das Herz|cœur|le cœur|corazón|el corazón|cuore|il cuore|coração|o coração|сердце|сердце|قلب|القلب|दिल|दिल
 ";
     }
 }

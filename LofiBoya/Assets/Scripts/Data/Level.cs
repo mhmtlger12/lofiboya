@@ -59,10 +59,10 @@ namespace LofiBoya
         public bool IsBlank => Group == BlankGroup;
 
         /// <summary>Serbest çizim için bembeyaz, tek bölgeli sayfa.</summary>
-        public static Level Blank()
+        public static Level Blank(string id = BlankId)
         {
             const int w = 960, h = 1280;
-            var lv = new Level { Group = BlankGroup, Id = BlankId };
+            var lv = new Level { Group = BlankGroup, Id = id };
             lv.Meta = new LevelMeta { width = w, height = h, regionCount = 1, cx = new[] { w / 2 }, cy = new[] { h / 2 }, area = new[] { w * h }, radius = new[] { w * 0.5f } };
             lv._linePix = new Color32[w * h];
             lv._regionPix = new Color32[w * h];
@@ -80,7 +80,7 @@ namespace LofiBoya
 
         public static Level Load(string group, string id)
         {
-            if (group == BlankGroup) return Blank();
+            if (group == BlankGroup) return Blank(id);
             var lv = new Level { Group = group, Id = id };
             var meta = Resources.Load<TextAsset>(lv.Path + "level");
             var lines = Resources.Load<TextAsset>(lv.Path + "lines");
@@ -118,6 +118,64 @@ namespace LofiBoya
             Resources.UnloadAsset(lines);
             Resources.UnloadAsset(regions);
             return lv;
+        }
+
+        /// <summary>
+        /// Resmi verilen en/boy oranına kadar kenar boşluğu ekleyerek genişletir. Boşluk arka plan
+        /// bölgesine (sol alt köşedeki bölge) katılır; böylece kalem, damga ve kova kartın
+        /// tamamında çalışır, resmin kenarında kesilmez. Bölge alanları (ilerleme) değişmez.
+        /// </summary>
+        /// <summary>Asıl resmin, genişletilmiş doku içindeki yeri (0..1). Genişletilmediyse tamamı.</summary>
+        public Rect OriginalRect { get; private set; } = new Rect(0, 0, 1, 1);
+
+        public void PadToAspect(float aspect)
+        {
+            if (aspect <= 0f || _linePix == null) return;
+            int w = Width, h = Height;
+            if (Mathf.Abs(aspect - (float)w / h) < 0.01f * w / h) return;   // zaten neredeyse aynı oran (eski kayıtlar)
+            int nw = w, nh = h;
+            if (aspect > (float)w / h) nw = Mathf.RoundToInt(h * aspect);
+            else nh = Mathf.RoundToInt(w / aspect);
+            if (nw - w < 4 && nh - h < 4) return;   // zaten neredeyse aynı oran
+            nw = Mathf.Min(nw, 4096); nh = Mathf.Min(nh, 4096);
+            int ox = (nw - w) / 2, oy = (nh - h) / 2;
+
+            var border = _regionPix[Mathf.Min(1, h - 1) * w + Mathf.Min(1, w - 1)];
+            var white = new Color32(255, 255, 255, 255);
+            var lines = new Color32[nw * nh];
+            var regions = new Color32[nw * nh];
+            for (int i = 0; i < lines.Length; i++) { lines[i] = white; regions[i] = border; }
+            for (int y = 0; y < h; y++)
+            {
+                Array.Copy(_linePix, y * w, lines, (y + oy) * nw + ox, w);
+                Array.Copy(_regionPix, y * w, regions, (y + oy) * nw + ox, w);
+            }
+            _linePix = lines;
+            _regionPix = regions;
+
+            var oldLines = Lines;
+            Lines = new Texture2D(nw, nh, TextureFormat.RGBA32, oldLines.mipmapCount > 1, false)
+            {
+                wrapMode = TextureWrapMode.Clamp, filterMode = oldLines.filterMode, anisoLevel = oldLines.anisoLevel, name = oldLines.name
+            };
+            Lines.SetPixels32(lines);
+            Lines.Apply(oldLines.mipmapCount > 1, false);
+            UnityEngine.Object.Destroy(oldLines);
+
+            var oldRegions = Regions;
+            Regions = new Texture2D(nw, nh, TextureFormat.RGBA32, false, true)
+            {
+                wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Point, name = oldRegions.name
+            };
+            Regions.SetPixels32(regions);
+            Regions.Apply(false, false);
+            UnityEngine.Object.Destroy(oldRegions);
+
+            Meta.width = nw;
+            Meta.height = nh;
+            OriginalRect = new Rect((float)ox / nw, (float)oy / nh, (float)w / nw, (float)h / nh);
+            if (Meta.cx != null) for (int i = 0; i < Meta.cx.Length; i++) Meta.cx[i] += ox;
+            if (Meta.cy != null) for (int i = 0; i < Meta.cy.Length; i++) Meta.cy[i] += oy;
         }
 
         /// <summary>Doku koordinatındaki bölge numarası (1..Count, 0 = yok).</summary>

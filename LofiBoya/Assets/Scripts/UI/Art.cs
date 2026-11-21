@@ -39,6 +39,21 @@ namespace LofiBoya
         public static Sprite[] Stamps => new[] { Heart, Star5, Flower, Balloon, CloudShape };
         public static readonly string[] StampNames = { "kalp", "yıldız", "çiçek", "balon", "bulut" };
 
+        // ---------------- Geometrik şekiller (Öğren: şekil oyunu) ----------------
+        static Sprite _sqr, _tri, _rect, _circ;
+        public static Sprite SquareShape => _sqr != null ? _sqr : (_sqr = Icon(p => RoundBox(p, Vector2.zero, new Vector2(0.78f, 0.78f), 0.06f), 256));
+        public static Sprite TriangleShape => _tri != null ? _tri : (_tri = Icon(p =>
+            Polygon(p, new[] { new Vector2(0, 0.86f), new Vector2(-0.9f, -0.72f), new Vector2(0.9f, -0.72f) }) - 0.05f, 256));
+        public static Sprite RectangleShape => _rect != null ? _rect : (_rect = Icon(p => RoundBox(p, Vector2.zero, new Vector2(0.92f, 0.5f), 0.06f), 256));
+        public static Sprite CircleShape => _circ != null ? _circ : (_circ = Icon(p => p.magnitude - 0.88f, 256));
+
+        /// <summary>Şekil anahtarı -> silüet ("circle", "square", "triangle", "rectangle", "star", "heart").</summary>
+        public static Sprite Shape(string key) => key switch
+        {
+            "circle" => CircleShape, "square" => SquareShape, "triangle" => TriangleShape,
+            "rectangle" => RectangleShape, "star" => Star5, _ => Heart,
+        };
+
         static float HeartSdf(Vector2 p)
         {
             var q = new Vector2(Mathf.Abs(p.x), p.y + 0.86f) * 0.62f;
@@ -80,7 +95,10 @@ namespace LofiBoya
             return Mathf.Min(d, p.magnitude - 0.17f);   // göbek
         }
 
-        static float BalloonSdf(Vector2 p)
+        // Balon (ipiyle) -0.9..0.9 kutusuna sığsın diye biraz küçültülüp ortalanır; yoksa ipin ucu dokunun dışında kalıp kesiliyordu.
+        static float BalloonSdf(Vector2 p) => BalloonShape(p * 1.12f + new Vector2(0, -0.08f)) / 1.12f;
+
+        static float BalloonShape(Vector2 p)
         {
             float body = Ellipse(p - new Vector2(0, 0.2f), new Vector2(0.56f, 0.66f));
             var knot = new[] { new Vector2(-0.1f, -0.52f), new Vector2(0.1f, -0.52f), new Vector2(0, -0.40f) };

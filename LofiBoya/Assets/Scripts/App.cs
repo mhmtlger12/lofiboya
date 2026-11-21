@@ -52,6 +52,7 @@ namespace LofiBoya
 #endif
             BuildCanvas();
             ShowWelcome();
+            gameObject.AddComponent<BreakTimer>();
         }
 
         void Input2D()
@@ -115,6 +116,7 @@ namespace LofiBoya
 
         void Back()
         {
+            if (BreakTimer.Active) return; // mola sırasında geri tuşu molayı atlatmaz
             if (_current != null && _current.TryGetComponent<IScreen>(out var s) && s.OnBack()) return;
         }
 
@@ -150,5 +152,6 @@ namespace LofiBoya
         public void ShowColoring(string group, string id) => Show<ColoringScreen>(s => { s.Group = group; s.Id = id; });
         public void ShowStickers() => Show<StickerScreen>();
         public void ShowLearn() => Show<LearnScreen>();
+        public void ShowAlbum() => Show<AlbumScreen>();
     }
 }

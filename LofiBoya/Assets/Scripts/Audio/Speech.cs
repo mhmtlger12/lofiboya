@@ -17,7 +17,17 @@ namespace LofiBoya
 #if UNITY_ANDROID && !UNITY_EDITOR
         static AndroidJavaObject _tts;
         static bool _ready;
+        static bool _langOk = true;   // telefonda bu dilin sesi yoksa yanlış aksanla okumayalım
         static string _pending;
+
+        /// <summary>setLanguage sonucu: -1 (veri eksik) ve -2 (desteklenmiyor) hata demektir.</summary>
+        static void ApplyLanguage()
+        {
+            using var locale = new AndroidJavaObject("java.util.Locale", Loc.Lang, Loc.TtsCountry);
+            int r = _tts.Call<int>("setLanguage", locale);
+            _langOk = r >= 0;
+            if (!_langOk) Debug.LogWarning($"TTS: '{Loc.Lang}' sesi bu cihazda yok (setLanguage={r}); konuşma kapalı.");
+        }
 
         class InitListener : AndroidJavaProxy
         {
@@ -27,8 +37,7 @@ namespace LofiBoya
                 if (status != 0 || _tts == null) return;
                 try
                 {
-                    var locale = new AndroidJavaObject("java.util.Locale", Loc.Lang, Loc.TtsCountry);
-                    _tts.Call<int>("setLanguage", locale);
+                    ApplyLanguage();
                     _tts.Call<int>("setPitch", 1.2f);       // biraz daha tatlı, çocuksu
                     _tts.Call<int>("setSpeechRate", 0.88f); // yavaş ve net
                     _ready = true;
@@ -40,6 +49,7 @@ namespace LofiBoya
 
         static void SpeakNative(string text)
         {
+            if (!_langOk) return;
             try
             {
                 using var bundle = new AndroidJavaObject("android.os.Bundle");
@@ -107,11 +117,7 @@ namespace LofiBoya
 #if UNITY_ANDROID && !UNITY_EDITOR
             try
             {
-                if (_tts != null && _ready)
-                {
-                    using var locale = new AndroidJavaObject("java.util.Locale", Loc.Lang, Loc.TtsCountry);
-                    _tts.Call<int>("setLanguage", locale);
-                }
+                if (_tts != null && _ready) ApplyLanguage();
             }
             catch (Exception e) { Debug.LogWarning("TTS: " + e.Message); }
 #endif

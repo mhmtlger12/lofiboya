@@ -161,7 +161,8 @@ namespace LofiBoya
             string grp = groupOverride ?? Group;
             bool blank = grp == Level.BlankGroup;
             string key = grp + "_" + entry.id;
-            var save = SaveSystem.Load(key);
+            // boş sayfa kartı her dokunuşta yeni bir sayfa açar; eski çizimler "Resimlerim"de
+            var save = blank ? null : SaveSystem.Load(key);
 
             var inner = UIKit.Node("Inner", cell).Stretch();
             var face = UIKit.Card(inner, "Card", Theme.Card, 0.8f);
@@ -221,7 +222,7 @@ namespace LofiBoya
             btn.targetGraphic = face;
             btn.transition = Selectable.Transition.None;
             string group = grp, id = entry.id;
-            btn.onClick.AddListener(() => { Sfx.Tap(); App.I.ShowColoring(group, id); });
+            btn.onClick.AddListener(() => { Sfx.Tap(); App.I.ShowColoring(group, blank ? SaveSystem.NewBlankId() : id); });
             inner.gameObject.AddComponent<PressFeedback>().pressedScale = 0.95f;
         }
 

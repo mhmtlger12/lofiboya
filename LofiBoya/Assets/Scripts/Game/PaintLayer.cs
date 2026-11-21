@@ -198,6 +198,32 @@ namespace LofiBoya
             Graphics.Blit(src, Texture);
         }
 
+        /// <summary>Kayıtlı boyayı katmanın bir bölümüne (0..1 dikdörtgen) yerleştirir; geri kalanı boş kalır.</summary>
+        public void Load(Texture2D src, Rect target)
+        {
+            if (src == null) return;
+            // CPU'da yerleştir: karıştırma (blend) olmadan, premultiplied değerler aynen korunur
+            int x0 = Mathf.RoundToInt(target.x * Width), y0 = Mathf.RoundToInt(target.y * Height);
+            int tw = Mathf.Clamp(Mathf.RoundToInt(target.width * Width), 1, Width - x0);
+            int th = Mathf.Clamp(Mathf.RoundToInt(target.height * Height), 1, Height - y0);
+            var sp = src.GetPixels32();
+            var px = new Color32[Width * Height];
+            for (int y = 0; y < th; y++)
+            {
+                int sy = Mathf.Min(src.height - 1, (int)((y + 0.5f) / th * src.height));
+                for (int x = 0; x < tw; x++)
+                {
+                    int sx = Mathf.Min(src.width - 1, (int)((x + 0.5f) / tw * src.width));
+                    px[(y + y0) * Width + x + x0] = sp[sy * src.width + sx];
+                }
+            }
+            var tmp = new Texture2D(Width, Height, TextureFormat.RGBA32, false, false);
+            tmp.SetPixels32(px);
+            tmp.Apply(false);
+            Graphics.Blit(tmp, Texture);
+            Object.Destroy(tmp);
+        }
+
         public void Release()
         {
             if (Texture != null) { Texture.Release(); Object.Destroy(Texture); }

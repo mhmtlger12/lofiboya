@@ -44,7 +44,7 @@ namespace LofiBoya
 
         public static void Settings()
         {
-            var (overlay, card, close) = Panel(860, 1320);
+            var (overlay, card, close) = Panel(860, 1600);
             var t = UIKit.Label(card.transform, Loc.T("settings"), 64, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 100, 40);
 
@@ -53,6 +53,29 @@ namespace LofiBoya
             Toggle(card.transform, ref y, Loc.T("sound"), () => SaveSystem.SoundOn, v => SaveSystem.SoundOn = v);
             Toggle(card.transform, ref y, Loc.T("voice"), () => Speech.Enabled, v => Speech.Enabled = v);
             Toggle(card.transform, ref y, Loc.T("haptics"), () => Haptics.Enabled, v => { Haptics.Enabled = v; Haptics.Light(); });
+            Toggle(card.transform, ref y, Loc.T("pencil_inside"), () => SaveSystem.PencilStaysInside, v => SaveSystem.PencilStaysInside = v);
+
+            // mola hatırlatıcısı: kapalı / 10 / 20 / 30 / 45 dk
+            var brk = UIKit.Button(card.transform, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);
+            var brt = (RectTransform)brk.transform;
+            brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 1);
+            brt.sizeDelta = new Vector2(700, 120);
+            brt.anchoredPosition = new Vector2(0, y);
+            var bl = UIKit.ButtonText(brk);
+            bl.resizeTextForBestFit = true;
+            bl.resizeTextMinSize = 26;
+            bl.resizeTextMaxSize = 40;
+            string BreakLabel() => Loc.T("break_btn", SaveSystem.BreakMinutes > 0 ? Loc.T("break_every", SaveSystem.BreakMinutes) : Loc.T("break_off"));
+            bl.text = BreakLabel();
+            brk.onClick.AddListener(() =>
+            {
+                int i = System.Array.IndexOf(BreakTimer.Options, SaveSystem.BreakMinutes);
+                SaveSystem.BreakMinutes = BreakTimer.Options[(i + 1) % BreakTimer.Options.Length];
+                BreakTimer.ResetCounter();
+                Sfx.Tap();
+                bl.text = BreakLabel();
+            });
+            y -= 140;
 
             // müzik parçası
             var track = UIKit.Button(card.transform, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);

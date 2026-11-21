@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -155,6 +156,47 @@ namespace LofiBoya
         {
             get => PlayerPrefs.GetInt("sound", 1) == 1;
             set { PlayerPrefs.SetInt("sound", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>Kalem çizgilerin dışına taşmasın (küçükler için açık). Kapalıysa çocuk çizgiye kendisi uyar.</summary>
+        public static bool PencilStaysInside
+        {
+            get => PlayerPrefs.GetInt("pencilInside", 1) == 1;
+            set { PlayerPrefs.SetInt("pencilInside", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>Mola hatırlatıcısı: kaç dakikada bir (0 = kapalı).</summary>
+        public static int BreakMinutes
+        {
+            get => PlayerPrefs.GetInt("breakMin", 0);
+            set { PlayerPrefs.SetInt("breakMin", value); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>Kaydı olan bütün resimler (en yeni önce): "grup_id" anahtarları.</summary>
+        public static List<string> SavedKeys()
+        {
+            var list = new List<(string key, DateTime time)>();
+            try
+            {
+                foreach (var f in Directory.GetFiles(Dir, "*.png"))
+                {
+                    var name = Path.GetFileNameWithoutExtension(f);
+                    if (name.EndsWith("_paint")) continue;
+                    list.Add((name, File.GetLastWriteTimeUtc(f)));
+                }
+            }
+            catch (Exception e) { Debug.LogWarning(e.Message); }
+            list.Sort((a, b) => b.time.CompareTo(a.time));
+            return list.ConvertAll(e => e.key);
+        }
+
+        /// <summary>Yeni serbest çizim için kullanılmamış bir sayfa adı.</summary>
+        public static string NewBlankId()
+        {
+            int n = PlayerPrefs.GetInt("blankCounter", 0) + 1;
+            PlayerPrefs.SetInt("blankCounter", n);
+            PlayerPrefs.Save();
+            return Level.BlankId + "-" + n;
         }
 
         public static int PaletteIndex

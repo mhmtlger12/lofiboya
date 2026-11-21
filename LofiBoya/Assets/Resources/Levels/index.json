@@ -180,6 +180,22 @@
      "regions": 40
     },
     {
+     "id": "lofi-car-001",
+     "regions": 22
+    },
+    {
+     "id": "lofi-fish-001",
+     "regions": 17
+    },
+    {
+     "id": "lofi-house-001",
+     "regions": 30
+    },
+    {
+     "id": "lofi-rocket-001",
+     "regions": 19
+    },
+    {
      "id": "marcos101-pie-4861996",
      "regions": 7
     },
@@ -299,6 +315,14 @@
     {
      "id": "khris-mandala-9186258",
      "regions": 57
+    },
+    {
+     "id": "lofi-snail-001",
+     "regions": 17
+    },
+    {
+     "id": "lofi-turtle-001",
+     "regions": 32
     },
     {
      "id": "openclipart-vectors-black-and-white-1300567",

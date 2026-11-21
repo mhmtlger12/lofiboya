@@ -96,6 +96,10 @@ namespace LofiBoya
             _saveTimer = -1;
             _ready = true;
 
+            // Yeni boş sayfa: "Yeni bir sayfa! İstediğini çiz."
+            if (_level.IsBlank && save == null)
+                Tween.Delay(0.7f, () => { if (this != null) Speech.Say(Loc.T("new_drawing_say")); });
+
             // Resmi tanıt: "Bu bir aslan!"
             if (Names.TryAnimal(Id, out var animal, out _))
                 Tween.Delay(0.7f, () => { if (this != null) Speech.Say(Loc.T("intro", Names.Cap(animal), animal), "bu_" + Speech.Slug(animal)); });
@@ -134,6 +138,18 @@ namespace LofiBoya
             title.resizeTextForBestFit = true;
             title.resizeTextMinSize = 26;
             title.resizeTextMaxSize = 46;
+            // Ada dokununca tekrar söyler: çocuk kelimeyi istediği kadar dinleyebilir
+            if (!_level.IsBlank && Names.TryAnimal(Id, out var titleName, out _))
+            {
+                title.raycastTarget = true;
+                var tb = title.gameObject.AddComponent<Button>();
+                tb.transition = Selectable.Transition.None;
+                tb.onClick.AddListener(() =>
+                {
+                    Tween.Punch(title.transform, 0.15f, 0.3f);
+                    Speech.Say(Names.Cap(titleName), Speech.Slug(titleName));
+                });
+            }
 
             // İlerleme çubuğu
             var track = UIKit.Box(root, "Track", Theme.Card.WithAlpha(0.8f), null, 3f);
@@ -181,6 +197,18 @@ namespace LofiBoya
             _canvas.Image = raw;
             Canvas.ForceUpdateCanvases();
             var paint = save != null && save.hasPaint ? SaveSystem.LoadPaint(_level.Key) : null;
+            // Resmi kartın oranına genişlet: damga/kalem kartın kenarına kadar gider, resim kenarında kesilmez.
+            // Kayıtlı boya varsa onun oranı kullanılır (eski kayıtlar bozulmasın).
+            var vr = vp.rect.size;
+            float aspect = vr.y > 1f ? vr.x / vr.y : 0f;
+            if (paint != null)
+            {
+                // Yeni kayıt: boya zaten genişletilmiş oranda -> aynısını kullan.
+                // Eski kayıt: boya resmin kendi oranında -> karta genişlet, boyayı ortadaki yerine koy.
+                float pa = (float)paint.width / paint.height, la = (float)_level.Width / _level.Height;
+                if (Mathf.Abs(pa - la) > 0.01f * la) aspect = pa;
+            }
+            _level.PadToAspect(aspect);
             _canvas.Init(_level, save, paint);
             if (paint != null) Destroy(paint);
 
@@ -862,7 +890,9 @@ namespace LofiBoya
         void Exit()
         {
             SaveNow();
-            App.I.ShowGallery(BackGroup);
+            // serbest çizimler "Resimlerim" albümünde durur
+            if (_level != null && _level.IsBlank) App.I.ShowAlbum();
+            else App.I.ShowGallery(BackGroup);
         }
 
         // ================= Kutlama =================
@@ -1002,7 +1032,7 @@ namespace LofiBoya
 
         void NextLevel()
         {
-            if (_level.IsBlank) { App.I.ShowGallery("kolay"); return; }
+            if (_level.IsBlank) { App.I.ShowAlbum(); return; }
             var levels = Level.GetGroup(Group).levels;
             int i = levels.FindIndex(l => l.id == Id);
             for (int k = 1; k <= levels.Count; k++)

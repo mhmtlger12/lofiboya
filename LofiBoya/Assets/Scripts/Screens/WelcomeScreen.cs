@@ -94,9 +94,10 @@ namespace LofiBoya
             _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 410), new Vector2(700, 170));
             Tween.Pop(_startBtn, 0.35f);
 
-            // ---- Büyük ikonlu butonlar: Öğren / Çıkartmalarım ----
-            BigButton(root, Loc.T("learn"), MascotArt.Puzzle, Theme.Hex("54C29A"), Theme.Mint, new Vector2(-200, 225), 0.45f, () => App.I.ShowLearn());
-            var stickers = BigButton(root, Loc.T("stickers_btn"), MascotArt.Star, Color.white, Theme.Butter, new Vector2(200, 225), 0.5f, () => App.I.ShowStickers());
+            // ---- Büyük ikonlu butonlar: Öğren / Resimlerim / Çıkartmalarım ----
+            BigButton(root, Loc.T("learn"), MascotArt.Puzzle, Theme.Hex("54C29A"), Theme.Mint, new Vector2(-342, 225), 0.45f, () => App.I.ShowLearn());
+            BigButton(root, Loc.T("album"), Art.Pencil, Theme.AccentDark, Theme.Sky, new Vector2(0, 225), 0.48f, () => App.I.ShowAlbum());
+            var stickers = BigButton(root, Loc.T("stickers_btn"), MascotArt.Star, Color.white, Theme.Butter, new Vector2(342, 225), 0.5f, () => App.I.ShowStickers());
             // yıldız sayısı rozeti
             int stars = SaveSystem.Stars;
             if (stars > 0)
@@ -140,22 +141,22 @@ namespace LofiBoya
         {
             var b = UIKit.Button(parent, label, bg, Theme.Text, 42, onClick);
             var rt = (RectTransform)b.transform;
-            rt.Place(new Vector2(0.5f, 0f), pos, new Vector2(380, 150));
+            rt.Place(new Vector2(0.5f, 0f), pos, new Vector2(322, 150));
             var txt = UIKit.ButtonText(b);
-            txt.rectTransform.offsetMin = new Vector2(132, 0);
+            txt.rectTransform.offsetMin = new Vector2(112, 0);
             txt.alignment = Loc.IsArabic ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft;
             txt.resizeTextForBestFit = true;
-            txt.resizeTextMinSize = 26;
+            txt.resizeTextMinSize = 22;
             txt.resizeTextMaxSize = 42;
             txt.horizontalOverflow = HorizontalWrapMode.Wrap;
             txt.rectTransform.offsetMax = new Vector2(-14, 0);
             var bubble = UIKit.Box(b.transform.Find("Face"), "IconBg", Color.white.WithAlpha(0.7f), UIKit.Circle);
             bubble.type = Image.Type.Simple;
-            bubble.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(68, 0), new Vector2(100, 100));
+            bubble.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(60, 0), new Vector2(88, 88));
             var img = UIKit.Box(bubble.transform, "Icon", iconColor, icon);
             img.type = Image.Type.Simple;
             img.preserveAspect = true;
-            img.rectTransform.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80, 80));
+            img.rectTransform.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70, 70));
             Tween.Pop(rt, delay);
             return b;
         }
