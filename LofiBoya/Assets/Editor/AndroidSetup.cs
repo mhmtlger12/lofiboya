@@ -16,8 +16,20 @@ namespace LofiBoya.EditorTools
     public static class AndroidSetup
     {
         public const string PackageName = "com.snapload.app";   // eski uygulamanın paket adı (aynı mağaza kaydı)
-        public const string VersionName = "2.0.0";
-        public const int VersionCode = 42;                       // eski sürüm 1.1.3 (41) -> daha büyük olmalı
+        public const int VersionCode = 42;                       // ilk yeni sürüm; eski uygulama 41'de kalmıştı
+        // Her AAB build'i sürüm kodunu otomatik bir artırır (AndroidBuildFixes): 43 -> 2.0.1, 44 -> 2.0.2 ...
+        public static string VersionNameFor(int code) => "2.0." + Mathf.Max(0, code - VersionCode);
+
+        /// <summary>Sürüm kodunu bir artırır (en az VersionCode) ve sürüm adını ona göre ayarlar.</summary>
+        public static int BumpVersion()
+        {
+            int code = Mathf.Max(PlayerSettings.Android.bundleVersionCode + 1, VersionCode);
+            PlayerSettings.Android.bundleVersionCode = code;
+            PlayerSettings.bundleVersion = VersionNameFor(code);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[LofiBoya] Sürüm: {PlayerSettings.bundleVersion} ({code})");
+            return code;
+        }
 
         static string KeysDir => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "keys"));
 
@@ -33,8 +45,9 @@ namespace LofiBoya.EditorTools
             PlayerSettings.companyName = "LofiBoya";
             PlayerSettings.productName = "Lofi Boya";
             PlayerSettings.SetApplicationIdentifier(t, PackageName);
-            PlayerSettings.bundleVersion = VersionName;
-            PlayerSettings.Android.bundleVersionCode = VersionCode;
+            int code = Mathf.Max(PlayerSettings.Android.bundleVersionCode, VersionCode);
+            PlayerSettings.Android.bundleVersionCode = code;
+            PlayerSettings.bundleVersion = VersionNameFor(code);
             PlayerSettings.SetScriptingBackend(t, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64 | AndroidArchitecture.ARMv7;
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
@@ -46,7 +59,7 @@ namespace LofiBoya.EditorTools
             ApplyIcons();
             ApplySigning(true);
             AssetDatabase.SaveAssets();
-            Debug.Log($"[LofiBoya] Android: {PackageName} v{VersionName} ({VersionCode}), IL2CPP ARM64+ARMv7, AAB");
+            Debug.Log($"[LofiBoya] Android: {PackageName} v{PlayerSettings.bundleVersion} ({code}), IL2CPP ARM64+ARMv7, AAB");
         }
 
         /// <summary>Uygulama ikonu: Assets/Art/AppIcon (magaza_gorselleri.py üretir).</summary>
@@ -104,7 +117,9 @@ namespace LofiBoya.EditorTools
             if (!ApplySigning(true)) { Debug.LogError("[LofiBoya] İmza yok, AAB oluşturulmadı."); return; }
             var dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Builds"));
             Directory.CreateDirectory(dir);
-            var path = Path.Combine(dir, $"LofiBoya-{VersionName}-{VersionCode}.aab");
+            int code = BumpVersion();
+            AndroidBuildFixes.SkipBumpOnce = true;
+            var path = Path.Combine(dir, $"LofiBoya-{VersionNameFor(code)}-{code}.aab");
             var scenes = new List<string>();
             foreach (var s in EditorBuildSettings.scenes) if (s.enabled) scenes.Add(s.path);
             var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
