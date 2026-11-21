@@ -26,6 +26,23 @@ namespace LofiBoya
         public RectTransform SafeRoot { get; private set; }
 
         RectTransform _screens;
+        CanvasScaler _scaler;
+        Vector2Int _lastScreen;
+
+        /// <summary>
+        /// Tasarım 1080x1920 (9:16). Ekran bundan uzunsa genişliğe, kısaysa (tablet, 16:10, 4:3) yüksekliğe
+        /// eşleriz: böylece kullanılabilir alan her zaman en az 1080 geniş ve 1920 yüksek olur, öğeler üst üste binmez.
+        /// Ekran boyutu değişince (döndürme, katlanabilir telefon, simülatörde cihaz değişimi) yeniden hesaplanır.
+        /// </summary>
+        void ApplyScale()
+        {
+            if (_scaler == null || Screen.width <= 0) return;
+            _lastScreen = new Vector2Int(Screen.width, Screen.height);
+            _scaler.matchWidthOrHeight = (float)Screen.height / Screen.width >= 1920f / 1080f ? 0f : 1f;
+        }
+
+        /// <summary>Canvas'ın şu anki genişliği (tablette 1080'den büyük olur).</summary>
+        public float CanvasWidth => Canvas != null ? ((RectTransform)Canvas.transform).rect.width : 1080f;
         GameObject _current;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -87,7 +104,8 @@ namespace LofiBoya
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = Screen.height > Screen.width * 1.5f ? 0f : 1f;
+            _scaler = scaler;
+            ApplyScale();
             scaler.referencePixelsPerUnit = 100;
             go.AddComponent<GraphicRaycaster>();
 
@@ -106,6 +124,7 @@ namespace LofiBoya
 
         void Update()
         {
+            if (Screen.width != _lastScreen.x || Screen.height != _lastScreen.y) ApplyScale();
 #if ENABLE_INPUT_SYSTEM
             var kb = Keyboard.current;
             if (kb != null && kb.escapeKey.wasPressedThisFrame) Back();

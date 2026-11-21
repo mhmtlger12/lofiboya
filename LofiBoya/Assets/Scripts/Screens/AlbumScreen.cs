@@ -49,6 +49,13 @@ namespace LofiBoya
             grid.childAlignment = TextAnchor.UpperCenter;
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = 2;
+            // Tablette genişlik arttığında 3 sütun: boşluk kalmasın, daha çok resim görünsün
+            if (App.I.CanvasWidth >= 1380f)
+            {
+                grid.constraintCount = 3;
+                grid.cellSize = new Vector2(400, 480);
+                grid.spacing = new Vector2(36, 48);
+            }
             _gridRoot.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             _scroll.content = _gridRoot;
 
