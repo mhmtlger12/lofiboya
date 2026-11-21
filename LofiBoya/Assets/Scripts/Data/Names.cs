@@ -65,6 +65,11 @@ namespace LofiBoya
             ["fox"] = "fox", ["wolf"] = "wolf", ["deer"] = "deer", ["duck"] = "duck", ["dolphin"] = "dolphin", ["bear"] = "bear",
             ["teddybear"] = "teddybear", ["strawberry"] = "strawberry", ["watermelon"] = "watermelon", ["ice"] = "ice",
             ["ghost"] = "ghost", ["witch"] = "witch", ["snowman"] = "snowman", ["bunny"] = "bunny", ["rabbit"] = "bunny",
+            ["duckling"] = "duck", ["cupcake"] = "cupcake", ["moon"] = "moon", ["sunflower"] = "sunflower", ["tulip"] = "tulip",
+            ["flowers"] = "flowers", ["bouquet"] = "flowers", ["flower"] = "flower", ["butterfly"] = "butterfly",
+            ["scarecrow"] = "scarecrow", ["rose"] = "rose", ["alligator"] = "alligator", ["crab"] = "crab",
+            ["cricket"] = "cricket", ["mandala"] = "mandala", ["pineapple"] = "pineapple", ["seal"] = "seal",
+            ["christmas"] = "christmastree", ["apple"] = "apple", ["acorn"] = "acorn",
         };
 
         /// <summary>Dosya adından anlaşılmayan resimler.</summary>
@@ -74,6 +79,19 @@ namespace LofiBoya
             ["artrose-easter-6122870"] = "chick", ["artrose-easter-6122901"] = "duck",
             ["purepageart-coloring-page-9943298"] = "bear", ["purepageart-coloring-page-9943301"] = "lion",
             ["purepageart-cute-9005708"] = "pony", ["purepageart-cute-9069178"] = "ghost",
+            // yeni resimler (dosya adından anlaşılmayanlar, resme bakılarak)
+            ["artrose-easter-6122827"] = "egg", ["artrose-easter-6122844"] = "chick", ["artrose-easter-6122931"] = "sheep",
+            ["dreamdigitalartist-give-birth-6307791"] = "bear", ["gdj-ai-generated-8815287"] = "rose",
+            ["gdj-sea-horse-6387536"] = "seahorse", ["marcos101-pie-4861996"] = "cupcake",
+            ["openclipart-vectors-black-and-white-1295370"] = "flower", ["openclipart-vectors-black-and-white-1300567"] = "flower",
+            ["clker-free-vector-images-tiger-lily-296789"] = "lily", ["evilfavoriteart-ai-generated-9379533"] = "flower",
+            ["hatimestea-coloring-10120325"] = "cat", ["ihaveplants-ai-generated-8895759"] = "mushroom",
+            ["ihaveplants-ai-generated-8895760"] = "mushroom", ["ajk347-ai-generated-9140229"] = "girl",
+            ["bassloom-decoration-9971887"] = "fireplace", ["chenik-fajarhidayah-christmas-8467676"] = "stocking",
+            ["coloringpage-ai-generated-8855030"] = "unicorn", ["gdj-floral-2746540"] = "mandala",
+            ["kaylinart-drawing-2151087"] = "mandala", ["missywhimsyart-ai-generated-8673312"] = "princess",
+            ["missywhimsyart-ai-generated-8673315"] = "princess", ["missywhimsyart-ai-generated-8673319"] = "princess",
+            ["seiripan-ai-generated-9623276"] = "girl", ["seiripan-cute-9623238"] = "beach", ["seiripan-cute-9623248"] = "beach",
         };
 
         static string Key(string id)
@@ -184,6 +202,34 @@ snowman|snowman|the snowman|kardan adam|kardan adamı|Schneemann|den Schneemann|
 bunny|bunny|the bunny|tavşan|tavşanı|Hase|den Hasen|lapin|le lapin|conejo|el conejo|coniglio|il coniglio|coelho|o coelho|зайчик|зайчика|أرنب|الأرنب|खरगोश|खरगोश
 chick|chick|the chick|civciv|civcivi|Küken|das Küken|poussin|le poussin|pollito|el pollito|pulcino|il pulcino|pintainho|o pintainho|цыплёнок|цыплёнка|صوص|الصوص|चूज़ा|चूज़ा
 pony|pony|the pony|midilli|midilliyi|Pony|das Pony|poney|le poney|poni|el poni|pony|il pony|pónei|o pónei|пони|пони|مهر|المهر|टट्टू|टट्टू
+cupcake|cupcake|the cupcake|kek|keki|Muffin|den Muffin|cupcake|le cupcake|magdalena|la magdalena|cupcake|il cupcake|queque|o queque|кекс|кекс|كب كيك|الكب كيك|कपकेक|कपकेक
+egg|egg|the egg|yumurta|yumurtayı|Osterei|das Osterei|œuf|l'œuf|huevo|el huevo|uovo|l'uovo|ovo|o ovo|яйцо|яйцо|بيضة|البيضة|अंडा|अंडा
+sheep|sheep|the sheep|kuzu|kuzuyu|Schaf|das Schaf|mouton|le mouton|oveja|la oveja|pecora|la pecora|ovelha|a ovelha|овечка|овечку|خروف|الخروف|भेड़|भेड़
+moon|moon|the moon|ay|ayı|Mond|den Mond|lune|la lune|luna|la luna|luna|la luna|lua|a lua|луна|луну|قمر|القمر|चाँद|चाँद
+sunflower|sunflower|the sunflower|ayçiçeği|ayçiçeğini|Sonnenblume|die Sonnenblume|tournesol|le tournesol|girasol|el girasol|girasole|il girasole|girassol|o girassol|подсолнух|подсолнух|دوار الشمس|دوار الشمس|सूरजमुखी|सूरजमुखी
+tulip|tulip|the tulip|lale|laleyi|Tulpe|die Tulpe|tulipe|la tulipe|tulipán|el tulipán|tulipano|il tulipano|túlipa|a túlipa|тюльпан|тюльпан|توليب|التوليب|ट्यूलिप|ट्यूलिप
+lily|lily|the lily|zambak|zambağı|Lilie|die Lilie|lys|le lys|lirio|el lirio|giglio|il giglio|lírio|o lírio|лилия|лилию|زنبق|الزنبق|लिली|लिली
+flowers|flowers|the flowers|çiçekler|çiçekleri|Blumen|die Blumen|fleurs|les fleurs|flores|las flores|fiori|i fiori|flores|as flores|цветы|цветы|أزهار|الأزهار|फूल|फूल
+flower|flower|the flower|çiçek|çiçeği|Blume|die Blume|fleur|la fleur|flor|la flor|fiore|il fiore|flor|a flor|цветок|цветок|زهرة|الزهرة|फूल|फूल
+rose|rose|the rose|gül|gülü|Rose|die Rose|rose|la rose|rosa|la rosa|rosa|la rosa|rosa|a rosa|роза|розу|وردة|الوردة|गुलाब|गुलाब
+butterfly|butterfly|the butterfly|kelebek|kelebeği|Schmetterling|den Schmetterling|papillon|le papillon|mariposa|la mariposa|farfalla|la farfalla|borboleta|a borboleta|бабочка|бабочку|فراشة|الفراشة|तितली|तितली
+scarecrow|scarecrow|the scarecrow|korkuluk|korkuluğu|Vogelscheuche|die Vogelscheuche|épouvantail|l'épouvantail|espantapájaros|el espantapájaros|spaventapasseri|lo spaventapasseri|espantalho|o espantalho|пугало|пугало|فزاعة|الفزاعة|बिजूका|बिजूका
+alligator|crocodile|the crocodile|timsah|timsahı|Krokodil|das Krokodil|crocodile|le crocodile|cocodrilo|el cocodrilo|coccodrillo|il coccodrillo|crocodilo|o crocodilo|крокодил|крокодила|تمساح|التمساح|मगरमच्छ|मगरमच्छ
+crab|crab|the crab|yengeç|yengeci|Krabbe|die Krabbe|crabe|le crabe|cangrejo|el cangrejo|granchio|il granchio|caranguejo|o caranguejo|краб|краба|سلطعون|السلطعون|केकड़ा|केकड़ा
+cricket|grasshopper|the grasshopper|çekirge|çekirgeyi|Grashüpfer|den Grashüpfer|sauterelle|la sauterelle|saltamontes|el saltamontes|cavalletta|la cavalletta|gafanhoto|o gafanhoto|кузнечик|кузнечика|جندب|الجندب|टिड्डा|टिड्डा
+seahorse|seahorse|the seahorse|denizatı|denizatını|Seepferdchen|das Seepferdchen|hippocampe|l'hippocampe|caballito de mar|el caballito de mar|cavalluccio marino|il cavalluccio marino|cavalo-marinho|o cavalo-marinho|морской конёк|морского конька|حصان البحر|حصان البحر|समुद्री घोड़ा|समुद्री घोड़ा
+seal|seal|the seal|fok|foku|Robbe|die Robbe|phoque|le phoque|foca|la foca|foca|la foca|foca|a foca|тюлень|тюленя|فقمة|الفقمة|सील|सील
+pineapple|pineapple|the pineapple|ananas|ananası|Ananas|die Ananas|ananas|l'ananas|piña|la piña|ananas|l'ananas|ananás|o ananás|ананас|ананас|أناناس|الأناناس|अनानास|अनानास
+apple|apple|the apple|elma|elmayı|Apfel|den Apfel|pomme|la pomme|manzana|la manzana|mela|la mela|maçã|a maçã|яблоко|яблоко|تفاحة|التفاحة|सेब|सेब
+acorn|acorn|the acorn|meşe palamudu|meşe palamudunu|Eichel|die Eichel|gland|le gland|bellota|la bellota|ghianda|la ghianda|bolota|a bolota|жёлудь|жёлудь|بلوطة|البلوطة|बलूत|बलूत
+mushroom|mushroom|the mushroom|mantar|mantarı|Pilz|den Pilz|champignon|le champignon|seta|la seta|fungo|il fungo|cogumelo|o cogumelo|гриб|гриб|فطر|الفطر|मशरूम|मशरूम
+mandala|mandala|the mandala|mandala|mandalayı|Mandala|das Mandala|mandala|le mandala|mandala|el mandala|mandala|il mandala|mandala|a mandala|мандала|мандалу|ماندالا|الماندالا|मंडला|मंडला
+christmastree|Christmas tree|the Christmas tree|yılbaşı ağacı|yılbaşı ağacını|Weihnachtsbaum|den Weihnachtsbaum|sapin de Noël|le sapin de Noël|árbol de Navidad|el árbol de Navidad|albero di Natale|l'albero di Natale|árvore de Natal|a árvore de Natal|ёлка|ёлку|شجرة الميلاد|شجرة الميلاد|क्रिसमस ट्री|क्रिसमस ट्री
+stocking|Christmas stocking|the stocking|yılbaşı çorabı|yılbaşı çorabını|Weihnachtsstrumpf|den Weihnachtsstrumpf|chaussette de Noël|la chaussette de Noël|calcetín de Navidad|el calcetín de Navidad|calza di Natale|la calza di Natale|meia de Natal|a meia de Natal|рождественский носок|рождественский носок|جورب العيد|جورب العيد|क्रिसमस मोज़ा|क्रिसमस मोज़ा
+fireplace|fireplace|the fireplace|şömine|şömineyi|Kamin|den Kamin|cheminée|la cheminée|chimenea|la chimenea|camino|il camino|lareira|a lareira|камин|камин|مدفأة|المدفأة|अंगीठी|अंगीठी
+princess|princess|the princess|prenses|prensesi|Prinzessin|die Prinzessin|princesse|la princesse|princesa|la princesa|principessa|la principessa|princesa|a princesa|принцесса|принцессу|أميرة|الأميرة|राजकुमारी|राजकुमारी
+girl|girl|the girl|kız|kızı|Mädchen|das Mädchen|fille|la fille|niña|la niña|bambina|la bambina|menina|a menina|девочка|девочку|بنت|البنت|लड़की|लड़की
+beach|beach|the beach|plaj|plajı|Strand|den Strand|plage|la plage|playa|la playa|spiaggia|la spiaggia|praia|a praia|пляж|пляж|شاطئ|الشاطئ|समुद्र तट|समुद्र तट
 ";
     }
 }

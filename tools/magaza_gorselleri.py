@@ -103,19 +103,74 @@ def icon():
     return out
 
 
-def adaptive():
-    """Android 8+ katmanlı ikon: arka plan + ön plan (432x432). Ön plan ortadaki güvenli alanda kalır."""
-    S = 1296
-    bg = gradient(S, S, (0xFF, 0xD9, 0xE0), (0xF6, 0xE3, 0xF6), (0xD9, 0xE6, 0xFB))
-    blob(bg, (S * 0.3, S * 0.28), S * 0.22, (255, 255, 255, 150), 70)
-    blob(bg, (S * 0.75, S * 0.8), S * 0.24, (0xC3, 0xB5, 0xF0, 120), 80)
-    bg.resize((432, 432), Image.LANCZOS).convert("RGB").save(os.path.join(OUT, "ikon_arka_432.png"))
+RAINBOW = [(0xFF, 0x9E, 0xAA), (0xFF, 0xC4, 0x8C), (0xFF, 0xE6, 0x8A), (0xB5, 0xE8, 0xA8), (0x9F, 0xD0, 0xF5), (0xC8, 0xB4, 0xF2)]
+
+
+def icon_bg(S):
+    """Arka katman: şeftali-pembe-lila zemin, arkada yumuşak gökkuşağı, ışık lekeleri."""
+    bg = gradient(S, S, (0xFF, 0xD3, 0xDC), (0xFF, 0xE4, 0xE0), (0xE4, 0xDB, 0xFA))
+    # gökkuşağı yayı (alt kenara oturan yarım daire), kenarları yumuşak
+    arc = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(arc)
+    cx, cy, r0, band = S * 0.5, S * 0.98, S * 0.62, S * 0.045
+    for i, col in enumerate(RAINBOW):
+        r = r0 - i * band
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col + (255,))
+    rin = r0 - len(RAINBOW) * band
+    d.ellipse([cx - rin, cy - rin, cx + rin, cy + rin], fill=(0, 0, 0, 0))
+    a = arc.split()[3].point(lambda v: int(v * 0.55)).filter(ImageFilter.GaussianBlur(S * 0.006))
+    arc.putalpha(a)
+    bg.alpha_composite(arc)
+    blob(bg, (S * 0.22, S * 0.2), S * 0.2, (255, 255, 255, 170), S * 0.06)
+    blob(bg, (S * 0.82, S * 0.25), S * 0.12, (255, 255, 255, 120), S * 0.05)
+    return bg
+
+
+def icon_fg(S):
+    """Ön katman: büyük, gülen Pofuduk elinde pembe kalemle; çevresinde yıldızcıklar. Güvenli alanda (orta %66)."""
     fg = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    for i, col in enumerate([CRAYONS[0], CRAYONS[1], CRAYONS[3]]):
-        paste(fg, crayon(col), (S * (0.40 + i * 0.10), S * 0.38), int(S * 0.08), angle=(1 - i) * 22)
-    paste(fg, mascot(), (S * 0.5, S * 0.57), int(S * 0.5))
-    paste(fg, load("star"), (S * 0.7, S * 0.3), int(S * 0.1), angle=-12, shadow=False)
+    paste(fg, crayon((0xFF, 0x8F, 0xB1)), (S * 0.68, S * 0.43), int(S * 0.07), angle=-28)
+    paste(fg, mascot(), (S * 0.5, S * 0.54), int(S * 0.52))
+    hand = load("hand")
+    paste(fg, hand, (S * 0.68, S * 0.53), int(S * 0.09), shadow=False)
+    star = load("star")
+    paste(fg, star, (S * 0.31, S * 0.29), int(S * 0.1), angle=-14, shadow=False)
+    paste(fg, tint(load("star5"), (255, 255, 255)), (S * 0.66, S * 0.25), int(S * 0.05), angle=10, shadow=False)
+    paste(fg, tint(load("heart"), (0xFF, 0x7A, 0x9C)), (S * 0.24, S * 0.6), int(S * 0.07), angle=-12, shadow=False)
+    return fg
+
+
+def adaptive():
+    """Android 8+ katmanlı ikon: arka plan + ön plan (432x432) ve mağaza ikonu (512)."""
+    S = 1296
+    bg, fg = icon_bg(S), icon_fg(S)
+    bg.resize((432, 432), Image.LANCZOS).convert("RGB").save(os.path.join(OUT, "ikon_arka_432.png"))
     fg.resize((432, 432), Image.LANCZOS).save(os.path.join(OUT, "ikon_on_432.png"))
+    # Play Store ikonu: aynı tasarım, 108dp'lik katmanın görünen ortası (72/108) büyütülmüş
+    full = bg.copy()
+    full.alpha_composite(fg)
+    m = int(S * (1 - 72 / 108) / 2 * 0.55)  # biraz daha geniş kadraj: kenarlar nefes alsın
+    full = full.crop((m, m, S - m, S - m)).resize((512, 512), Image.LANCZOS).convert("RGB")
+    full.save(os.path.join(OUT, "ikon_512.png"))
+    # önizleme: telefonların kesim biçimleri (daire, yumuşak kare, damla)
+    prev = Image.new("RGB", (3 * 260 + 40, 300), (245, 245, 248))
+    vis = bg.copy()
+    vis.alpha_composite(fg)
+    m2 = int(S * (1 - 72 / 108) / 2)
+    vis = vis.crop((m2, m2, S - m2, S - m2)).resize((240, 240), Image.LANCZOS)
+    for k, shape in enumerate(["circle", "squircle", "drop"]):
+        mask = Image.new("L", (240 * 4, 240 * 4), 0)
+        md = ImageDraw.Draw(mask)
+        if shape == "circle":
+            md.ellipse([0, 0, 959, 959], fill=255)
+        elif shape == "squircle":
+            md.rounded_rectangle([0, 0, 959, 959], radius=300, fill=255)
+        else:
+            md.rounded_rectangle([0, 0, 959, 959], radius=480, fill=255)
+            md.rectangle([480, 480, 959, 959], fill=255)
+        mask = mask.resize((240, 240), Image.LANCZOS)
+        prev.paste(vis, (20 + k * 260, 30), mask)
+    prev.save(os.path.join(OUT, "ikon_onizleme.png"))
 
 
 def feature():

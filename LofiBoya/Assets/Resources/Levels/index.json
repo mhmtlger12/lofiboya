@@ -4,12 +4,24 @@
    "name": "kolay",
    "levels": [
     {
+     "id": "artrose-duckling-6122936",
+     "regions": 34
+    },
+    {
      "id": "artrose-easter-6122817",
      "regions": 73
     },
     {
+     "id": "artrose-easter-6122827",
+     "regions": 31
+    },
+    {
      "id": "artrose-easter-6122832",
      "regions": 128
+    },
+    {
+     "id": "artrose-easter-6122844",
+     "regions": 16
     },
     {
      "id": "artrose-easter-6122870",
@@ -20,12 +32,64 @@
      "regions": 13
     },
     {
+     "id": "artrose-easter-6122931",
+     "regions": 22
+    },
+    {
+     "id": "artrose-moon-6908427",
+     "regions": 18
+    },
+    {
      "id": "artrose-snowman-6879787",
+     "regions": 19
+    },
+    {
+     "id": "artrose-snowman-6879791",
+     "regions": 11
+    },
+    {
+     "id": "clker-free-vector-images-strawberry-32017",
      "regions": 19
     },
     {
      "id": "clker-free-vector-images-teddybear-294011",
      "regions": 23
+    },
+    {
+     "id": "clker-free-vector-images-tulip-32802",
+     "regions": 25
+    },
+    {
+     "id": "creative-art-cupcake-10251700",
+     "regions": 11
+    },
+    {
+     "id": "davector-butterfly-9910182",
+     "regions": 24
+    },
+    {
+     "id": "dreamdigitalartist-cupcake-6783198",
+     "regions": 15
+    },
+    {
+     "id": "dreamdigitalartist-give-birth-6307791",
+     "regions": 36
+    },
+    {
+     "id": "e-vector-flower-9269890",
+     "regions": 35
+    },
+    {
+     "id": "gdj-ai-generated-8815287",
+     "regions": 35
+    },
+    {
+     "id": "gdj-crab-6387853",
+     "regions": 25
+    },
+    {
+     "id": "gdj-cricket-6387508",
+     "regions": 35
     },
     {
      "id": "gdj-deer-6387533",
@@ -80,6 +144,14 @@
      "regions": 30
     },
     {
+     "id": "gdj-sea-horse-6387536",
+     "regions": 25
+    },
+    {
+     "id": "gdj-seal-6387493",
+     "regions": 9
+    },
+    {
      "id": "gdj-strawberry-6387870",
      "regions": 21
     },
@@ -108,6 +180,18 @@
      "regions": 40
     },
     {
+     "id": "marcos101-pie-4861996",
+     "regions": 7
+    },
+    {
+     "id": "mayapujiati-rose-coloring-1287776",
+     "regions": 24
+    },
+    {
+     "id": "openclipart-vectors-black-and-white-1295370",
+     "regions": 26
+    },
+    {
      "id": "purepageart-coloring-page-9943298",
      "regions": 8
     },
@@ -132,6 +216,10 @@
      "regions": 9
     },
     {
+     "id": "rodzicielskieinspiracje-apple-8448450",
+     "regions": 8
+    },
+    {
      "id": "tanrica-witch-7488176",
      "regions": 58
     }
@@ -139,11 +227,161 @@
   },
   {
    "name": "orta",
-   "levels": []
+   "levels": [
+    {
+     "id": "48canvas-rabbit-8750693",
+     "regions": 129
+    },
+    {
+     "id": "48canvas-rabbit-8750767",
+     "regions": 107
+    },
+    {
+     "id": "alanyadk-cupcake-1396690",
+     "regions": 74
+    },
+    {
+     "id": "artrose-snowman-6763905",
+     "regions": 64
+    },
+    {
+     "id": "artrose-unicorn-5561066",
+     "regions": 53
+    },
+    {
+     "id": "clker-free-vector-images-tiger-lily-296789",
+     "regions": 56
+    },
+    {
+     "id": "darkmoon-art-flowers-6401334",
+     "regions": 75
+    },
+    {
+     "id": "davector-scarecrow-10032532",
+     "regions": 75
+    },
+    {
+     "id": "evilfavoriteart-ai-generated-9379533",
+     "regions": 80
+    },
+    {
+     "id": "gdj-alligator-6387535",
+     "regions": 47
+    },
+    {
+     "id": "gdj-pineapple-6387871",
+     "regions": 50
+    },
+    {
+     "id": "hatimestea-coloring-10120325",
+     "regions": 48
+    },
+    {
+     "id": "ihaveplants-ai-generated-8895759",
+     "regions": 117
+    },
+    {
+     "id": "jozefm84-bouquet-10179177",
+     "regions": 54
+    },
+    {
+     "id": "jozefm84-flower-10200770",
+     "regions": 48
+    },
+    {
+     "id": "jozefm84-flowers-6062602",
+     "regions": 51
+    },
+    {
+     "id": "karicja-christmas-tree-6002425",
+     "regions": 52
+    },
+    {
+     "id": "khris-mandala-9186258",
+     "regions": 57
+    },
+    {
+     "id": "openclipart-vectors-black-and-white-1300567",
+     "regions": 49
+    },
+    {
+     "id": "ucimeseonline-acorn-7037839",
+     "regions": 70
+    }
+   ]
   },
   {
    "name": "zor",
-   "levels": []
+   "levels": [
+    {
+     "id": "ajk347-ai-generated-9140229",
+     "regions": 169
+    },
+    {
+     "id": "b0red-sunflower-2507845",
+     "regions": 228
+    },
+    {
+     "id": "bassloom-decoration-9971887",
+     "regions": 203
+    },
+    {
+     "id": "chenik-fajarhidayah-christmas-8467676",
+     "regions": 157
+    },
+    {
+     "id": "coloringpage-ai-generated-8855030",
+     "regions": 205
+    },
+    {
+     "id": "gdj-floral-2746540",
+     "regions": 434
+    },
+    {
+     "id": "gdj-mandala-5007631",
+     "regions": 208
+    },
+    {
+     "id": "ihaveplants-ai-generated-8895760",
+     "regions": 217
+    },
+    {
+     "id": "kaylinart-drawing-2151087",
+     "regions": 288
+    },
+    {
+     "id": "missywhimsyart-ai-generated-8673312",
+     "regions": 405
+    },
+    {
+     "id": "missywhimsyart-ai-generated-8673315",
+     "regions": 405
+    },
+    {
+     "id": "missywhimsyart-ai-generated-8673319",
+     "regions": 444
+    },
+    {
+     "id": "seiripan-ai-generated-9623276",
+     "regions": 158
+    },
+    {
+     "id": "seiripan-cute-9623238",
+     "regions": 149
+    },
+    {
+     "id": "seiripan-cute-9623248",
+     "regions": 139
+    },
+    {
+     "id": "tinhhiep-mandala-6864143",
+     "regions": 338
+    },
+    {
+     "id": "tizas-mandala-4151794",
+     "regions": 163
+    }
+   ]
   }
  ]
 }
