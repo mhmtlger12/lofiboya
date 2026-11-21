@@ -180,6 +180,18 @@ def feature():
     blob(img, (W * 0.78, H * 0.5), 420, (0xFF, 0xD6, 0xE0, 150), 110)
     blob(img, (W * 0.95, H * 0.95), 300, (0xC3, 0xB5, 0xF0, 120), 90)
 
+    # sağda, ikondaki gibi pastel gökkuşağı (Pofuduk'un arkasında)
+    arc = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ad = ImageDraw.Draw(arc)
+    cx, cy, r0, band = W * 0.76, H * 1.02, H * 0.78, H * 0.055
+    for i, col in enumerate(RAINBOW):
+        r = r0 - i * band
+        ad.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col + (255,))
+    rin = r0 - len(RAINBOW) * band
+    ad.ellipse([cx - rin, cy - rin, cx + rin, cy + rin], fill=(0, 0, 0, 0))
+    arc.putalpha(arc.split()[3].point(lambda v: int(v * 0.5)).filter(ImageFilter.GaussianBlur(6)))
+    img.alpha_composite(arc)
+
     # sağda: kalem yelpazesi + Pofuduk
     for i, col in enumerate(CRAYONS):
         a = (2.5 - i) * 13
@@ -196,9 +208,9 @@ def feature():
     tx, ty = 130, 250
     d.text((tx, ty + 16), "Lofi Boya", font=title, fill=ACCENT)
     d.text((tx, ty), "Lofi Boya", font=title, fill=TEXT)
-    d.text((tx + 10, ty + 330), "Çocuklar için sevimli boyama", font=sub, fill=SOFT)
-    # küçük etiketler
-    tags = ["sihirli boyalar", "renkleri öğren", "reklamsız"]
+    d.text((tx + 10, ty + 330), "Cute coloring for kids", font=sub, fill=SOFT)
+    # küçük etiketler (mağazanın varsayılan dili İngilizce)
+    tags = ["magic paints", "learn colors", "no ads"]
     x = tx + 10
     small = ImageFont.truetype(FONT, 56)
     for t in tags:
