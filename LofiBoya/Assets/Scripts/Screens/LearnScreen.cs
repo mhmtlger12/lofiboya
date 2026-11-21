@@ -217,8 +217,6 @@ namespace LofiBoya
             var sh = _prompt.gameObject.AddComponent<Shadow>();
             sh.effectColor = Theme.Accent.WithAlpha(0.45f);
             sh.effectDistance = new Vector2(0, -6);
-            var again = UIKit.IconButton(_area, Art.Note, Theme.Butter, Theme.Text, 110, () => Speech.Say(_promptVoice), 0.46f);
-            ((RectTransform)again.transform).Place(new Vector2(0.5f, 1), new Vector2(0, -470), new Vector2(110, 110));
 
             if (_mode == Mode.Colors) ColorRound();
             else if (_mode == Mode.Shapes) ShapeRound();
@@ -909,7 +907,7 @@ namespace LofiBoya
                 _starText.text = SaveSystem.Stars.ToString();
                 Tween.Punch(_starText.transform.parent, 0.25f);
                 string cheer = Loc.T("cheer_" + Random.Range(0, 4));
-                if (sayRight != null) { Speech.Say(sayRight); cheer = Pieces0(sayRight); }
+                if (sayRight != null) cheer = sayRight;   // ses yok: ipucunun tamamı ekranda
                 else Speech.Say(Loc.T("right_say", cheer, Loc.Lang == "tr" ? name : Names.Cap(name)));
                 _prompt.text = cheer;
                 Tween.Delay(nextDelay, () => { if (this != null && _mode != Mode.Menu) NextRound(); });
@@ -925,9 +923,6 @@ namespace LofiBoya
                 cg.alpha = 0.45f;
             }
         }
-
-        // "Aferin! Üzgün birine..." -> ilk cümle ("Aferin!") ekranda görünür
-        static string Pieces0(string s) { int i = s.IndexOfAny(new[] { '.', '!', '?' }); return i >= 0 ? s.Substring(0, i + 1) : s; }
 
         static void Shuffle(List<int> l)
         {

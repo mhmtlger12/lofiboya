@@ -44,14 +44,13 @@ namespace LofiBoya
 
         public static void Settings()
         {
-            var (overlay, card, close) = Panel(860, 1780);
+            var (overlay, card, close) = Panel(860, 1652);
             var t = UIKit.Label(card.transform, Loc.T("settings"), 64, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 100, 40);
 
             float y = -190;
             Toggle(card.transform, ref y, Loc.T("music"), () => SaveSystem.MusicOn, v => { SaveSystem.MusicOn = v; Sfx.ApplySettings(); });
             Toggle(card.transform, ref y, Loc.T("sound"), () => SaveSystem.SoundOn, v => SaveSystem.SoundOn = v);
-            Toggle(card.transform, ref y, Loc.T("voice"), () => Speech.Enabled, v => Speech.Enabled = v);
             Toggle(card.transform, ref y, Loc.T("haptics"), () => Haptics.Enabled, v => { Haptics.Enabled = v; Haptics.Light(); });
             Toggle(card.transform, ref y, Loc.T("pencil_inside"), () => SaveSystem.PencilStaysInside, v => SaveSystem.PencilStaysInside = v);
 

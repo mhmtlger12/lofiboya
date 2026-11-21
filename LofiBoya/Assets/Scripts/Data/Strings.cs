@@ -139,7 +139,6 @@ gate_q|What is {0} + {1}?|{0} + {1} kaç eder?|Was ist {0} + {1}?|Combien font {
 settings|Settings|Ayarlar|Einstellungen|Réglages|Ajustes|Impostazioni|Definições|Настройки|الإعدادات|सेटिंग्स
 music|Music|Müzik|Musik|Musique|Música|Musica|Música|Музыка|الموسيقى|संगीत
 sound|Sound effects|Efekt sesleri|Soundeffekte|Effets sonores|Efectos de sonido|Effetti sonori|Efeitos sonoros|Звуки|المؤثرات الصوتية|साउंड इफ़ेक्ट
-voice|Voice (color and picture names)|Konuşma (renk ve hayvan adları)|Sprache (Farb- und Bildnamen)|Voix (noms des couleurs et dessins)|Voz (nombres de colores y dibujos)|Voce (nomi di colori e disegni)|Voz (nomes de cores e desenhos)|Голос (названия цветов и картинок)|الصوت (أسماء الألوان والصور)|आवाज़ (रंगों और चित्रों के नाम)
 haptics|Vibration|Titreşim|Vibration|Vibration|Vibración|Vibrazione|Vibração|Вибрация|الاهتزاز|कंपन
 track|Track: {0}  ›|Parça: {0}  ›|Lied: {0}  ›|Morceau : {0}  ›|Canción: {0}  ›|Brano: {0}  ›|Faixa: {0}  ›|Трек: {0}  ›|المقطوعة: {0}|गाना: {0}  ›
 language|Language: {0}  ›|Dil: {0}  ›|Sprache: {0}  ›|Langue : {0}  ›|Idioma: {0}  ›|Lingua: {0}  ›|Idioma: {0}  ›|Язык: {0}  ›|اللغة: {0}|भाषा: {0}  ›
