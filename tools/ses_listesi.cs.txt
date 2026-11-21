@@ -1,0 +1,100 @@
+// Oyunda söylenen bütün Türkçe cümle parçalarını çıkarır (Unity editöründe script eval ile çalışır).
+// Çıktı: LofiBoya/.utmp/ses_listesi.txt (her satır bir parça). tools/ses_uret.py bu listeyi seslendirir.
+// Çalıştırma: unity command script eval --project-path LofiBoya "$(cat tools/ses_listesi.cs.txt)"
+var prev = UnityEngine.PlayerPrefs.GetString("lang", "auto");
+UnityEngine.PlayerPrefs.SetString("lang", "tr");
+typeof(LofiBoya.Loc).GetMethod("Apply", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
+var set = new System.Collections.Generic.SortedSet<string>(System.StringComparer.Ordinal);
+System.Action<string> Add = t => { foreach (var p in LofiBoya.Speech.Pieces(t)) set.Add(p); };
+var wordM = typeof(LofiBoya.Names).GetMethod("Word", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+System.Func<string, (string, string)> W = k => ((string, string))wordM.Invoke(null, new object[] { k });
+System.Func<string, string> Cap = LofiBoya.Names.Cap;
+System.Func<string, object[], string> T = (k, a) => LofiBoya.Loc.T(k, a);
+var cheers = new string[4];
+for (int i = 0; i < 4; i++) cheers[i] = T("cheer_" + i, null);
+
+string[] fixedKeys = { "hello", "new_drawing_say", "saved_say", "numbers_on", "puffy_new", "count_together", "break_over",
+    "done_say", "blank_done_say", "magic_normal_say", "buddy_25", "buddy_50", "buddy_75", "buddy_idle", "buddy_idle_blank",
+    "cmp_q", "add_q", "feelings_sub", "trace_start", "count_q_0", "count_q_1", "count_q_2", "count_q_3",
+    "cheer_0", "cheer_1", "cheer_2", "cheer_3", "mascot_1", "mascot_2", "mascot_3", "mascot_4", "mascot_5",
+    "stamp_0", "stamp_1", "stamp_2", "stamp_3", "stamp_4" };
+foreach (var k in fixedKeys) Add(T(k, null));
+Add(T("break_title", null) + " " + T("break_sub", null));
+for (int i = 1; i <= 4; i++) Add(T("magic_say", new object[] { T("magic_" + i, null) }));
+
+// resimler: tanıtım, başlık, bitiş, çıkartma, "bul" oyunu
+foreach (var g in LofiBoya.Level.Index.groups)
+    foreach (var l in g.levels)
+    {
+        var id = l.id;
+        if (!LofiBoya.Names.TryAnimal(id, out var n, out var acc)) continue;
+        Add(Cap(n));
+        Add(LofiBoya.Names.LevelTitle(id) + "!");
+        Add(T(id.StartsWith("lofi-num-") ? "intro_number" : LofiBoya.Names.IsScene(id) ? "intro_scene" : "intro", new object[] { Cap(n), n }));
+        Add(T("done_named", new object[] { Cap(acc) }));
+        if (LofiBoya.Names.IsLearnable(id))
+        {
+            Add(Cap(T("find", new object[] { acc })));
+            Add(T("right_say", new object[] { cheers[0], n }));
+            Add(T("wrong_say", new object[] { n }));
+        }
+    }
+
+// renkler: kalem adı, sayılı mod, ipucu
+string[] colorKeys = { "black", "white", "gray", "pink", "cream", "red", "brown", "orange", "yellow", "green", "turquoise", "navy", "blue", "purple" };
+foreach (var k in colorKeys)
+{
+    var (n, _) = W(k);
+    Add(Cap(n));
+    for (int i = 1; i <= 10; i++) { Add(i + ", " + n); Add(T("number_hint", new object[] { i, Cap(n) })); }
+}
+foreach (var b in LofiBoya.Names.Basic)
+{
+    Add(Cap(T("find", new object[] { b.acc })));
+    Add(T("right_say", new object[] { cheers[0], b.name }));
+    Add(T("wrong_say", new object[] { b.name }));
+}
+foreach (var k in new[] { "circle", "square", "triangle", "rectangle", "star", "heart" })
+{
+    var (n, acc) = LofiBoya.Names.Shape(k);
+    Add(Cap(T("paint_shape", new object[] { acc })));
+    Add(T("right_say", new object[] { cheers[0], n }));
+    Add(T("wrong_say", new object[] { n }));
+}
+string[] feels = { "happy", "sad", "angry", "surprised" };
+foreach (var k in feels)
+{
+    var (n, acc) = LofiBoya.Names.Feel(k);
+    Add(Cap(T("find", new object[] { acc })));
+    Add(T("right_say", new object[] { cheers[0], n }));
+    Add(T("wrong_say", new object[] { n }));
+    Add(T("feel_tip_" + k, null));
+}
+for (int i = 0; i < 8; i++) Add(T("feel_s" + i, null) + " " + T("feelings_sub", null));
+
+// sayılar
+for (int d = 1; d <= 9; d++)
+{
+    var (n, acc) = LofiBoya.Names.Num(d);
+    Add(Cap(T("trace_q", new object[] { acc })) + " " + T("trace_start", null));
+    Add(T("right_say", new object[] { cheers[0], n }));
+}
+for (int n = 1; n <= 10; n++)
+{
+    Add(n.ToString());
+    Add(T("count_right", new object[] { cheers[0], n }));
+    Add(T("cmp_right", new object[] { cheers[0], n }));
+}
+for (int a = 1; a <= 9; a++)
+    for (int b = 1; b <= 9; b++)
+    {
+        if (a != b) Add(T("cmp_show", new object[] { a, b, System.Math.Max(a, b) }));
+        if (a + b <= 9) Add(T("add_say", new object[] { a, b }));
+    }
+for (int n = 2; n <= 30; n++) { Add(T("hello_streak", new object[] { n })); Add(T("streak_say", new object[] { n })); }
+
+var path = System.IO.Path.GetFullPath(".utmp/ses_listesi.txt");
+System.IO.File.WriteAllLines(path, set, new System.Text.UTF8Encoding(false));
+UnityEngine.PlayerPrefs.SetString("lang", prev);
+typeof(LofiBoya.Loc).GetMethod("Apply", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
+return set.Count + " parça -> " + path;

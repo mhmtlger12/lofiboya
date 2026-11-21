@@ -59,3 +59,7 @@ key.properties
 # Unity geçici dosyaları ve IL2CPP derleme yedeği (oyunla gönderilmez)
 LofiBoya/.utmp/
 LofiBoya/*_BackUpThisFolder_ButDontShipItWithYourGame/
+
+# ses üretim araçları (büyük, yerelde kalır)
+tools/ses_env/
+tools/ses_deneme/

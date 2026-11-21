@@ -70,6 +70,7 @@ namespace LofiBoya
             BuildCanvas();
             ShowWelcome();
             gameObject.AddComponent<BreakTimer>();
+            gameObject.AddComponent<StatsClock>();
         }
 
         void Input2D()

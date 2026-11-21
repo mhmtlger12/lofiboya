@@ -44,7 +44,7 @@ namespace LofiBoya
 
         public static void Settings()
         {
-            var (overlay, card, close) = Panel(860, 1600);
+            var (overlay, card, close) = Panel(860, 1780);
             var t = UIKit.Label(card.transform, Loc.T("settings"), 64, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 100, 40);
 
@@ -59,7 +59,7 @@ namespace LofiBoya
             var brk = UIKit.Button(card.transform, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);
             var brt = (RectTransform)brk.transform;
             brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 1);
-            brt.sizeDelta = new Vector2(700, 120);
+            brt.sizeDelta = new Vector2(700, 116);
             brt.anchoredPosition = new Vector2(0, y);
             var bl = UIKit.ButtonText(brk);
             bl.resizeTextForBestFit = true;
@@ -75,28 +75,35 @@ namespace LofiBoya
                 Sfx.Tap();
                 bl.text = BreakLabel();
             });
-            y -= 140;
+            y -= 135;
+
+            // yaş grubu: galerinin açılış sekmesi ve sayma oyununun başlangıç seviyesi
+            var age = SettingButton(card.transform, ref y);
+            var al = UIKit.ButtonText(age);
+            al.text = Loc.T("age_btn", SaveSystem.AgeLabels[SaveSystem.AgeBand]);
+            age.onClick.AddListener(() =>
+            {
+                SaveSystem.AgeBand = (SaveSystem.AgeBand + 1) % SaveSystem.AgeLabels.Length;
+                Sfx.Tap();
+                al.text = Loc.T("age_btn", SaveSystem.AgeLabels[SaveSystem.AgeBand]);
+            });
 
             // müzik parçası
-            var track = UIKit.Button(card.transform, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);
-            var trt = (RectTransform)track.transform;
-            trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 1);
-            trt.sizeDelta = new Vector2(700, 120);
-            trt.anchoredPosition = new Vector2(0, y);
+            var track = SettingButton(card.transform, ref y);
             var tl = UIKit.ButtonText(track);
             tl.text = Loc.T("track", Sfx.TrackName);
             track.onClick.AddListener(() => tl.text = Loc.T("track", Sfx.NextTrack()));
-            y -= 140;
 
             // dil
-            var lang = UIKit.Button(card.transform, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);
-            var lrt = (RectTransform)lang.transform;
-            lrt.anchorMin = lrt.anchorMax = new Vector2(0.5f, 1);
-            lrt.sizeDelta = new Vector2(700, 120);
-            lrt.anchoredPosition = new Vector2(0, y);
+            var lang = SettingButton(card.transform, ref y);
             UIKit.ButtonText(lang).text = Loc.T("language", CurrentLanguageName());
             lang.onClick.AddListener(() => { close(); LanguagePicker(); });
-            y -= 150;
+
+            // haftalık rapor
+            var rep = SettingButton(card.transform, ref y);
+            UIKit.ButtonText(rep).text = Loc.T("report_btn");
+            rep.onClick.AddListener(() => { close(); Report(); });
+            y -= 10;
 
             var info = UIKit.Label(card.transform, Loc.T("info"), 34, Theme.TextSoft);
             info.rectTransform.anchorMin = info.rectTransform.anchorMax = new Vector2(0.5f, 1);
@@ -105,6 +112,74 @@ namespace LofiBoya
 
             var ok = UIKit.Button(card.transform, Loc.T("ok"), Theme.Accent, Color.white, 50, close);
             var ort = (RectTransform)ok.transform;
+            ort.anchorMin = ort.anchorMax = new Vector2(0.5f, 0);
+            ort.sizeDelta = new Vector2(360, 130);
+            ort.anchoredPosition = new Vector2(0, 110);
+        }
+
+        static Button SettingButton(Transform parent, ref float y)
+        {
+            var b = UIKit.Button(parent, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);
+            var rt = (RectTransform)b.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1);
+            rt.sizeDelta = new Vector2(700, 116);
+            rt.anchoredPosition = new Vector2(0, y);
+            var t = UIKit.ButtonText(b);
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = 26;
+            t.resizeTextMaxSize = 40;
+            y -= 135;
+            return b;
+        }
+
+        /// <summary>Son 7 gün: bitirilen resimler, süre, oynanan günler ve öğrenme oyunlarında doğru/deneme.
+        /// Yüzde ya da not yok: aileye çocuğun neyle uğraştığını gösterir, kıyaslamaz.</summary>
+        static void Report()
+        {
+            var rows = new System.Collections.Generic.List<(string text, bool head)>
+            {
+                (Loc.T("rep_pictures", Stats.Week("pic")), false),
+                (Loc.T("rep_time", Mathf.RoundToInt(Stats.Week("sec") / 60f)), false),
+                (Loc.T("rep_days", Stats.ActiveDays()), false),
+                (Loc.T("rep_games_title"), true),
+            };
+            string[] titles = { "colors", "pictures", "shapes", "counting", "feelings_game", "trace" };
+            bool any = false;
+            for (int i = 0; i < Stats.Games.Length; i++)
+            {
+                int ok = Stats.Week(Stats.Games[i] + "_ok"), no = Stats.Week(Stats.Games[i] + "_no");
+                if (ok + no == 0) continue;
+                any = true;
+                rows.Add((Loc.T("rep_game", Loc.T(titles[i]), ok, ok + no), false));
+            }
+            if (!any) rows.Add((Loc.T("rep_none"), false));
+
+            const float rowH = 96f;
+            float h = 150 + rows.Count * rowH + 150 + 200;
+            var (overlay, card, close) = Panel(860, h);
+            var t = UIKit.Label(card.transform, Loc.T("report_title"), 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            t.rectTransform.Band(true, 100, 40);
+            float y = -190;
+            foreach (var (text, head) in rows)
+            {
+                var l = UIKit.Label(card.transform, text, head ? 42 : 38, head ? Theme.Text : Theme.TextSoft, TextAnchor.MiddleLeft, head ? FontStyle.Bold : FontStyle.Normal);
+                var rt = l.rectTransform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1);
+                rt.sizeDelta = new Vector2(740, rowH);
+                rt.anchoredPosition = new Vector2(0, y);
+                l.resizeTextForBestFit = true;
+                l.resizeTextMinSize = 24;
+                l.resizeTextMaxSize = head ? 42 : 38;
+                y -= rowH;
+            }
+            var note = UIKit.Label(card.transform, Loc.T("rep_note"), 32, Theme.TextSoft);
+            note.rectTransform.anchorMin = note.rectTransform.anchorMax = new Vector2(0.5f, 1);
+            note.rectTransform.sizeDelta = new Vector2(740, 130);
+            note.rectTransform.anchoredPosition = new Vector2(0, y - 40);
+            note.horizontalOverflow = HorizontalWrapMode.Wrap;
+
+            var ok2 = UIKit.Button(card.transform, Loc.T("ok"), Theme.Accent, Color.white, 50, close);
+            var ort = (RectTransform)ok2.transform;
             ort.anchorMin = ort.anchorMax = new Vector2(0.5f, 0);
             ort.sizeDelta = new Vector2(360, 130);
             ort.anchoredPosition = new Vector2(0, 110);
@@ -147,7 +222,7 @@ namespace LofiBoya
         {
             var row = UIKit.Node("Row " + label, parent);
             row.anchorMin = row.anchorMax = new Vector2(0.5f, 1);
-            row.sizeDelta = new Vector2(720, 120);
+            row.sizeDelta = new Vector2(720, 116);
             row.anchoredPosition = new Vector2(0, y);
             var l = UIKit.Label(row, label, 40, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             l.rectTransform.Stretch(0, 0, 190, 0);
@@ -180,7 +255,7 @@ namespace LofiBoya
             b.transition = Selectable.Transition.None;
             b.onClick.AddListener(() => { set(!get()); Sfx.Tap(); Refresh(true); });
             Refresh(false);
-            y -= 140;
+            y -= 128;
         }
 
         /// <summary>Karartılmış arka plan + ortada kart. close() ile kapanır.</summary>

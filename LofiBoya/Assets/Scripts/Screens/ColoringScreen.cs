@@ -1032,7 +1032,7 @@ namespace LofiBoya
             Tween.Delay(1.4f, () => { if (mascot != null) { mascot.Jump(); mascot.Wave(); } });
             Tween.Delay(2.2f, () => { if (mascot != null) mascot.Jump(); });
 
-            if (first) SaveSystem.Stars += 3;
+            if (first) { SaveSystem.Stars += 3; Stats.Add("pic"); }
             // yeni Pofuduk çıkartması açıldıysa kutlama kartında şapkasıyla haber ver
             var newHat = first && !_level.IsBlank ? PuffyStickers.UnlockedAt(PuffyStickers.DoneCount()) : MascotHat.None;
             if (newHat != MascotHat.None)

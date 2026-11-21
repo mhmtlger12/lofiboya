@@ -10,7 +10,7 @@ namespace LofiBoya
         public string Group;
 
         static readonly string[] Groups = { "kolay", "orta", "zor" };
-        static string _lastGroup = "kolay";
+        static string _lastGroup;   // ilk açılışta yaş ayarına göre (3–4: kolay, 5–6: orta, 7+: zor)
         static readonly Dictionary<string, float> _scrollMemory = new();
 
         RectTransform _gridRoot, _tabIndicator;
@@ -20,7 +20,7 @@ namespace LofiBoya
 
         void Start()
         {
-            if (string.IsNullOrEmpty(Group)) Group = _lastGroup;
+            if (string.IsNullOrEmpty(Group)) Group = _lastGroup ?? Groups[Mathf.Clamp(SaveSystem.AgeBand, 0, Groups.Length - 1)];
             var root = (RectTransform)transform;
 
             // ---- Üst kısım ----

@@ -178,6 +178,9 @@ namespace LofiBoya
         /// <summary>Şekil adı (yalın, cümle içi): anahtar "circle", "square", "triangle", "rectangle", "star", "heart".</summary>
         public static (string name, string acc) Shape(string key) => Word("shape_" + key);
 
+        /// <summary>Rakam adı (yalın, cümle içi): 1..10.</summary>
+        public static (string name, string acc) Num(int n) => Word("num" + n);
+
         /// <summary>Duygu yüzü adı (yalın, cümle içi): "happy", "sad", "angry", "surprised".</summary>
         public static (string name, string acc) Feel(string key) => Word("feel_" + key);
 

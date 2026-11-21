@@ -172,6 +172,15 @@ namespace LofiBoya
             set { PlayerPrefs.SetInt("breakMin", value); PlayerPrefs.Save(); }
         }
 
+        /// <summary>Çocuğun yaş grubu: 0 = 3–4, 1 = 5–6, 2 = 7+ (galerinin açılış sekmesi, sayma oyununun başlangıcı).</summary>
+        public static int AgeBand
+        {
+            get => PlayerPrefs.GetInt("ageBand", 0);
+            set { PlayerPrefs.SetInt("ageBand", value); PlayerPrefs.Save(); }
+        }
+
+        public static readonly string[] AgeLabels = { "3–4", "5–6", "7+" };
+
         /// <summary>Kaydı olan bütün resimler (en yeni önce): "grup_id" anahtarları.</summary>
         public static List<string> SavedKeys()
         {

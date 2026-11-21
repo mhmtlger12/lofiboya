@@ -5,7 +5,9 @@ namespace LofiBoya
 {
     /// <summary>
     /// Türkçe konuşma.
-    /// 1) Assets/Resources/Voice/&lt;anahtar&gt;.wav|mp3 varsa onu çalar (kendi sesinizle kayıt).
+    /// 1) Hazır ses: cümle parçalara bölünür ("Aferin!" + "Bu kırmızı!"); her parçanın kaydı
+    ///    Resources/Voice/&lt;dil&gt;/a/&lt;fnv-hash&gt; olarak varsa sırayla çalınır (tools/ses_uret.py üretir).
+    ///    Eski yol: Voice/&lt;dil&gt;/&lt;anahtar&gt; (kendi sesinizle kayıt).
     /// 2) Yoksa Android'de telefonun Türkçe seslendirme motorunu (TextToSpeech) kullanır.
     /// 3) Editörde ses yok: söylenen cümle ekranda kısa bir balon olarak görünür.
     /// </summary>
@@ -13,7 +15,6 @@ namespace LofiBoya
     {
         public static event Action<string> Said;
 
-        static AudioSource _source;
 #if UNITY_ANDROID && !UNITY_EDITOR
         static AndroidJavaObject _tts;
         static bool _ready;
@@ -85,24 +86,18 @@ namespace LofiBoya
             if (!Enabled || string.IsNullOrEmpty(text)) return;
             Said?.Invoke(text);
 
-            // kayıtlı ses: Voice/<dil>/<anahtar> (Türkçe için eski yer Voice/<anahtar> da olur)
-            AudioClip clip = null;
-            if (key != null)
+            // 1) hazır ses parçaları (hepsi varsa)
+            var clips = PrerecordedClips(text);
+            if (clips == null && key != null)
             {
-                clip = Resources.Load<AudioClip>("Voice/" + Loc.Lang + "/" + key);
+                // 2) eski tek dosya kaydı: Voice/<dil>/<anahtar> (Türkçe için Voice/<anahtar> da olur)
+                var clip = Resources.Load<AudioClip>("Voice/" + Loc.Lang + "/" + key);
                 if (clip == null && Loc.Lang == "tr") clip = Resources.Load<AudioClip>("Voice/" + key);
+                if (clip != null) clips = new System.Collections.Generic.List<AudioClip> { clip };
             }
-            if (clip != null)
+            if (clips != null)
             {
-                if (_source == null)
-                {
-                    var go = new GameObject("[Voice]");
-                    UnityEngine.Object.DontDestroyOnLoad(go);
-                    _source = go.AddComponent<AudioSource>();
-                }
-                _source.Stop();
-                _source.clip = clip;
-                _source.Play();
+                Player.Play(clips);
                 return;
             }
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -123,6 +118,75 @@ namespace LofiBoya
 #endif
         }
 
+        // ================= Hazır ses =================
+
+        /// <summary>Cümleyi parçalara böler: ".", "!" ya da "?" ve ardından boşluk/satır sonu.
+        /// tools/ses_uret.py ile aynı kural (değiştirirseniz ikisini birlikte değiştirin).</summary>
+        public static System.Collections.Generic.List<string> Pieces(string text)
+        {
+            var list = new System.Collections.Generic.List<string>();
+            int start = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if ((c == '.' || c == '!' || c == '?') && (i + 1 == text.Length || text[i + 1] == ' ' || text[i + 1] == '\n'))
+                {
+                    var piece = text.Substring(start, i + 1 - start).Trim();
+                    if (piece.Length > 0) list.Add(piece);
+                    start = i + 1;
+                }
+            }
+            if (start < text.Length)
+            {
+                var rest = text.Substring(start).Trim();
+                if (rest.Length > 0) list.Add(rest);
+            }
+            return list;
+        }
+
+        /// <summary>FNV-1a (32 bit, UTF-8) — ses dosyasının adı.</summary>
+        public static string Hash(string s)
+        {
+            uint h = 2166136261;
+            foreach (byte b in System.Text.Encoding.UTF8.GetBytes(s)) { h ^= b; h *= 16777619; }
+            return h.ToString("x8");
+        }
+
+        static System.Collections.Generic.List<AudioClip> PrerecordedClips(string text)
+        {
+            var pieces = Pieces(text);
+            if (pieces.Count == 0) return null;
+            var clips = new System.Collections.Generic.List<AudioClip>();
+            foreach (var p in pieces)
+            {
+                var clip = Resources.Load<AudioClip>("Voice/" + Loc.Lang + "/a/" + Hash(p));
+                if (clip == null)
+                {
+#if UNITY_EDITOR
+                    if (Loc.Lang == "tr") Debug.Log("Hazır ses yok: \"" + p + "\" (" + Hash(p) + ")");
+#endif
+                    return null;
+                }
+                clips.Add(clip);
+            }
+            return clips;
+        }
+
+        static VoicePlayer _player;
+        static VoicePlayer Player
+        {
+            get
+            {
+                if (_player == null)
+                {
+                    var go = new GameObject("[Voice]");
+                    UnityEngine.Object.DontDestroyOnLoad(go);
+                    _player = go.AddComponent<VoicePlayer>();
+                }
+                return _player;
+            }
+        }
+
         /// <summary>"Kırmızı" -> "kirmizi" (ses dosyası adı için).</summary>
         public static string Slug(string s)
         {
@@ -130,6 +194,38 @@ namespace LofiBoya
             var sb = new System.Text.StringBuilder();
             foreach (var ch in s) sb.Append(char.IsLetterOrDigit(ch) ? ch : '_');
             return sb.ToString();
+        }
+    }
+
+    /// <summary>Hazır ses parçalarını arka arkaya çalar; yeni cümle gelince eskisini keser.</summary>
+    public class VoicePlayer : MonoBehaviour
+    {
+        AudioSource _src;
+        readonly System.Collections.Generic.Queue<AudioClip> _queue = new();
+        float _gap;
+
+        void Awake()
+        {
+            _src = gameObject.AddComponent<AudioSource>();
+            _src.playOnAwake = false;
+        }
+
+        public void Play(System.Collections.Generic.List<AudioClip> clips)
+        {
+            _queue.Clear();
+            _src.Stop();
+            foreach (var c in clips) _queue.Enqueue(c);
+            _gap = 0;
+        }
+
+        void Update()
+        {
+            if (_src.isPlaying || _queue.Count == 0) return;
+            _gap -= Time.unscaledDeltaTime;
+            if (_gap > 0) return;
+            _src.clip = _queue.Dequeue();
+            _src.Play();
+            _gap = 0.12f;   // parçalar arasında kısa, doğal bir duraklama
         }
     }
 }
