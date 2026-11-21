@@ -65,6 +65,8 @@ namespace LofiBoya
             public RenderTexture Paint;        // kalem/silgi çizgisi öncesi kopya
             public int BrushedRegion = -1;
             public bool WasBrushed;
+            public List<int> Cells;                        // bu çizginin yeni kapladığı ızgara kareleri
+            public List<(int region, bool was)> BrushedBefore;
         }
 
         const int MaxPaintSnapshots = 12;
@@ -112,8 +114,14 @@ namespace LofiBoya
             {
                 if (Level == null || _totalArea == 0) return 0;
                 long a = 0;
-                for (int i = 1; i <= Level.Count; i++) if (Filled[i] || Brushed[i]) a += Level.Meta.area[i - 1];
-                return (float)((double)a / _totalArea);
+                double part = 0;
+                for (int i = 1; i <= Level.Count; i++)
+                {
+                    if (Filled[i] || Brushed[i]) a += Level.Meta.area[i - 1];
+                    else if (_regionCells != null && _regionCells[i] > 0)
+                        part += Level.Meta.area[i - 1] * Mathf.Clamp01(_coveredCells[i] / (_regionCells[i] * CoverNeeded)) * 0.95;
+                }
+                return (float)((a + part) / _totalArea);
             }
         }
 
@@ -171,6 +179,7 @@ namespace LofiBoya
             RegionColors = new Color32[n + 1];
             Filled = new bool[n + 1];
             Brushed = new bool[n + 1];
+            BuildCoverGrid();
             _totalArea = 0;
             foreach (var a in level.Meta.area) _totalArea += a;
 
@@ -641,6 +650,97 @@ namespace LofiBoya
             _tipBody.color = _tipEndA.color = _tipEndB.color = col;
         }
 
+        // ================= Kalem kaplama ızgarası =================
+        // Kalemle bir bölgeye tek çizgi çekmek o bölgeyi "boyandı" saymasın: resim CoverCell piksellik
+        // karelere bölünür, kalemin değdiği kareler işaretlenir; bölge, karelerinin CoverNeeded kadarı
+        // kaplanınca boyanmış sayılır (yüzde ve "bitti" buna göre). Kalem bölge dışına taşabiliyorsa
+        // değdiği her bölge ayrı ayrı sayılır.
+
+        const int CoverCell = 8;
+        const float CoverNeeded = 0.6f;
+        int _gw, _gh;
+        int[] _cellRegion, _regionCells, _coveredCells;
+        bool[] _covered;
+        readonly HashSet<int> _strokeRegions = new();
+
+        void BuildCoverGrid()
+        {
+            int n = Level.Count;
+            _gw = Mathf.Max(1, Mathf.CeilToInt(Level.Width / (float)CoverCell));
+            _gh = Mathf.Max(1, Mathf.CeilToInt(Level.Height / (float)CoverCell));
+            _cellRegion = new int[_gw * _gh];
+            _covered = new bool[_gw * _gh];
+            _regionCells = new int[n + 1];
+            _coveredCells = new int[n + 1];
+            for (int y = 0; y < _gh; y++)
+                for (int x = 0; x < _gw; x++)
+                {
+                    int r = Level.RegionAt(Mathf.Min(Level.Width - 1, x * CoverCell + CoverCell / 2), Mathf.Min(Level.Height - 1, y * CoverCell + CoverCell / 2));
+                    if (r < 1 || r > n) r = 0;
+                    _cellRegion[y * _gw + x] = r;
+                    if (r > 0) _regionCells[r]++;
+                }
+        }
+
+        /// <summary>Kalem damgasının altındaki kareleri kaplanmış işaretler.</summary>
+        void Cover(Vector2 uv, float radiusPaintPx)
+        {
+            if (Tool != Tool.Pencil || _covered == null || _strokeUndo == null) return;
+            float rx = radiusPaintPx / Paint.Width * Level.Width / CoverCell;   // kare biriminde yarıçap
+            float cx = uv.x * Level.Width / CoverCell - 0.5f, cy = uv.y * Level.Height / CoverCell - 0.5f;
+            int x0 = Mathf.Max(0, Mathf.FloorToInt(cx - rx)), x1 = Mathf.Min(_gw - 1, Mathf.CeilToInt(cx + rx));
+            int y0 = Mathf.Max(0, Mathf.FloorToInt(cy - rx)), y1 = Mathf.Min(_gh - 1, Mathf.CeilToInt(cy + rx));
+            float r2 = rx * rx;
+            bool inside = SaveSystem.PencilStaysInside;
+            for (int y = y0; y <= y1; y++)
+                for (int x = x0; x <= x1; x++)
+                {
+                    float dx = x - cx, dy = y - cy;
+                    if (dx * dx + dy * dy > r2) continue;
+                    int c = y * _gw + x;
+                    if (_covered[c]) continue;
+                    int reg = _cellRegion[c];
+                    if (reg == 0 || (inside && reg != _strokeRegion)) continue;
+                    _covered[c] = true;
+                    _coveredCells[reg]++;
+                    (_strokeUndo.Cells ??= new List<int>()).Add(c);
+                    _strokeRegions.Add(reg);
+                }
+        }
+
+        void AddPencilStamp(Vector2 uv, float radiusPaintPx)
+        {
+            Paint.AddStamp(uv, radiusPaintPx);
+            Cover(uv, radiusPaintPx);
+        }
+
+        /// <summary>Çizgi bitince: yeterince kaplanan bölgeler boyanmış sayılır.</summary>
+        void ApplyCoverage()
+        {
+            foreach (int reg in _strokeRegions)
+            {
+                if (Brushed[reg]) continue;
+                int total = _regionCells[reg];
+                // çok küçük bölgeler (birkaç kare) tek dokunuşla boyanmış sayılır
+                bool enough = total <= 3 ? _coveredCells[reg] > 0 : _coveredCells[reg] >= total * CoverNeeded;
+                if (!enough) continue;
+                (_strokeUndo.BrushedBefore ??= new List<(int, bool)>()).Add((reg, false));
+                Brushed[reg] = true;
+            }
+            _strokeRegions.Clear();
+        }
+
+        void UncoverCells(List<int> cells)
+        {
+            if (cells == null || _covered == null) return;
+            foreach (int c in cells)
+            {
+                if (!_covered[c]) continue;
+                _covered[c] = false;
+                _coveredCells[_cellRegion[c]]--;
+            }
+        }
+
         // ================= Kalem / silgi =================
 
         float BrushRadiusPaintPx()
@@ -669,7 +769,8 @@ namespace LofiBoya
                 if (_strokeRegion == _hintRegion) StopHint();
             }
             _lastStampUv = uv;
-            Paint.AddStamp(uv, BrushRadiusPaintPx());
+            _strokeRegions.Clear();
+            AddPencilStamp(uv, BrushRadiusPaintPx());
             FlushStroke();
         }
 
@@ -689,10 +790,10 @@ namespace LofiBoya
             for (int i = 1; i <= steps; i++)
             {
                 var p = Vector2.Lerp(a, b, i * spacing / dist);
-                Paint.AddStamp(new Vector2(p.x / Paint.Width, p.y / Paint.Height), radius * UnityEngine.Random.Range(0.92f, 1.04f));
+                AddPencilStamp(new Vector2(p.x / Paint.Width, p.y / Paint.Height), radius * UnityEngine.Random.Range(0.92f, 1.04f));
             }
             // son damgayı tam parmağın altına koy: boya kalemin ucundan geri kalmasın
-            if (steps * spacing < dist - 0.01f) Paint.AddStamp(uv, radius);
+            if (steps * spacing < dist - 0.01f) AddPencilStamp(uv, radius);
             _lastStampUv = uv;
             float screenDist = dist / Paint.Width * Content.sizeDelta.x * _zoom;
             _strokeLength += screenDist;
@@ -715,7 +816,7 @@ namespace LofiBoya
             _strokeUndo.Paint = Paint.Snapshot(); // işlenmeden önceki hâl
             Paint.Commit(CurrentColor, Tool == Tool.Eraser);
             Material.SetFloat(IdStrokeMode, 0);
-            if (Tool == Tool.Pencil && _strokeRegion > 0) Brushed[_strokeRegion] = true;
+            if (Tool == Tool.Pencil) ApplyCoverage();
             PushUndo(_strokeUndo);
             _strokeUndo = null;
             Changed?.Invoke();
@@ -727,6 +828,8 @@ namespace LofiBoya
             _stroking = false;
             Paint.CancelStroke();
             Material.SetFloat(IdStrokeMode, 0);
+            UncoverCells(_strokeUndo?.Cells);
+            _strokeRegions.Clear();
             _strokeUndo = null;
         }
 
@@ -807,7 +910,9 @@ namespace LofiBoya
             var s = _undo[^1];
             _undo.RemoveAt(_undo.Count - 1);
             if (s.Paint != null) Paint.Restore(s.Paint);
-            if (s.BrushedRegion > 0) Brushed[s.BrushedRegion] = s.WasBrushed;
+            if (s.BrushedRegion > 0 && s.BrushedBefore == null && s.Cells == null) Brushed[s.BrushedRegion] = s.WasBrushed;
+            UncoverCells(s.Cells);
+            if (s.BrushedBefore != null) foreach (var (reg, was) in s.BrushedBefore) Brushed[reg] = was;
             if (s.Region > 0) SetRegion(s.Region, s.Color, s.WasFilled);
             Release(s);
             Sfx.Undo();
@@ -881,6 +986,7 @@ namespace LofiBoya
             Paint.Clear();
             Paint.Dirty = true;
             _stamped = false;
+            if (_covered != null) { Array.Clear(_covered, 0, _covered.Length); Array.Clear(_coveredCells, 0, _coveredCells.Length); }
             Changed?.Invoke();
         }
 
