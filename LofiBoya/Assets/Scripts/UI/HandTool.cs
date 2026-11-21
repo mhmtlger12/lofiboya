@@ -84,6 +84,8 @@ namespace LofiBoya
             AddHand(_eraser, new Vector2(0.66f, 0.66f), 110f);
         }
 
+        void OnDisable() => Cursor.visible = true;
+
         static void AddHand(RectTransform parent, Vector2 anchor, float size)
         {
             var hand = UIKit.Box(parent, "Hand", Color.white, MascotArt.Hand);
@@ -119,6 +121,11 @@ namespace LofiBoya
             if (active) _idle = 0; else _idle += dt;
             float target = drawTool && (active || (_canvas.TouchInput && _placed && _idle < 0.9f)) ? 1f : 0f;
             _alpha = Mathf.MoveTowards(_alpha, target, dt * (target > _alpha ? 8f : 3f));
+            // Farede Windows/Mac imleci donanımla çizilir ve oyunun çizgisinden hep 1–3 kare öndedir:
+            // çizgi geriden geliyor gibi görünür. Kalem tuvalin üstündeyken imleç gizlenir; imleç kalemin
+            // kendisidir ve çizgiyle aynı karede çizilir.
+            bool hideOs = drawTool && !_canvas.TouchInput && (_canvas.PointerOver || _canvas.Stroking);
+            if (Cursor.visible == hideOs) Cursor.visible = !hideOs;
             _group.alpha = _alpha;
 
             _crayon.gameObject.SetActive(!eraser);

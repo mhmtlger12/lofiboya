@@ -623,8 +623,9 @@ namespace LofiBoya
             var r = Image.rectTransform.rect;
             // çizginin son boyanan noktası (yerel) ve parmağın 1–2 kare sonraki tahmini yeri
             var a = new Vector2(r.xMin + _lastStampUv.x * r.width, r.yMin + _lastStampUv.y * r.height) - r.center;
-            float lead = Mathf.Min(0.034f, dt * 2f);
-            var pred = p + Vector2.ClampMagnitude(_ptrVel * lead, 90f);
+            // 2–3 kare ileri (60 Hz'de ~40 ms, 120 Hz'de ~25 ms); hızlı hareketlerde de en çok 140 px
+            float lead = Mathf.Clamp(dt * 2.5f, 0.02f, 0.042f);
+            var pred = p + Vector2.ClampMagnitude(_ptrVel * lead, 140f);
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(Image.rectTransform, pred, null, out var bl)) return;
             var b = bl - r.center;
             float thick = BrushRadiusPaintPx() * 2f * r.width / Paint.Width * 0.9f;
