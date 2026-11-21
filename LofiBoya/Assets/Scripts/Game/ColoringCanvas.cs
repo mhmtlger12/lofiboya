@@ -220,14 +220,14 @@ namespace LofiBoya
             Paint.Dirty = false;
 
             Material = new Material(Resources.Load<Shader>("Shaders/ColoringFill"));
-            Material.SetTexture(IdRegionTex, level.Regions);
-            Material.SetTexture(IdColorTex, _colorTex);
-            Material.SetTexture(IdPaintTex, Paint.Texture);
-            Material.SetFloat(IdRows, _colorRows);
-            Material.SetVector(IdTexSize, new Vector4(level.Width, level.Height, 0, 0));
-            Material.SetFloat(IdFillRegion, -1);
-            Material.SetFloat(IdHint, -1);
-            Material.SetColor(IdHintColor, Theme.Accent);
+            MatT(IdRegionTex, level.Regions);
+            MatT(IdColorTex, _colorTex);
+            MatT(IdPaintTex, Paint.Texture);
+            MatF(IdRows, _colorRows);
+            MatV(IdTexSize, new Vector4(level.Width, level.Height, 0, 0));
+            MatF(IdFillRegion, -1);
+            MatF(IdHint, -1);
+            MatC(IdHintColor, Theme.Accent);
             Image.texture = level.Lines;
             Image.material = Material;
             BorderRegion = level.RegionAt(1, 1);
@@ -539,12 +539,12 @@ namespace LofiBoya
             _animRegion = id;
             _animColor = c;
             float extent = Mathf.Sqrt(Level.Meta.area[id - 1]) * 1.6f + Level.Meta.radius[id - 1] * 2f + 30f;
-            Material.SetFloat(IdFillRegion, id);
-            Material.SetVector(IdFillCenter, new Vector4(uv.x, uv.y, 0, 0));
-            Material.SetColor(IdFillColor, color);
-            Material.SetFloat(IdFillRadius, 0);
+            MatF(IdFillRegion, id);
+            MatV(IdFillCenter, new Vector4(uv.x, uv.y, 0, 0));
+            MatC(IdFillColor, color);
+            MatF(IdFillRadius, 0);
             float duration = Mathf.Clamp(0.25f + extent / 2600f, 0.25f, 0.6f);
-            _fillAnim = Tween.To(this, duration, k => Material.SetFloat(IdFillRadius, extent * k), Tween.OutCubic, 0f, CommitAnimation);
+            _fillAnim = Tween.To(this, duration, k => MatF(IdFillRadius, extent * k), Tween.OutCubic, 0f, CommitAnimation);
             Changed?.Invoke();
         }
 
@@ -555,7 +555,7 @@ namespace LofiBoya
             _fillAnim = null;
             _colorTex.SetPixel(_animRegion % 256, _animRegion / 256, _animColor);
             _colorTex.Apply(false);
-            Material.SetFloat(IdFillRegion, -1);
+            MatF(IdFillRegion, -1);
             _animRegion = -1;
         }
 
@@ -583,6 +583,26 @@ namespace LofiBoya
             _colorTex.SetPixel(id % 256, id / 256, filled ? color : (Color32)Theme.Paper);
             _colorTex.Apply(false);
         }
+
+        // ================= Materyal ayarları =================
+        // Tuval bir maskenin (Mask) içinde: Unity ekrana materyalin maske KOPYASIYLA çizer. Sonradan
+        // asıl materyale yazılan ayarlar (çizgi önizlemesi, kova animasyonu, ipucu) o kopyaya geçmez;
+        // kalem çizgisi parmak kalkana kadar görünmüyordu. Ayarlar ikisine birden yazılır.
+
+        Material RenderMat
+        {
+            get
+            {
+                if (Image == null || Image.canvasRenderer.materialCount == 0) return null;
+                var m = Image.canvasRenderer.GetMaterial(0);
+                return m != null && m != Material ? m : null;
+            }
+        }
+
+        void MatF(int id, float v) { Material.SetFloat(id, v); RenderMat?.SetFloat(id, v); }
+        void MatV(int id, Vector4 v) { Material.SetVector(id, v); RenderMat?.SetVector(id, v); }
+        void MatC(int id, Color v) { Material.SetColor(id, v); RenderMat?.SetColor(id, v); }
+        void MatT(int id, Texture v) { Material.SetTexture(id, v); RenderMat?.SetTexture(id, v); }
 
         // ================= Tahmini kalem ucu =================
         // Dokunuştan ekrana 1–2 kare gecikme olur (Android + Unity). Kalem çizgisi parmağın gerisinde
@@ -759,9 +779,9 @@ namespace LofiBoya
             _strokeStartTime = Time.unscaledTime;
             _strokeLength = 0;
             _strokeUndo = new UndoStep();
-            Material.SetTexture(IdStrokeTex, Paint.Stroke);
-            Material.SetColor(IdStrokeColor, CurrentColor);
-            Material.SetFloat(IdStrokeMode, Tool == Tool.Eraser ? 2 : 1);
+            MatT(IdStrokeTex, Paint.Stroke);
+            MatC(IdStrokeColor, CurrentColor);
+            MatF(IdStrokeMode, Tool == Tool.Eraser ? 2 : 1);
             if (Tool == Tool.Pencil)
             {
                 _strokeUndo.BrushedRegion = _strokeRegion;
@@ -815,7 +835,7 @@ namespace LofiBoya
             _stroking = false;
             _strokeUndo.Paint = Paint.Snapshot(); // işlenmeden önceki hâl
             Paint.Commit(CurrentColor, Tool == Tool.Eraser);
-            Material.SetFloat(IdStrokeMode, 0);
+            MatF(IdStrokeMode, 0);
             if (Tool == Tool.Pencil) ApplyCoverage();
             PushUndo(_strokeUndo);
             _strokeUndo = null;
@@ -827,7 +847,7 @@ namespace LofiBoya
             if (!_stroking) return;
             _stroking = false;
             Paint.CancelStroke();
-            Material.SetFloat(IdStrokeMode, 0);
+            MatF(IdStrokeMode, 0);
             UncoverCells(_strokeUndo?.Cells);
             _strokeRegions.Clear();
             _strokeUndo = null;
@@ -931,7 +951,7 @@ namespace LofiBoya
             if (best < 0) return false;
             StopHint();
             _hintRegion = best;
-            Material.SetFloat(IdHint, best);
+            MatF(IdHint, best);
 
             float r = Level.Meta.radius[best - 1];
             float targetZoom = Mathf.Clamp(Level.Width * 0.06f / Mathf.Max(4f, r), 1f, MaxZoom * 0.75f);
@@ -954,7 +974,7 @@ namespace LofiBoya
         {
             Tween.Stop(_hintCo);
             _hintRegion = -1;
-            if (Material != null) Material.SetFloat(IdHint, -1);
+            if (Material != null) MatF(IdHint, -1);
         }
 
         // ================= Kayıt yardımcıları =================
