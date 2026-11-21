@@ -24,6 +24,110 @@ namespace LofiBoya
         public static Sprite Bulb => _bulb != null ? _bulb : (_bulb = Icon(BulbSdf));
         public static Sprite Trash => _trash != null ? _trash : (_trash = Icon(TrashSdf));
         public static Sprite Fit => _fit != null ? _fit : (_fit = Icon(FitSdf));
+        // ---------------- Damgalar (büyük, yumuşak kenarlı siluetler) ----------------
+        static Sprite _heart, _star5, _flower, _balloon, _cloud, _download, _magic;
+        public static Sprite Heart => _heart != null ? _heart : (_heart = Icon(HeartSdf, 256));
+        public static Sprite Star5 => _star5 != null ? _star5 : (_star5 = Icon(Star5Sdf, 256));
+        public static Sprite Flower => _flower != null ? _flower : (_flower = Icon(FlowerSdf, 256));
+        public static Sprite Balloon => _balloon != null ? _balloon : (_balloon = Icon(BalloonSdf, 256));
+        public static Sprite CloudShape => _cloud != null ? _cloud : (_cloud = Icon(CloudSdf, 256));
+        public static Sprite Download => _download != null ? _download : (_download = Icon(DownloadSdf));
+        /// <summary>Sihirli değnek (sihirli boya düğmesi).</summary>
+        public static Sprite Magic => _magic != null ? _magic : (_magic = Icon(MagicSdf));
+
+        /// <summary>Damga seçenekleri (sıra kayıtta önemli değil).</summary>
+        public static Sprite[] Stamps => new[] { Heart, Star5, Flower, Balloon, CloudShape };
+        public static readonly string[] StampNames = { "kalp", "yıldız", "çiçek", "balon", "bulut" };
+
+        static float HeartSdf(Vector2 p)
+        {
+            var q = new Vector2(Mathf.Abs(p.x), p.y + 0.86f) * 0.62f;
+            float d;
+            if (q.y + q.x > 1f) d = (q - new Vector2(0.25f, 0.75f)).magnitude - 0.35355f;
+            else
+            {
+                float m = Mathf.Max(q.x + q.y, 0f) * 0.5f;
+                d = Mathf.Sqrt(Mathf.Min((q - new Vector2(0, 1)).sqrMagnitude, (q - new Vector2(m, m)).sqrMagnitude)) * Mathf.Sign(q.x - q.y);
+            }
+            return d / 0.62f - 0.04f;
+        }
+
+        static float Star5Sdf(Vector2 p)
+        {
+            p = new Vector2(p.x, p.y + 0.06f);
+            var k1 = new Vector2(0.809017f, -0.587785f);
+            var k2 = new Vector2(-k1.x, k1.y);
+            p.x = Mathf.Abs(p.x);
+            p -= 2f * Mathf.Max(Vector2.Dot(k1, p), 0f) * k1;
+            p -= 2f * Mathf.Max(Vector2.Dot(k2, p), 0f) * k2;
+            p.x = Mathf.Abs(p.x);
+            const float r = 0.86f, rf = 0.48f;
+            p.y -= r;
+            var ba = rf * new Vector2(-k1.y, k1.x) - new Vector2(0, 1);
+            float h = Mathf.Clamp(Vector2.Dot(p, ba) / Vector2.Dot(ba, ba), 0f, r);
+            return (p - ba * h).magnitude * Mathf.Sign(p.y * ba.x - p.x * ba.y) - 0.07f;
+        }
+
+        static float FlowerSdf(Vector2 p)
+        {
+            float d = 10f;
+            for (int i = 0; i < 5; i++)
+            {
+                float a = (90f + i * 72f) * Mathf.Deg2Rad;
+                d = Mathf.Min(d, (p - new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 0.48f).magnitude - 0.38f);
+            }
+            d = Mathf.Max(d, -(p.magnitude - 0.27f));   // ortada halka boşluğu
+            return Mathf.Min(d, p.magnitude - 0.17f);   // göbek
+        }
+
+        static float BalloonSdf(Vector2 p)
+        {
+            float body = Ellipse(p - new Vector2(0, 0.2f), new Vector2(0.56f, 0.66f));
+            var knot = new[] { new Vector2(-0.1f, -0.52f), new Vector2(0.1f, -0.52f), new Vector2(0, -0.40f) };
+            float k = Polygon(p, knot) - 0.02f;
+            // kıvrımlı ip
+            float str = 10f;
+            for (int i = 0; i < 6; i++)
+            {
+                float y0 = -0.52f - i * 0.08f, y1 = y0 - 0.08f;
+                float x0 = Mathf.Sin(i * 1.4f) * 0.06f, x1 = Mathf.Sin((i + 1) * 1.4f) * 0.06f;
+                str = Mathf.Min(str, Capsule(p, new Vector2(x0, y0), new Vector2(x1, y1), 0.025f));
+            }
+            // parlama boşluğu
+            float shine = Capsule(p, new Vector2(-0.30f, 0.38f), new Vector2(-0.18f, 0.58f), 0.06f);
+            return Mathf.Min(Mathf.Max(body, -shine), Mathf.Min(k, str));
+        }
+
+        static float CloudSdf(Vector2 p)
+        {
+            float d = (p - new Vector2(-0.46f, -0.08f)).magnitude - 0.36f;
+            d = Mathf.Min(d, (p - new Vector2(0.02f, 0.16f)).magnitude - 0.48f);
+            d = Mathf.Min(d, (p - new Vector2(0.48f, -0.04f)).magnitude - 0.38f);
+            d = Mathf.Min(d, RoundBox(p, new Vector2(0, -0.22f), new Vector2(0.78f, 0.22f), 0.22f));
+            return d;
+        }
+
+        static float DownloadSdf(Vector2 p)
+        {
+            float shaft = Capsule(p, new Vector2(0, 0.62f), new Vector2(0, -0.12f), 0.11f);
+            float head = Mathf.Min(Capsule(p, new Vector2(0, -0.2f), new Vector2(-0.36f, 0.16f), 0.11f),
+                                   Capsule(p, new Vector2(0, -0.2f), new Vector2(0.36f, 0.16f), 0.11f));
+            float tray = Mathf.Min(Capsule(p, new Vector2(-0.66f, -0.66f), new Vector2(0.66f, -0.66f), 0.11f),
+                         Mathf.Min(Capsule(p, new Vector2(-0.66f, -0.66f), new Vector2(-0.66f, -0.30f), 0.11f),
+                                   Capsule(p, new Vector2(0.66f, -0.66f), new Vector2(0.66f, -0.30f), 0.11f)));
+            return Mathf.Min(shaft, Mathf.Min(head, tray));
+        }
+
+        static float MagicSdf(Vector2 p)
+        {
+            float wand = Capsule(p, new Vector2(-0.62f, -0.62f), new Vector2(0.18f, 0.18f), 0.1f);
+            // değneğin ucunda 4 köşeli parıltı
+            var q = p - new Vector2(0.38f, 0.38f);
+            float sp = Mathf.Pow(Mathf.Abs(q.x), 0.5f) + Mathf.Pow(Mathf.Abs(q.y), 0.5f) - 0.62f;
+            float small = (p - new Vector2(-0.4f, 0.45f)).magnitude - 0.1f;
+            return Mathf.Min(wand, Mathf.Min(sp * 0.5f, small));
+        }
+
         static Sprite _gear;
         public static Sprite Gear => _gear != null ? _gear : (_gear = Icon(GearSdf));
 

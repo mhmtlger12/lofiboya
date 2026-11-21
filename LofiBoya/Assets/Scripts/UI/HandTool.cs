@@ -8,6 +8,7 @@ namespace LofiBoya
     /// minik eliyle tutulan büyük boya kalemi. Çizerken hafifçe bastırır ve harekete göre eğilir.
     /// Kova seçiliyken dokunulan yere küçük bir kova dökülür.
     /// </summary>
+    [DefaultExecutionOrder(100)] // tuval girdiyi okuduktan sonra çalış: aynı karede
     public class HandTool : MonoBehaviour
     {
         ColoringCanvas _canvas;
@@ -18,7 +19,9 @@ namespace LofiBoya
         float _alpha, _tilt, _press, _idle;
         bool _placed;
 
-        const float Len = 300f, Wid = 76f, BaseAngle = 150f;
+        const float Len = 300f, Wid = 75f, BaseAngle = 150f;
+        /// <summary>Kalem sprite'ında ucun gerçek yüksekliği (Art.CrayonSdf: 3.725 / 4.0).</summary>
+        const float TipV = 0.93f;
 
         public static HandTool Create(Transform parent, ColoringCanvas canvas)
         {
@@ -43,7 +46,7 @@ namespace LofiBoya
             // Yere düşen yumuşak gölge (kâğıttan biraz yukarıda tutuluyor hissi)
             _shadow = UIKit.Node("Shadow", _root);
             _shadow.anchorMin = _shadow.anchorMax = new Vector2(0.5f, 0.5f);
-            _shadow.pivot = new Vector2(0.5f, 1f);
+            _shadow.pivot = new Vector2(0.5f, TipV);
             _shadow.sizeDelta = new Vector2(Wid, Len);
             _shadowImg = _shadow.gameObject.AddComponent<Image>();
             _shadowImg.sprite = Art.CrayonBody;
@@ -53,7 +56,7 @@ namespace LofiBoya
             // Kalem: ucu pivotta, gövdesi sağ-yukarı uzanır
             _crayon = UIKit.Node("Crayon", _root);
             _crayon.anchorMin = _crayon.anchorMax = new Vector2(0.5f, 0.5f);
-            _crayon.pivot = new Vector2(0.5f, 1f);
+            _crayon.pivot = new Vector2(0.5f, TipV);
             _crayon.sizeDelta = new Vector2(Wid, Len);
             _body = UIKit.Box(_crayon, "Body", Color.white, Art.CrayonBody);
             _body.type = Image.Type.Simple;
@@ -89,11 +92,11 @@ namespace LofiBoya
             hand.rectTransform.sizeDelta = new Vector2(size, size);
         }
 
-        void Update()
+        void LateUpdate()
         {
             if (_canvas == null) return;
             float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
-            bool drawTool = _canvas.Tool != Tool.Fill;
+            bool drawTool = _canvas.Tool == Tool.Pencil || _canvas.Tool == Tool.Eraser;
             bool eraser = _canvas.Tool == Tool.Eraser;
 
             // görünürlük: çizerken her zaman; farede tuvalin üstündeyken; dokunmatikte parmak kalkınca kısa süre kalır
@@ -114,9 +117,9 @@ namespace LofiBoya
                 RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)transform, sp, null, out var local);
                 if (!_placed || _alpha < 0.05f) { _pos = local; _vel = Vector2.zero; }
                 if (_canvas.Stroking || _canvas.PointerOver) _placed = true;
-                // ucu parmağı sıkıca izler; yine de çok hafif yumuşatma titremeyi alır
+                // uç tam boyanın çıktığı noktada durur (yumuşatma yok: gecikme hissi verir)
                 var prev = _pos;
-                _pos = Vector2.Lerp(_pos, local, 1f - Mathf.Exp(-dt * 40f));
+                _pos = local;
                 _vel = Vector2.Lerp(_vel, (_pos - prev) / Mathf.Max(dt, 1e-4f), 1f - Mathf.Exp(-dt * 10f));
             }
             else _vel = Vector2.Lerp(_vel, Vector2.zero, 1f - Mathf.Exp(-dt * 6f));

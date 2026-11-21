@@ -67,6 +67,52 @@ Shader "LofiBoya/ColoringFill"
             float _ColorRows, _FillRegion, _FillRadius, _HintRegion, _StrokeMode;
             float4 _TexSize, _FillCenter, _FillColor, _HintColor, _ClipRect, _StrokeColor;
 
+            // ---- Sihirli boyalar (MagicPaint.cs ile aynı hesap) ----
+            float Hash(float2 p) { return frac(sin(p.x * 127.1 + p.y * 311.7) * 43758.5453); }
+            float3 Hsv(float h, float s, float v)
+            {
+                float3 k = saturate(abs(frac(h + float3(0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0);
+                return v * lerp(float3(1, 1, 1), k, s);
+            }
+            float3 Magic(float3 c, float style, float2 px)
+            {
+                float t = _Time.y;
+                if (style < 1.5) // simli
+                {
+                    float2 cell = floor(px / 6.0);
+                    float h = Hash(cell);
+                    float tw = 0.5 + 0.5 * sin(t * 3.0 + h * 40.0);
+                    float3 col = c * (0.9 + 0.2 * Hash(cell + 3.1));
+                    col = lerp(col, float3(1, 1, 1), step(0.86, h) * tw * 0.85);
+                    float2 big = floor(px / 34.0);
+                    float hb = Hash(big + 7.7);
+                    float2 f = frac(px / 34.0) - 0.5;
+                    float star4 = max(0.0, 1.0 - (abs(f.x) * abs(f.y) * 600.0 + length(f) * 6.0));
+                    col += star4 * step(0.7, hb) * (0.5 + 0.5 * sin(t * 2.0 + hb * 30.0));
+                    return col;
+                }
+                if (style < 2.5) // gökkuşağı (yavaşça akar)
+                    return lerp(c, Hsv((px.x + px.y) / 900.0 + t * 0.03, 0.5, 1.0), 0.75);
+                if (style < 3.5) // puantiye
+                {
+                    float gy = px.y / 40.0;
+                    float gx = px.x / 40.0 + 0.5 * fmod(floor(gy), 2.0);
+                    float2 f = frac(float2(gx, gy)) - 0.5;
+                    float inside = 1.0 - smoothstep(0.17, 0.21, length(f));
+                    return lerp(c, lerp(c, float3(1, 1, 1), 0.65), inside);
+                }
+                // yıldızlı
+                {
+                    float gy = px.y / 56.0;
+                    float gx = px.x / 56.0 + 0.5 * fmod(floor(gy), 2.0);
+                    float2 f = frac(float2(gx, gy)) - 0.5;
+                    float a = atan2(f.x, f.y);
+                    float rr = 0.30 * (0.45 + 0.55 * pow(abs(cos(a * 2.5)), 3.0));
+                    float inside = 1.0 - smoothstep(rr - 0.02, rr + 0.02, length(f));
+                    return lerp(c, lerp(c, float3(1, 0.95, 0.7), 0.75), inside);
+                }
+            }
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -93,8 +139,13 @@ Shader "LofiBoya/ColoringFill"
                     float rim = smoothstep(_FillRadius - 18.0, _FillRadius - 4.0, d) * k;
                     float4 fc = _FillColor;
                     fc.rgb = lerp(fc.rgb, fc.rgb * 1.12 + 0.04, rim);
-                    c = lerp(c, fc, k);
+                    c.rgb = lerp(c.rgb, fc.rgb, k);
+                    c.a = k > 0.5 ? fc.a : c.a;
                 }
+
+                // Sihirli boya: stil renk dokusunun alfa kanalında (alfa = 1 - stil/255)
+                float style = round((1.0 - c.a) * 255.0);
+                if (style > 0.5) c.rgb = Magic(c.rgb, style, i.uv * _TexSize.xy);
 
                 // İpucu: boyanmamış bölge yumuşakça parlar
                 if (abs(id - _HintRegion) < 0.5)

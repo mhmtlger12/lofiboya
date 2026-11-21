@@ -55,8 +55,32 @@ namespace LofiBoya
             return tex;
         }
 
+        public const string BlankGroup = "serbest", BlankId = "bos-sayfa";
+        public bool IsBlank => Group == BlankGroup;
+
+        /// <summary>Serbest çizim için bembeyaz, tek bölgeli sayfa.</summary>
+        public static Level Blank()
+        {
+            const int w = 960, h = 1280;
+            var lv = new Level { Group = BlankGroup, Id = BlankId };
+            lv.Meta = new LevelMeta { width = w, height = h, regionCount = 1, cx = new[] { w / 2 }, cy = new[] { h / 2 }, area = new[] { w * h }, radius = new[] { w * 0.5f } };
+            lv._linePix = new Color32[w * h];
+            lv._regionPix = new Color32[w * h];
+            var white = new Color32(255, 255, 255, 255);
+            var one = new Color32(1, 0, 0, 255);
+            for (int i = 0; i < w * h; i++) { lv._linePix[i] = white; lv._regionPix[i] = one; }
+            lv.Lines = new Texture2D(w, h, TextureFormat.RGBA32, false, false) { wrapMode = TextureWrapMode.Clamp, name = "blank_lines" };
+            lv.Lines.SetPixels32(lv._linePix);
+            lv.Lines.Apply(false, false);
+            lv.Regions = new Texture2D(w, h, TextureFormat.RGBA32, false, true) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Point, name = "blank_regions" };
+            lv.Regions.SetPixels32(lv._regionPix);
+            lv.Regions.Apply(false, false);
+            return lv;
+        }
+
         public static Level Load(string group, string id)
         {
+            if (group == BlankGroup) return Blank();
             var lv = new Level { Group = group, Id = id };
             var meta = Resources.Load<TextAsset>(lv.Path + "level");
             var lines = Resources.Load<TextAsset>(lv.Path + "lines");
@@ -125,6 +149,7 @@ namespace LofiBoya
                     var rc = _regionPix[i];
                     int id = rc.r + rc.g * 256;
                     Color32 c = id > 0 && id < regionColors.Length ? regionColors[id] : (Color32)Theme.Paper;
+                    if (c.a < 255) c = MagicPaint.Apply(c, MagicPaint.Decode(c.a), new Vector2(sx, sy));
                     if (paintPix != null)
                     {
                         int px2 = Mathf.Min(pw - 1, (int)((x + 0.5f) / tw * pw));

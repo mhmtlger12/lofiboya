@@ -11,6 +11,7 @@ namespace LofiBoya
         Mascot _mascot;
         float _t0;
         static bool _greeted;
+        string _dailyGroup, _dailyId;
         const float PolX = 40f, PolY = 70f;
 
         void Start()
@@ -52,12 +53,29 @@ namespace LofiBoya
             caption.rectTransform.Band(false, 112, 16);
             LoadPreview(raw, fitter);
             Tween.Pop(_polaroid, 0.15f, 0.6f);
+            // bugünün resmine dokununca hemen boyamaya başla
+            var hit = _polaroid.gameObject.AddComponent<Image>();
+            hit.color = Color.clear;
+            var pb = _polaroid.gameObject.AddComponent<Button>();
+            pb.transition = Selectable.Transition.None;
+            pb.onClick.AddListener(() =>
+            {
+                if (_dailyId == null) return;
+                Sfx.Tap();
+                Haptics.Light();
+                App.I.ShowColoring(_dailyGroup, _dailyId);
+            });
+            _polaroid.gameObject.AddComponent<PressFeedback>();
 
             // ---- Pofuduk: polaroidin köşesinde oturur, dokununca kıkırdar ----
             _mascot = Mascot.Create(root, 320);
             var mrt = (RectTransform)_mascot.transform;
             mrt.Place(new Vector2(0.5f, 0.5f), new Vector2(-300, -250), mrt.sizeDelta);
             Tween.Pop(mrt, 0.45f, 0.6f);
+            // Gün serisi: Pofuduk'un konuşma balonunda
+            int streak = SaveSystem.Streak;
+            if (streak >= 2) Bubble(mrt, streak + " gündür" + "\n" + "boyuyorsun!");
+            else if (!SaveSystem.PlayedToday) Bubble(mrt, "bugünün resmi" + "\n" + "seni bekliyor!");
             if (!_greeted)
             {
                 _greeted = true;
@@ -65,7 +83,8 @@ namespace LofiBoya
                 {
                     if (_mascot == null) return;
                     _mascot.Wave(2f);
-                    Speech.Say("Merhaba! Ben Pofuduk. Hadi birlikte boyayalım!", "merhaba");
+                    if (streak >= 2) Speech.Say("Merhaba! " + streak + " gündür boyuyorsun, süpersin!");
+                    else Speech.Say("Merhaba! Ben Pofuduk. Hadi birlikte boyayalım!", "merhaba");
                 });
             }
 
@@ -98,6 +117,23 @@ namespace LofiBoya
             ((RectTransform)music.transform).Place(new Vector2(0, 1), new Vector2(100, -100), new Vector2(110, 110));
             var gear = UIKit.IconButton(root, Art.Gear, Theme.Card.WithAlpha(0.9f), Theme.TextSoft, 110, () => ParentGate.Show(ParentGate.Settings), 0.5f);
             ((RectTransform)gear.transform).Place(new Vector2(1, 1), new Vector2(-100, -100), new Vector2(110, 110));
+        }
+
+        void Bubble(RectTransform mascot, string text)
+        {
+            var root = (RectTransform)transform;
+            var b = UIKit.Card(root, "Bubble", Color.white, 0.6f, 4f);
+            var brt = (RectTransform)b.transform.parent;
+            brt.Place(new Vector2(0.5f, 0.5f), mascot.anchoredPosition + new Vector2(10, 230), new Vector2(330, 130));
+            var tail = UIKit.Box(b.transform, "Tail", Color.white, UIKit.Circle);
+            tail.type = Image.Type.Simple;
+            tail.rectTransform.Place(new Vector2(0.3f, 0f), new Vector2(0, -12), new Vector2(40, 40));
+            var t = UIKit.Label(b.transform, text, 36, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            t.rectTransform.Stretch(10, 6, 10, 10);
+            t.lineSpacing = 0.85f;
+            brt.localScale = Vector3.zero;
+            Tween.Pop(brt, 1.3f, 0.5f);
+            brt.gameObject.AddComponent<Floaty>().Init(6f, 0.8f);
         }
 
         static Button BigButton(Transform parent, string label, Sprite icon, Color iconColor, Color bg, Vector2 pos, float delay, System.Action onClick)
@@ -142,7 +178,13 @@ namespace LofiBoya
             var all = new System.Collections.Generic.List<(string g, string id)>();
             foreach (var g in groups) foreach (var l in g.levels) all.Add((g.name, l.id));
             if (all.Count == 0) return;
-            var pick = all[Random.Range(0, all.Count)];
+            // Bugünün resmi: her gün değişir, gün içinde aynı kalır; bitmemişler öncelikli
+            var undone = all.FindAll(e => { var s = SaveSystem.Load(e.g + "_" + e.id); return s == null || !s.done; });
+            var pool = undone.Count > 0 ? undone : all;
+            var now = System.DateTime.Now;
+            var pick = pool[(now.Year * 372 + now.DayOfYear) % pool.Count];
+            _dailyGroup = pick.g;
+            _dailyId = pick.id;
 
             // Kayıtlı renkli hâli varsa onu göster, yoksa pastel renklerle boya
             _preview = SaveSystem.LoadThumb(pick.g + "_" + pick.id);

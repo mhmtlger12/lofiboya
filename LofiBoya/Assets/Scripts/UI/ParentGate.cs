@@ -44,7 +44,7 @@ namespace LofiBoya
 
         public static void Settings()
         {
-            var (overlay, card, close) = Panel(860, 1040);
+            var (overlay, card, close) = Panel(860, 1180);
             var t = UIKit.Label(card.transform, "Ayarlar", 64, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 100, 40);
 
@@ -52,6 +52,7 @@ namespace LofiBoya
             Toggle(card.transform, ref y, "Müzik", () => SaveSystem.MusicOn, v => { SaveSystem.MusicOn = v; Sfx.ApplySettings(); });
             Toggle(card.transform, ref y, "Efekt sesleri", () => SaveSystem.SoundOn, v => SaveSystem.SoundOn = v);
             Toggle(card.transform, ref y, "Konuşma (renk ve hayvan adları)", () => Speech.Enabled, v => Speech.Enabled = v);
+            Toggle(card.transform, ref y, "Titreşim", () => Haptics.Enabled, v => { Haptics.Enabled = v; Haptics.Light(); });
 
             // müzik parçası
             var track = UIKit.Button(card.transform, "", Theme.Paper, Theme.Text, 40, null, 0.8f, false);

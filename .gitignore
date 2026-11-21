@@ -49,3 +49,9 @@ __pycache__/
 .claude/
 .DS_Store
 Thumbs.db
+
+# ---- Imza anahtari (ASLA git e girmez) ----
+keys/
+*.jks
+*.keystore
+key.properties

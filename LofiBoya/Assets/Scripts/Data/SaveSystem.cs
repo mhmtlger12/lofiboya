@@ -98,6 +98,34 @@ namespace LofiBoya
             set { PlayerPrefs.SetInt("stars", Mathf.Max(0, value)); PlayerPrefs.Save(); }
         }
 
+        // ---------------- Gün serisi ("3 gündür boyuyorsun!") ----------------
+
+        static int Today => (int)(DateTime.Now.Date - new DateTime(2024, 1, 1)).TotalDays;
+
+        /// <summary>Kaç gündür üst üste boyuyor (dün ya da bugün boyamadıysa seri bitmiştir: 0).</summary>
+        public static int Streak
+        {
+            get
+            {
+                int last = PlayerPrefs.GetInt("lastDay", -10);
+                return Today - last <= 1 ? PlayerPrefs.GetInt("streak", 0) : 0;
+            }
+        }
+
+        public static bool PlayedToday => PlayerPrefs.GetInt("lastDay", -10) == Today;
+
+        /// <summary>Bugün boyadı say. Yeni bir günse true döner.</summary>
+        public static bool RecordPlay()
+        {
+            int today = Today, last = PlayerPrefs.GetInt("lastDay", -10);
+            if (last == today) return false;
+            int streak = last == today - 1 ? PlayerPrefs.GetInt("streak", 0) + 1 : 1;
+            PlayerPrefs.SetInt("streak", streak);
+            PlayerPrefs.SetInt("lastDay", today);
+            PlayerPrefs.Save();
+            return true;
+        }
+
         /// <summary>Sayılı mod (1-5) açık mı.</summary>
         public static bool NumberMode
         {

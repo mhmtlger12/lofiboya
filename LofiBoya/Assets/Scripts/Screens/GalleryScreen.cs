@@ -131,11 +131,18 @@ namespace LofiBoya
             if (levels.Count == 0)
             {
                 var empty = UIKit.Node("Empty", _gridRoot);
-                var msg = UIKit.Label(empty, "Bu bölüm henüz boş\n\nresimler/" + Group + " klasörüne resim ekleyip\ndönüştürücüyü çalıştır", 40, Theme.TextSoft);
+                var msg = UIKit.Label(empty, "Yeni resimler yolda!\n\nŞimdilik Kolay'daki resimleri\nboyamaya ne dersin?", 44, Theme.TextSoft);
                 msg.rectTransform.Place(new Vector2(1f, 0.5f), new Vector2(25, -60), new Vector2(900, 300));
                 return;
             }
 
+            if (Group == "kolay")
+            {
+                // en başta: serbest çizim için boş sayfa
+                var cell = UIKit.Node("Blank", _gridRoot);
+                BuildCard(cell, new LevelEntry { id = Level.BlankId }, Level.BlankGroup);
+                Tween.Pop(cell.GetChild(0), 0f, 0.4f);
+            }
             for (int i = 0; i < levels.Count; i++)
             {
                 var entry = levels[i];
@@ -149,9 +156,11 @@ namespace LofiBoya
             _scroll.verticalNormalizedPosition = _scrollMemory.TryGetValue(Group, out var pos) ? pos : 1f;
         }
 
-        void BuildCard(RectTransform cell, LevelEntry entry)
+        void BuildCard(RectTransform cell, LevelEntry entry, string groupOverride = null)
         {
-            string key = Group + "_" + entry.id;
+            string grp = groupOverride ?? Group;
+            bool blank = grp == Level.BlankGroup;
+            string key = grp + "_" + entry.id;
             var save = SaveSystem.Load(key);
 
             var inner = UIKit.Node("Inner", cell).Stretch();
@@ -166,7 +175,16 @@ namespace LofiBoya
             raw.raycastTarget = false;
             var fit = photo.gameObject.AddComponent<AspectRatioFitter>();
             fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-            var tex = (save != null ? SaveSystem.LoadThumb(key) : null) ?? Level.LoadThumb(Group, entry.id);
+            var tex = (save != null ? SaveSystem.LoadThumb(key) : null) ?? (blank ? null : Level.LoadThumb(grp, entry.id));
+            if (tex == null && blank)
+            {
+                // boş sayfa: ortada büyük bir kalem ve "+"
+                var pen = UIKit.Box(photoBg.transform, "Pencil", Theme.Accent, Art.Pencil);
+                pen.type = Image.Type.Simple;
+                pen.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(-10, 10), new Vector2(150, 150));
+                var plus = UIKit.Label(photoBg.transform, "+", 90, Theme.Lavender, TextAnchor.MiddleCenter, FontStyle.Bold);
+                plus.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(80, 70), new Vector2(100, 100));
+            }
             if (tex != null)
             {
                 _textures.Add(tex);
@@ -174,7 +192,7 @@ namespace LofiBoya
                 fit.aspectRatio = (float)tex.width / tex.height;
             }
 
-            var name = UIKit.Label(face.transform, Names.LevelTitle(entry.id), 36, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var name = UIKit.Label(face.transform, blank ? "Boş Sayfa" : Names.LevelTitle(entry.id), 36, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             name.rectTransform.anchorMin = new Vector2(0, 0);
             name.rectTransform.anchorMax = new Vector2(1, 0);
             name.rectTransform.pivot = new Vector2(0, 0);
@@ -187,7 +205,8 @@ namespace LofiBoya
 
             // Durum rozeti
             string badge; Color badgeCol;
-            if (save == null || save.progress <= 0.001f) { badge = "yeni"; badgeCol = Theme.Lavender; }
+            if (blank) { badge = "çiz!"; badgeCol = Theme.Sky; }
+            else if (save == null || save.progress <= 0.001f) { badge = "yeni"; badgeCol = Theme.Lavender; }
             else if (save.done) { badge = "bitti!"; badgeCol = Theme.Mint; }
             else { badge = "%" + Mathf.Clamp(Mathf.RoundToInt(save.progress * 100), 1, 99); badgeCol = Theme.Butter; }
             var pill = UIKit.Box(face.transform, "Badge", badgeCol, null, 0.9f);
@@ -201,7 +220,7 @@ namespace LofiBoya
             var btn = inner.gameObject.AddComponent<Button>();
             btn.targetGraphic = face;
             btn.transition = Selectable.Transition.None;
-            string group = Group, id = entry.id;
+            string group = grp, id = entry.id;
             btn.onClick.AddListener(() => { Sfx.Tap(); App.I.ShowColoring(group, id); });
             inner.gameObject.AddComponent<PressFeedback>().pressedScale = 0.95f;
         }

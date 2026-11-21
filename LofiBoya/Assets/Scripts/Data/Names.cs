@@ -55,14 +55,28 @@ namespace LofiBoya
             ["strawberry"] = ("çilek", "çileği"), ["watermelon"] = ("karpuz", "karpuzu"),
             ["ice"] = ("dondurma", "dondurmayı"), ["ghost"] = ("hayalet", "hayaleti"),
             ["witch"] = ("cadı", "cadıyı"), ["snowman"] = ("kardan adam", "kardan adamı"),
-            ["easter"] = ("tavşan", "tavşanı"), ["bunny"] = ("tavşan", "tavşanı"), ["rabbit"] = ("tavşan", "tavşanı"),
+["bunny"] = ("tavşan", "tavşanı"), ["rabbit"] = ("tavşan", "tavşanı"),
             ["octopus"] = ("ahtapot", "ahtapotu"), ["seal"] = ("fok", "foku"), ["walrus"] = ("mors", "morsu"),
             ["cake"] = ("pasta", "pastayı"), ["tomato"] = ("domates", "domatesi"),
             ["monkey"] = ("maymun", "maymunu"), ["alligator"] = ("timsah", "timsahı"),
         };
 
+        /// <summary>Dosya adından anlaşılmayan resimler için elle verilen adlar.</summary>
+        static readonly Dictionary<string, (string name, string acc)> ById = new()
+        {
+            ["artrose-easter-6122817"] = ("civciv", "civcivi"),
+            ["artrose-easter-6122832"] = ("tavşan", "tavşanı"),
+            ["artrose-easter-6122870"] = ("civciv", "civcivi"),
+            ["artrose-easter-6122901"] = ("ördek", "ördeği"),
+            ["purepageart-coloring-page-9943298"] = ("ayı", "ayıyı"),
+            ["purepageart-coloring-page-9943301"] = ("aslan", "aslanı"),
+            ["purepageart-cute-9005708"] = ("midilli", "midilliyi"),
+            ["purepageart-cute-9069178"] = ("hayalet", "hayaleti"),
+        };
+
         static (string name, string acc)? Lookup(string id)
         {
+            if (ById.TryGetValue(id, out var byId)) return byId;
             var parts = id.ToLowerInvariant().Split('-');
             // "polar bear" gibi iki kelimelileri önce dene
             for (int i = 0; i + 1 < parts.Length; i++)

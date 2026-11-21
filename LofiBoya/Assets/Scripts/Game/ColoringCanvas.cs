@@ -10,7 +10,7 @@ using ETouch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace LofiBoya
 {
-    public enum Tool { Fill, Pencil, Eraser }
+    public enum Tool { Fill, Pencil, Eraser, Stamp }
 
     /// <summary>
     /// Boyama tuvali.
@@ -32,6 +32,13 @@ namespace LofiBoya
         public Color CurrentColor = Color.white;
         public Tool Tool = Tool.Fill;
         public int BrushSize = 1;
+        /// <summary>Kova için sihirli boya stili (MagicPaint).</summary>
+        public int Magic;
+        /// <summary>Damga aracı için şekil (Art.Stamps).</summary>
+        public int StampIndex;
+        /// <summary>Damga basıldı (ekran noktası, şekil, açı) — üstte "pıt" animasyonu için.</summary>
+        public event Action<Vector2, Sprite, float> Stamped;
+        bool _stamped;
         public float MaxZoom = 8f;
 
         /// <summary>Kalem çapı (ekran/kanvas biriminde) — küçük, orta, büyük.</summary>
@@ -135,7 +142,16 @@ namespace LofiBoya
         public int BorderRegion { get; private set; }
 
         /// <summary>Arka plan bölgesinin şu anki görünen rengi.</summary>
-        public Color BorderColor => BorderRegion > 0 && Filled[BorderRegion] ? (Color)RegionColors[BorderRegion] : Theme.Paper;
+        public Color BorderColor
+        {
+            get
+            {
+                if (BorderRegion <= 0 || !Filled[BorderRegion]) return Theme.Paper;
+                Color c = RegionColors[BorderRegion];
+                c.a = 1;
+                return c;
+            }
+        }
 
         void OnEnable()
         {
@@ -171,7 +187,7 @@ namespace LofiBoya
                 {
                     if (save.colors[i] < 0) continue;
                     int c = save.colors[i];
-                    RegionColors[i] = new Color32((byte)(c >> 16), (byte)(c >> 8), (byte)c, 255);
+                    RegionColors[i] = new Color32((byte)(c >> 16), (byte)(c >> 8), (byte)c, MagicPaint.Encode((c >> 24) & 0xFF));
                     Filled[i] = true;
                     _colorTex.SetPixel(i % 256, i / 256, RegionColors[i]);
                 }
@@ -180,7 +196,7 @@ namespace LofiBoya
             _colorTex.Apply(false);
 
             Paint = new PaintLayer(level);
-            if (savedPaint != null) Paint.Load(savedPaint);
+            if (savedPaint != null) { Paint.Load(savedPaint); _stamped = true; }
             Paint.Dirty = false;
 
             Material = new Material(Resources.Load<Shader>("Shaders/ColoringFill"));
@@ -205,11 +221,14 @@ namespace LofiBoya
             for (int i = 1; i <= Level.Count; i++)
             {
                 var c = RegionColors[i];
-                s.colors[i] = Filled[i] ? (c.r << 16) | (c.g << 8) | c.b : -1;
+                s.colors[i] = Filled[i] ? (c.r << 16) | (c.g << 8) | c.b | (MagicPaint.Decode(c.a) << 24) : -1;
             }
-            s.hasPaint = HasAnyBrush;
+            s.hasPaint = HasPaint;
             return s;
         }
+
+        /// <summary>Boya katmanında bir şey var mı (kalem ya da damga).</summary>
+        public bool HasPaint => _stamped || HasAnyBrush;
 
         public bool HasAnyBrush
         {
@@ -340,7 +359,7 @@ namespace LofiBoya
         {
             _gesture = true; _moved = false; _multi = false; _panOnly = panOnly;
             _startPos = _lastPos = p;
-            if (!panOnly && Tool != Tool.Fill) BeginStroke(p);
+            if (!panOnly && (Tool == Tool.Pencil || Tool == Tool.Eraser)) BeginStroke(p);
         }
 
         void PointerMove(Vector2 p)
@@ -348,7 +367,7 @@ namespace LofiBoya
             if (_stroking) { StrokeTo(p); _lastPos = p; return; }
             float slop = Screen.dpi > 0 ? Screen.dpi * 0.06f : 14f;
             if (!_moved && Vector2.Distance(p, _startPos) > slop) _moved = true;
-            if (_moved && (Tool == Tool.Fill || _panOnly)) Pan(p - _lastPos);
+            if (_moved && (Tool == Tool.Fill || Tool == Tool.Stamp || _panOnly)) Pan(p - _lastPos);
             _lastPos = p;
         }
 
@@ -361,6 +380,7 @@ namespace LofiBoya
                 if (tap && Tool == Tool.Eraser) EraseRegionAt(p);
             }
             else if (!_moved && !_multi && !_panOnly && Tool == Tool.Fill) TapAt(p);
+            else if (!_moved && !_multi && !_panOnly && Tool == Tool.Stamp) StampAt(p);
             _gesture = false; _moved = false; _multi = false; _panOnly = false;
         }
 
@@ -419,7 +439,10 @@ namespace LofiBoya
             if (id <= 0) return;
             if (CanFill != null && !CanFill(id, CurrentColor)) return;
             Tapped?.Invoke(screen);
-            Fill(id, uv, CurrentColor);
+            var col = CurrentColor;
+            col.a = MagicPaint.Encode(Magic) / 255f;
+            Fill(id, uv, col);
+            Haptics.Light();
         }
 
         void Fill(int id, Vector2 uv, Color color)
@@ -533,8 +556,9 @@ namespace LofiBoya
                 var p = Vector2.Lerp(a, b, i * spacing / dist);
                 Paint.AddStamp(new Vector2(p.x / Paint.Width, p.y / Paint.Height), radius * UnityEngine.Random.Range(0.92f, 1.04f));
             }
-            var last = Vector2.Lerp(a, b, steps * spacing / dist);
-            _lastStampUv = new Vector2(last.x / Paint.Width, last.y / Paint.Height);
+            // son damgayı tam parmağın altına koy: boya kalemin ucundan geri kalmasın
+            if (steps * spacing < dist - 0.01f) Paint.AddStamp(uv, radius);
+            _lastStampUv = uv;
             float screenDist = dist / Paint.Width * Content.sizeDelta.x * _zoom;
             _strokeLength += screenDist;
             _scribble = Mathf.Clamp01(_scribble + screenDist / 120f);
@@ -585,6 +609,32 @@ namespace LofiBoya
                 Sfx.Undo();
                 Changed?.Invoke();
             }
+        }
+
+        // ================= Damga =================
+
+        float StampRadiusPx()
+        {
+            float diam = new[] { 110f, 170f, 250f }[Mathf.Clamp(BrushSize, 0, 2)];
+            return diam * 0.5f * Paint.Width / (Content.sizeDelta.x * _zoom);
+        }
+
+        void StampAt(Vector2 screen)
+        {
+            if (!ScreenToUv(screen, out var uv)) return;
+            CommitAnimation();
+            var stamps = Art.Stamps;
+            var sprite = stamps[Mathf.Clamp(StampIndex, 0, stamps.Length - 1)];
+            float rot = UnityEngine.Random.Range(-15f, 15f);
+            var step = new UndoStep { Paint = Paint.Snapshot() };
+            Paint.StampShape(uv, StampRadiusPx(), sprite.texture, rot);
+            Paint.Commit(CurrentColor, false);
+            _stamped = true;
+            PushUndo(step);
+            Sfx.Pop();
+            Haptics.Light();
+            Stamped?.Invoke(screen, sprite, rot);
+            Changed?.Invoke();
         }
 
         // ================= Geri alma =================
@@ -693,6 +743,7 @@ namespace LofiBoya
             _colorTex.Apply(false);
             Paint.Clear();
             Paint.Dirty = true;
+            _stamped = false;
             Changed?.Invoke();
         }
 

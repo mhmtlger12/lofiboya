@@ -17,11 +17,12 @@ Shader "Hidden/LofiBoya/BrushStamp"
         _Hardness ("Hardness", Float) = 0.5
         _GrainScale ("Grain Scale", Vector) = (8,8,0,0)
         _GrainAmount ("Grain Amount", Float) = 0.6
+        _StampTex ("Stamp", 2D) = "white" {}
     }
 
     CGINCLUDE
     #include "UnityCG.cginc"
-    sampler2D _MainTex, _RegionTex, _Grain;
+    sampler2D _MainTex, _RegionTex, _Grain, _StampTex;
     float4 _Color, _GrainScale;
     float _Region, _Opacity, _Hardness, _GrainAmount;
     ENDCG
@@ -98,5 +99,35 @@ Shader "Hidden/LofiBoya/BrushStamp"
             }
             ENDCG
         }
-    }
+    
+        // 3: damga şekli -> çizgi katmanı (kalp, yıldız...). Boya kalemi dokusu hafifçe kalır.
+        Pass
+        {
+            BlendOp Max
+            Blend One One
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            struct appdata { float4 vertex : POSITION; float2 local : TEXCOORD0; float2 uv : TEXCOORD1; };
+            struct v2f { float4 pos : SV_POSITION; float2 local : TEXCOORD0; float2 uv : TEXCOORD1; };
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.local = v.local;
+                o.uv = v.uv;
+                return o;
+            }
+            float4 frag (v2f i) : SV_Target
+            {
+                float a = tex2D(_StampTex, i.local * 0.5 + 0.5).a;
+                float g = tex2D(_Grain, i.uv * _GrainScale.xy).r;
+                float tooth = 0.7 + 0.3 * smoothstep(0.05, 0.45, g);
+                a *= lerp(1.0, tooth, _GrainAmount);
+                return float4(a, a, a, a);
+            }
+            ENDCG
+        }
+
+}
 }

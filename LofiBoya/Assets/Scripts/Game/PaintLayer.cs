@@ -103,6 +103,34 @@ namespace LofiBoya
             _stamps.Clear();
         }
 
+        static readonly int IdStampTex = Shader.PropertyToID("_StampTex");
+
+        /// <summary>Bir şekli (sprite dokusu) çizgi katmanına basar; ardından Commit ile boyanır.</summary>
+        public void StampShape(Vector2 uv, float radiusPx, Texture shape, float angleDeg)
+        {
+            _brush.SetTexture(IdStampTex, shape);
+            _brush.SetFloat(IdGrainAmount, 0.35f);
+            var prev = RenderTexture.active;
+            RenderTexture.active = Stroke;
+            GL.PushMatrix();
+            GL.LoadOrtho();
+            _brush.SetPass(3);
+            GL.Begin(GL.QUADS);
+            float a = angleDeg * Mathf.Deg2Rad, cs = Mathf.Cos(a), sn = Mathf.Sin(a);
+            void C(float lx, float ly)
+            {
+                float ox = (lx * cs - ly * sn) * radiusPx, oy = (lx * sn + ly * cs) * radiusPx;
+                float px = uv.x + ox / Width, py = uv.y + oy / Height;
+                GL.MultiTexCoord2(0, lx, ly);
+                GL.MultiTexCoord2(1, px, py);
+                GL.Vertex3(px, py, 0);
+            }
+            C(-1, -1); C(-1, 1); C(1, 1); C(1, -1);
+            GL.End();
+            GL.PopMatrix();
+            RenderTexture.active = prev;
+        }
+
         /// <summary>Çizgiyi boya katmanına işler (boya ya da silgi) ve çizgi katmanını temizler.</summary>
         public void Commit(Color color, bool erase)
         {
