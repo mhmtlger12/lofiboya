@@ -31,6 +31,10 @@ namespace LofiBoya
         public string Path => $"Levels/{Group}/{Id}/";
 
         static LevelIndex _index;
+
+        /// <summary>Editörde "hızlı Play" (domain reload kapalı) açıkken eski resim listesi kalmasın.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetCache() => _index = null;
         public static LevelIndex Index
         {
             get

@@ -184,7 +184,8 @@ def main():
                 print(f"[{diff}] {fn}: HATA {e}", file=sys.stderr)
 
     os.makedirs(DST, exist_ok=True)
-    groups = [{"name": d, "levels": index[d]} for d in DIFFICULTIES]
+    # Her grupta basitten zora (az bölgeden çok bölgeye): çocuk kademeli ilerler
+    groups = [{"name": d, "levels": sorted(index[d], key=lambda e: (e["regions"], e["id"]))} for d in DIFFICULTIES]
     with open(os.path.join(DST, "index.json"), "w", encoding="utf-8") as f:
         json.dump({"groups": groups}, f, ensure_ascii=False, indent=1)
     total = sum(len(v) for v in index.values())

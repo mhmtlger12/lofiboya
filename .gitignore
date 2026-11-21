@@ -55,3 +55,7 @@ keys/
 *.jks
 *.keystore
 key.properties
+
+# Unity geçici dosyaları ve IL2CPP derleme yedeği (oyunla gönderilmez)
+LofiBoya/.utmp/
+LofiBoya/*_BackUpThisFolder_ButDontShipItWithYourGame/

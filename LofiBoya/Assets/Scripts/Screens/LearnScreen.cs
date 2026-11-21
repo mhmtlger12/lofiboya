@@ -37,7 +37,7 @@ namespace LofiBoya
             var seen = new HashSet<string>();
             foreach (var g in Level.Index.groups)
                 foreach (var l in g.levels)
-                    if (Names.TryAnimal(l.id, out var n, out var acc) && seen.Add(n))
+                    if (Names.IsLearnable(l.id) && Names.TryAnimal(l.id, out var n, out var acc) && seen.Add(n))
                         _animals.Add((g.name, l.id, n, acc));
 
             _mascot = Mascot.Create(_root, 240);

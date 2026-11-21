@@ -71,6 +71,10 @@ namespace LofiBoya
             ["cricket"] = "cricket", ["mandala"] = "mandala", ["pineapple"] = "pineapple", ["seal"] = "seal",
             ["christmas"] = "christmastree", ["apple"] = "apple", ["acorn"] = "acorn",
             ["rocket"] = "rocket", ["house"] = "house", ["fish"] = "fish", ["turtle"] = "turtle", ["snail"] = "snail", ["car"] = "car",
+            ["frog"] = "frog", ["ladybug"] = "ladybug", ["whale"] = "whale", ["mouse"] = "mouse", ["penguin"] = "penguin",
+            ["cow"] = "cow", ["bee"] = "bee", ["octopus"] = "octopus", ["hedgehog"] = "hedgehog", ["hippo"] = "hippo",
+            ["koala"] = "koala", ["monkey"] = "monkey", ["parrot"] = "parrot", ["squirrel"] = "squirrel", ["starfish"] = "starfish",
+            ["jellyfish"] = "jellyfish", ["hen"] = "hen", ["camel"] = "camel",
         };
 
         /// <summary>Dosya adından anlaşılmayan resimler.</summary>
@@ -92,6 +96,49 @@ namespace LofiBoya
             ["coloringpage-ai-generated-8855030"] = "unicorn", ["gdj-floral-2746540"] = "mandala",
             ["kaylinart-drawing-2151087"] = "mandala", ["missywhimsyart-ai-generated-8673312"] = "princess",
             ["missywhimsyart-ai-generated-8673315"] = "princess", ["missywhimsyart-ai-generated-8673319"] = "princess",
+            ["lofi-bus-001"] = "bus",
+            ["lofi-train-001"] = "train",
+            ["lofi-airplane-001"] = "airplane",
+            ["lofi-ship-001"] = "ship",
+            ["lofi-tractor-001"] = "tractor",
+            ["lofi-vegbasket-001"] = "vegbasket",
+            ["lofi-garden-001"] = "garden",
+            ["lofi-doctor-001"] = "doctor",
+            ["lofi-firefighter-001"] = "firefighter",
+            ["lofi-chef-001"] = "chef",
+            ["lofi-astronaut-001"] = "astronaut",
+            ["lofi-toothbrush-001"] = "toothbrush",
+            ["lofi-handwash-001"] = "handwash",
+            ["lofi-feelings-001"] = "feelings",
+            ["lofi-school-001"] = "school",
+            ["lofi-instruments-001"] = "instruments",
+            ["lofi-playground-001"] = "playground",
+            ["lofi-autumn-001"] = "autumn",
+            ["lofi-rainbow-001"] = "rainbow",
+            ["lofi-toys-001"] = "toys",
+            ["lofi-zenfish-001"] = "zenfish",
+            ["lofi-space-001"] = "space",
+            ["lofi-farm-001"] = "farm",
+            ["lofi-startiles-001"] = "startiles",
+            ["lofi-hexflowers-001"] = "hexflowers",
+            ["lofi-kilim-001"] = "kilim",
+            ["lofi-tuliptile-001"] = "tuliptile",
+            ["lofi-city-001"] = "city",
+            ["lofi-reef-001"] = "reef",
+            ["lofi-flowergarden-001"] = "flowergarden",
+            ["lofi-balloons-001"] = "balloons",
+            ["lofi-market-001"] = "market",
+            ["lofi-bookshelf-001"] = "bookshelf",
+            ["lofi-num-1"] = "num1",
+            ["lofi-num-2"] = "num2",
+            ["lofi-num-3"] = "num3",
+            ["lofi-num-4"] = "num4",
+            ["lofi-num-5"] = "num5",
+            ["lofi-num-6"] = "num6",
+            ["lofi-num-7"] = "num7",
+            ["lofi-num-8"] = "num8",
+            ["lofi-num-9"] = "num9",
+            ["lofi-num-10"] = "num10",
             ["seiripan-ai-generated-9623276"] = "girl", ["seiripan-cute-9623238"] = "beach", ["seiripan-cute-9623248"] = "beach",
         };
 
@@ -104,6 +151,20 @@ namespace LofiBoya
             for (int i = 1; i < parts.Length; i++)
                 if (Words.TryGetValue(parts[i], out var w)) return w;
             return null;
+        }
+
+        /// <summary>Tekil bir nesne değil, sahne/çoğul ad: Türkçede "Bu bir ..." denmez.</summary>
+        static readonly HashSet<string> SceneKeys = new() { "feelings", "toothbrush", "handwash", "instruments", "balloons", "hexflowers", "space" };
+        /// <summary>Desen sayfaları: "Resimler" öğrenme oyununda birbirine benzediği için sorulmaz.</summary>
+        static readonly HashSet<string> PatternKeys = new() { "startiles", "hexflowers", "kilim", "tuliptile", "zenfish", "mandala" };
+
+        public static bool IsScene(string id) { var k = Key(id); return k != null && SceneKeys.Contains(k); }
+
+        /// <summary>"Resimleri bul" oyununa uygun mu (sahne ve desen değil, tek bir şey).</summary>
+        public static bool IsLearnable(string id)
+        {
+            var k = Key(id);
+            return k != null && !SceneKeys.Contains(k) && !PatternKeys.Contains(k) && !k.StartsWith("num");
         }
 
         /// <summary>Galeri ve başlıklarda görünen ad.</summary>
@@ -240,6 +301,67 @@ fish|fish|the fish|balık|balığı|Fisch|den Fisch|poisson|le poisson|pez|el pe
 turtle|turtle|the turtle|kaplumbağa|kaplumbağayı|Schildkröte|die Schildkröte|tortue|la tortue|tortuga|la tortuga|tartaruga|la tartaruga|tartaruga|a tartaruga|черепаха|черепаху|سلحفاة|السلحفاة|कछुआ|कछुए
 snail|snail|the snail|salyangoz|salyangozu|Schnecke|die Schnecke|escargot|l'escargot|caracol|el caracol|lumaca|la lumaca|caracol|o caracol|улитка|улитку|حلزون|الحلزون|घोंघा|घोंघे
 car|car|the car|araba|arabayı|Auto|das Auto|voiture|la voiture|coche|el coche|macchina|la macchina|carro|o carro|машинка|машинку|سيارة|السيارة|गाड़ी|गाड़ी
+frog|frog|the frog|kurbağa|kurbağayı|Frosch|den Frosch|grenouille|la grenouille|rana|la rana|rana|la rana|sapo|o sapo|лягушка|лягушку|ضفدع|الضفدع|मेंढक|मेंढक
+ladybug|ladybug|the ladybug|uğur böceği|uğur böceğini|Marienkäfer|den Marienkäfer|coccinelle|la coccinelle|mariquita|la mariquita|coccinella|la coccinella|joaninha|a joaninha|божья коровка|божью коровку|دعسوقة|الدعسوقة|लेडीबग|लेडीबग
+whale|whale|the whale|balina|balinayı|Wal|den Wal|baleine|la baleine|ballena|la ballena|balena|la balena|baleia|a baleia|кит|кита|حوت|الحوت|व्हेल|व्हेल
+mouse|mouse|the mouse|fare|fareyi|Maus|die Maus|souris|la souris|ratón|el ratón|topolino|il topolino|ratinho|o ratinho|мышка|мышку|فأر|الفأر|चूहा|चूहे
+penguin|penguin|the penguin|penguen|pengueni|Pinguin|den Pinguin|pingouin|le pingouin|pingüino|el pingüino|pinguino|il pinguino|pinguim|o pinguim|пингвин|пингвина|بطريق|البطريق|पेंगुइन|पेंगुइन
+cow|cow|the cow|inek|ineği|Kuh|die Kuh|vache|la vache|vaca|la vaca|mucca|la mucca|vaca|a vaca|корова|корову|بقرة|البقرة|गाय|गाय
+bee|bee|the bee|arı|arıyı|Biene|die Biene|abeille|l'abeille|abeja|la abeja|ape|l'ape|abelha|a abelha|пчёлка|пчёлку|نحلة|النحلة|मधुमक्खी|मधुमक्खी
+octopus|octopus|the octopus|ahtapot|ahtapotu|Krake|den Kraken|pieuvre|la pieuvre|pulpo|el pulpo|polpo|il polpo|polvo|o polvo|осьминог|осьминога|أخطبوط|الأخطبوط|ऑक्टोपस|ऑक्टोपस
+hedgehog|hedgehog|the hedgehog|kirpi|kirpiyi|Igel|den Igel|hérisson|le hérisson|erizo|el erizo|riccio|il riccio|ouriço|o ouriço|ёжик|ёжика|قنفذ|القنفذ|हेजहॉग|हेजहॉग
+hippo|hippo|the hippo|su aygırı|su aygırını|Nilpferd|das Nilpferd|hippopotame|l'hippopotame|hipopótamo|el hipopótamo|ippopotamo|l'ippopotamo|hipopótamo|o hipopótamo|бегемот|бегемота|فرس النهر|فرس النهر|दरियाई घोड़ा|दरियाई घोड़े
+koala|koala|the koala|koala|koalayı|Koala|den Koala|koala|le koala|koala|el koala|koala|il koala|coala|o coala|коала|коалу|كوالا|الكوالا|कोआला|कोआला
+monkey|monkey|the monkey|maymun|maymunu|Affe|den Affen|singe|le singe|mono|el mono|scimmietta|la scimmietta|macaco|o macaco|обезьянка|обезьянку|قرد|القرد|बंदर|बंदर
+parrot|parrot|the parrot|papağan|papağanı|Papagei|den Papagei|perroquet|le perroquet|loro|el loro|pappagallo|il pappagallo|papagaio|o papagaio|попугай|попугая|ببغاء|الببغاء|तोता|तोते
+squirrel|squirrel|the squirrel|sincap|sincabı|Eichhörnchen|das Eichhörnchen|écureuil|l'écureuil|ardilla|la ardilla|scoiattolo|lo scoiattolo|esquilo|o esquilo|белочка|белочку|سنجاب|السنجاب|गिलहरी|गिलहरी
+starfish|starfish|the starfish|deniz yıldızı|deniz yıldızını|Seestern|den Seestern|étoile de mer|l'étoile de mer|estrella de mar|la estrella de mar|stella marina|la stella marina|estrela-do-mar|a estrela-do-mar|морская звезда|морскую звезду|نجم البحر|نجم البحر|तारामछली|तारामछली
+jellyfish|jellyfish|the jellyfish|denizanası|denizanasını|Qualle|die Qualle|méduse|la méduse|medusa|la medusa|medusa|la medusa|água-viva|a água-viva|медуза|медузу|قنديل البحر|قنديل البحر|जेलीफ़िश|जेलीफ़िश
+hen|hen|the hen|tavuk|tavuğu|Huhn|das Huhn|poule|la poule|gallina|la gallina|gallina|la gallina|galinha|a galinha|курочка|курочку|دجاجة|الدجاجة|मुर्गी|मुर्गी
+camel|camel|the camel|deve|deveyi|Kamel|das Kamel|chameau|le chameau|camello|el camello|cammello|il cammello|camelo|o camelo|верблюд|верблюда|جمل|الجمل|ऊँट|ऊँट
+num1|number one|number one|bir sayısı|bir sayısını|Zahl Eins|die Zahl Eins|chiffre un|le chiffre un|número uno|el número uno|numero uno|il numero uno|número um|o número um|цифра один|цифру один|رقم واحد|الرقم واحد|अंक एक|अंक एक
+num2|number two|number two|iki sayısı|iki sayısını|Zahl Zwei|die Zahl Zwei|chiffre deux|le chiffre deux|número dos|el número dos|numero due|il numero due|número dois|o número dois|цифра два|цифру два|رقم اثنان|الرقم اثنان|अंक दो|अंक दो
+num3|number three|number three|üç sayısı|üç sayısını|Zahl Drei|die Zahl Drei|chiffre trois|le chiffre trois|número tres|el número tres|numero tre|il numero tre|número três|o número três|цифра три|цифру три|رقم ثلاثة|الرقم ثلاثة|अंक तीन|अंक तीन
+num4|number four|number four|dört sayısı|dört sayısını|Zahl Vier|die Zahl Vier|chiffre quatre|le chiffre quatre|número cuatro|el número cuatro|numero quattro|il numero quattro|número quatro|o número quatro|цифра четыре|цифру четыре|رقم أربعة|الرقم أربعة|अंक चार|अंक चार
+num5|number five|number five|beş sayısı|beş sayısını|Zahl Fünf|die Zahl Fünf|chiffre cinq|le chiffre cinq|número cinco|el número cinco|numero cinque|il numero cinque|número cinco|o número cinco|цифра пять|цифру пять|رقم خمسة|الرقم خمسة|अंक पाँच|अंक पाँच
+num6|number six|number six|altı sayısı|altı sayısını|Zahl Sechs|die Zahl Sechs|chiffre six|le chiffre six|número seis|el número seis|numero sei|il numero sei|número seis|o número seis|цифра шесть|цифру шесть|رقم ستة|الرقم ستة|अंक छह|अंक छह
+num7|number seven|number seven|yedi sayısı|yedi sayısını|Zahl Sieben|die Zahl Sieben|chiffre sept|le chiffre sept|número siete|el número siete|numero sette|il numero sette|número sete|o número sete|цифра семь|цифру семь|رقم سبعة|الرقم سبعة|अंक सात|अंक सात
+num8|number eight|number eight|sekiz sayısı|sekiz sayısını|Zahl Acht|die Zahl Acht|chiffre huit|le chiffre huit|número ocho|el número ocho|numero otto|il numero otto|número oito|o número oito|цифра восемь|цифру восемь|رقم ثمانية|الرقم ثمانية|अंक आठ|अंक आठ
+num9|number nine|number nine|dokuz sayısı|dokuz sayısını|Zahl Neun|die Zahl Neun|chiffre neuf|le chiffre neuf|número nueve|el número nueve|numero nove|il numero nove|número nove|o número nove|цифра девять|цифру девять|رقم تسعة|الرقم تسعة|अंक नौ|अंक नौ
+num10|number ten|number ten|on sayısı|on sayısını|Zahl Zehn|die Zahl Zehn|nombre dix|le nombre dix|número diez|el número diez|numero dieci|il numero dieci|número dez|o número dez|число десять|число десять|رقم عشرة|الرقم عشرة|अंक दस|अंक दस
+bus|bus|the bus|otobüs|otobüsü|Bus|den Bus|bus|le bus|autobús|el autobús|autobus|l'autobus|autocarro|o autocarro|автобус|автобус|حافلة|الحافلة|बस|बस
+train|train|the train|tren|treni|Zug|den Zug|train|le train|tren|el tren|treno|il treno|comboio|o comboio|поезд|поезд|قطار|القطار|रेलगाड़ी|रेलगाड़ी
+airplane|airplane|the airplane|uçak|uçağı|Flugzeug|das Flugzeug|avion|l'avion|avión|el avión|aereo|l'aereo|avião|o avião|самолёт|самолёт|طائرة|الطائرة|हवाई जहाज़|हवाई जहाज़
+ship|sailboat|the sailboat|yelkenli|yelkenliyi|Segelboot|das Segelboot|voilier|le voilier|velero|el velero|barca a vela|la barca a vela|veleiro|o veleiro|парусник|парусник|مركب شراعي|المركب الشراعي|नाव|नाव
+tractor|tractor|the tractor|traktör|traktörü|Traktor|den Traktor|tracteur|le tracteur|tractor|el tractor|trattore|il trattore|trator|o trator|трактор|трактор|جرار|الجرار|ट्रैक्टर|ट्रैक्टर
+vegbasket|vegetable basket|the vegetable basket|sebze sepeti|sebze sepetini|Gemüsekorb|den Gemüsekorb|panier de légumes|le panier de légumes|cesta de verduras|la cesta de verduras|cesto di verdure|il cesto di verdure|cesto de legumes|o cesto de legumes|корзина с овощами|корзину с овощами|سلة الخضار|سلة الخضار|सब्ज़ियों की टोकरी|सब्ज़ियों की टोकरी
+garden|vegetable garden|the vegetable garden|sebze bahçesi|sebze bahçesini|Gemüsegarten|den Gemüsegarten|potager|le potager|huerto|el huerto|orto|l'orto|horta|a horta|огород|огород|حديقة الخضار|حديقة الخضار|सब्ज़ी का बगीचा|सब्ज़ी के बगीचे
+doctor|doctor|the doctor|doktor|doktoru|Ärztin|die Ärztin|médecin|le médecin|doctora|la doctora|dottoressa|la dottoressa|médica|a médica|врач|врача|طبيبة|الطبيبة|डॉक्टर|डॉक्टर
+firefighter|firefighter|the firefighter|itfaiyeci|itfaiyeciyi|Feuerwehr|die Feuerwehr|pompier|le pompier|bombero|el bombero|pompiere|il pompiere|bombeiro|o bombeiro|пожарный|пожарного|إطفائي|الإطفائي|दमकलकर्मी|दमकलकर्मी
+chef|chef|the chef|aşçı|aşçıyı|Koch|den Koch|cuisinier|le cuisinier|cocinero|el cocinero|cuoco|il cuoco|cozinheiro|o cozinheiro|повар|повара|طاهٍ|الطاهي|रसोइया|रसोइए
+astronaut|astronaut|the astronaut|astronot|astronotu|Astronaut|den Astronauten|astronaute|l'astronaute|astronauta|el astronauta|astronauta|l'astronauta|astronauta|o astronauta|космонавт|космонавта|رائد فضاء|رائد الفضاء|अंतरिक्ष यात्री|अंतरिक्ष यात्री
+toothbrush|brushing teeth|the tooth brushing picture|diş fırçalama|diş fırçalama resmini|Zähneputzen|das Zähneputzen|brossage des dents|le brossage des dents|cepillado de dientes|el cepillado de dientes|lavaggio dei denti|il lavaggio dei denti|escovagem dos dentes|a escovagem dos dentes|Чистим зубы|картинку «Чистим зубы»|تنظيف الأسنان|صورة تنظيف الأسنان|दाँत साफ़ करना|दाँत साफ़ करने का चित्र
+handwash|washing hands|the hand washing picture|el yıkama|el yıkama resmini|Händewaschen|das Händewaschen|lavage des mains|le lavage des mains|lavado de manos|el lavado de manos|lavaggio delle mani|il lavaggio delle mani|lavagem das mãos|a lavagem das mãos|Моем руки|картинку «Моем руки»|غسل اليدين|صورة غسل اليدين|हाथ धोना|हाथ धोने का चित्र
+feelings|feelings|the feelings|duygular|duyguları|Gefühle|die Gefühle|émotions|les émotions|emociones|las emociones|emozioni|le emozioni|emoções|as emoções|эмоции|эмоции|المشاعر|المشاعر|भावनाएँ|भावनाएँ
+school|school bag|the school bag|okul çantası|okul çantasını|Schulranzen|den Schulranzen|cartable|le cartable|mochila escolar|la mochila escolar|zaino di scuola|lo zaino di scuola|mochila da escola|a mochila da escola|школьный рюкзак|школьный рюкзак|حقيبة المدرسة|حقيبة المدرسة|स्कूल बैग|स्कूल बैग
+instruments|musical instruments|the musical instruments|müzik aletleri|müzik aletlerini|Musikinstrumente|die Musikinstrumente|instruments de musique|les instruments de musique|instrumentos musicales|los instrumentos musicales|strumenti musicali|gli strumenti musicali|instrumentos musicais|os instrumentos musicais|музыкальные инструменты|музыкальные инструменты|الآلات الموسيقية|الآلات الموسيقية|वाद्य यंत्र|वाद्य यंत्रों
+playground|playground|the playground|oyun parkı|oyun parkını|Spielplatz|den Spielplatz|aire de jeux|l'aire de jeux|parque infantil|el parque infantil|parco giochi|il parco giochi|parque infantil|o parque infantil|детская площадка|детскую площадку|ملعب الأطفال|ملعب الأطفال|खेल का मैदान|खेल के मैदान
+autumn|autumn tree|the autumn tree|sonbahar ağacı|sonbahar ağacını|Herbstbaum|den Herbstbaum|arbre d'automne|l'arbre d'automne|árbol de otoño|el árbol de otoño|albero d'autunno|l'albero d'autunno|árvore de outono|a árvore de outono|осеннее дерево|осеннее дерево|شجرة الخريف|شجرة الخريف|पतझड़ का पेड़|पतझड़ के पेड़
+rainbow|rainbow|the rainbow|gökkuşağı|gökkuşağını|Regenbogen|den Regenbogen|arc-en-ciel|l'arc-en-ciel|arcoíris|el arcoíris|arcobaleno|l'arcobaleno|arco-íris|o arco-íris|радуга|радугу|قوس قزح|قوس قزح|इंद्रधनुष|इंद्रधनुष
+toys|toy box|the toy box|oyuncak kutusu|oyuncak kutusunu|Spielzeugkiste|die Spielzeugkiste|coffre à jouets|le coffre à jouets|baúl de juguetes|el baúl de juguetes|cesta dei giocattoli|la cesta dei giocattoli|caixa de brinquedos|a caixa de brinquedos|коробка с игрушками|коробку с игрушками|صندوق الألعاب|صندوق الألعاب|खिलौनों का डिब्बा|खिलौनों के डिब्बे
+zenfish|patterned fish|the patterned fish|desenli balık|desenli balığı|Musterfisch|den Musterfisch|poisson à motifs|le poisson à motifs|pez con dibujos|el pez con dibujos|pesce decorato|il pesce decorato|peixe com padrões|o peixe com padrões|узорная рыбка|узорную рыбку|سمكة مزخرفة|السمكة المزخرفة|डिज़ाइन वाली मछली|डिज़ाइन वाली मछली
+space|space|space|uzay|uzayı|Weltall|das Weltall|espace|l'espace|espacio|el espacio|spazio|lo spazio|espaço|o espaço|космос|космос|الفضاء|الفضاء|अंतरिक्ष|अंतरिक्ष
+farm|farm|the farm|çiftlik|çiftliği|Bauernhof|den Bauernhof|ferme|la ferme|granja|la granja|fattoria|la fattoria|quinta|a quinta|ферма|ферму|مزرعة|المزرعة|खेत|खेत
+startiles|star pattern|the star pattern|yıldız deseni|yıldız desenini|Sternmuster|das Sternmuster|motif d'étoiles|le motif d'étoiles|mosaico de estrellas|el mosaico de estrellas|motivo a stelle|il motivo a stelle|padrão de estrelas|o padrão de estrelas|звёздный узор|звёздный узор|زخرفة النجوم|زخرفة النجوم|तारों का डिज़ाइन|तारों के डिज़ाइन
+hexflowers|honeycomb flowers|the honeycomb flowers|petek çiçekleri|petek çiçeklerini|Wabenblumen|die Wabenblumen|fleurs en nid d'abeille|les fleurs en nid d'abeille|flores en panal|las flores en panal|fiori a nido d'ape|i fiori a nido d'ape|flores em favo|as flores em favo|цветочные соты|цветочные соты|أزهار خلية النحل|أزهار خلية النحل|छत्ते के फूल|छत्ते के फूलों
+kilim|kilim rug|the kilim rug|kilim|kilimi|Kelim|den Kelim|kilim|le kilim|kilim|el kilim|kilim|il kilim|kilim|o kilim|килим|килим|سجادة كليم|سجادة الكليم|किलिम गलीचा|किलिम गलीचे
+tuliptile|tulip tile|the tulip tile|lale çinisi|lale çinisini|Tulpenfliese|die Tulpenfliese|carreau aux tulipes|le carreau aux tulipes|azulejo de tulipanes|el azulejo de tulipanes|piastrella con tulipani|la piastrella con tulipani|azulejo de túlipas|o azulejo de túlipas|изразец с тюльпанами|изразец с тюльпанами|بلاطة التوليب|بلاطة التوليب|ट्यूलिप टाइल|ट्यूलिप टाइल
+city|city|the city|şehir|şehri|Stadt|die Stadt|ville|la ville|ciudad|la ciudad|città|la città|cidade|a cidade|город|город|مدينة|المدينة|शहर|शहर
+reef|coral reef|the coral reef|mercan resifi|mercan resifini|Korallenriff|das Korallenriff|récif de corail|le récif de corail|arrecife de coral|el arrecife de coral|barriera corallina|la barriera corallina|recife de coral|o recife de coral|коралловый риф|коралловый риф|الشعاب المرجانية|الشعاب المرجانية|मूंगा चट्टान|मूंगा चट्टान
+flowergarden|flower garden|the flower garden|çiçek bahçesi|çiçek bahçesini|Blumengarten|den Blumengarten|jardin fleuri|le jardin fleuri|jardín de flores|el jardín de flores|giardino fiorito|il giardino fiorito|jardim de flores|o jardim de flores|цветник|цветник|حديقة الزهور|حديقة الزهور|फूलों का बगीचा|फूलों के बगीचे
+balloons|hot air balloons|the hot air balloons|sıcak hava balonları|sıcak hava balonlarını|Heißluftballons|die Heißluftballons|montgolfières|les montgolfières|globos aerostáticos|los globos aerostáticos|mongolfiere|le mongolfiere|balões de ar quente|os balões de ar quente|воздушные шары|воздушные шары|المناطيد|المناطيد|गर्म हवा के गुब्बारे|गर्म हवा के गुब्बारों
+market|market stall|the market stall|pazar tezgâhı|pazar tezgâhını|Marktstand|den Marktstand|étal du marché|l'étal du marché|puesto del mercado|el puesto del mercado|bancarella|la bancarella|banca do mercado|a banca do mercado|прилавок на рынке|прилавок на рынке|بسطة السوق|بسطة السوق|बाज़ार की दुकान|बाज़ार की दुकान
+bookshelf|bookshelf|the bookshelf|kitaplık|kitaplığı|Bücherregal|das Bücherregal|bibliothèque|la bibliothèque|estantería|la estantería|libreria|la libreria|estante|a estante|книжная полка|книжную полку|رف الكتب|رف الكتب|किताबों की अलमारी|किताबों की अलमारी
 shape_circle|circle|the circle|daire|daireyi|Kreis|den Kreis|rond|le rond|círculo|el círculo|cerchio|il cerchio|círculo|o círculo|круг|круг|دائرة|الدائرة|गोला|गोले
 shape_square|square|the square|kare|kareyi|Quadrat|das Quadrat|carré|le carré|cuadrado|el cuadrado|quadrato|il quadrato|quadrado|o quadrado|квадрат|квадрат|مربع|المربع|वर्ग|वर्ग
 shape_triangle|triangle|the triangle|üçgen|üçgeni|Dreieck|das Dreieck|triangle|le triangle|triángulo|el triángulo|triangolo|il triangolo|triângulo|o triângulo|треугольник|треугольник|مثلث|المثلث|त्रिभुज|त्रिभुज

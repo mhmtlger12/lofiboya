@@ -102,7 +102,7 @@ namespace LofiBoya
 
             // Resmi tanıt: "Bu bir aslan!"
             if (Names.TryAnimal(Id, out var animal, out _))
-                Tween.Delay(0.7f, () => { if (this != null) Speech.Say(Loc.T("intro", Names.Cap(animal), animal), "bu_" + Speech.Slug(animal)); });
+                Tween.Delay(0.7f, () => { if (this != null) Speech.Say(Loc.T(Id.StartsWith("lofi-num-") ? "intro_number" : Names.IsScene(Id) ? "intro_scene" : "intro", Names.Cap(animal), animal), "bu_" + Speech.Slug(animal)); });
         }
 
         // ================= Kurulum =================
