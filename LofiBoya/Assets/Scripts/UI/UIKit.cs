@@ -193,6 +193,13 @@ namespace LofiBoya
             sh.type = Image.Type.Simple;
             sh.rectTransform.Stretch(-10, -2, -10, -16);
             ((RectTransform)b.transform).sizeDelta = new Vector2(size, size);
+            // Görünmez, daha geniş dokunma alanı: basınca buton küçülür (PressFeedback); kenara basan
+            // parmak küçülen butonun dışında kalınca tıklama sayılmıyordu. Küçük çocuk parmağına da pay bırakır.
+            var hit = Node("Hit", b.transform);
+            hit.SetAsFirstSibling();
+            hit.Stretch(-18, -18, -18, -18);
+            var hitImg = hit.gameObject.AddComponent<Image>();
+            hitImg.color = Color.clear;
             return b;
         }
 
