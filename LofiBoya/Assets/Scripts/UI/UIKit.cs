@@ -84,6 +84,17 @@ namespace LofiBoya
         /// </summary>
         public const float Bleed = 3000f;
 
+        /// <summary>
+        /// Alt Canvas: içindeki öğeler her kare hareket etse de yalnızca bu katman yeniden kurulur, ekranın geri kalanı
+        /// (tek büyük Canvas) her kare baştan hesaplanmaz. raycast: içinde dokunulan öğe varsa true.
+        /// </summary>
+        public static Canvas SubCanvas(Component c, bool raycast)
+        {
+            var cv = c.gameObject.GetComponent<Canvas>() ?? c.gameObject.AddComponent<Canvas>();
+            if (raycast && c.gameObject.GetComponent<GraphicRaycaster>() == null) c.gameObject.AddComponent<GraphicRaycaster>();
+            return cv;
+        }
+
         public static RectTransform Node(string name, Transform parent)
         {
             var go = new GameObject(name, typeof(RectTransform));

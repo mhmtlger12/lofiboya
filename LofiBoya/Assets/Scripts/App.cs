@@ -134,6 +134,8 @@ namespace LofiBoya
             raw.raycastTarget = false;
             var decor = UIKit.Node("Decor", go.transform).Stretch();
             decor.gameObject.AddComponent<BackgroundDecor>();
+            Application.quitting += SaveSystem.WaitAll;   // kapanırken arka planda yazılan kayıtlar yarım kalmasın
+            UIKit.SubCanvas(decor, false);   // süzülen baloncuklar her kare tüm ekranı yeniden kurdurmasın
 
             SafeRoot = UIKit.Node("Safe", go.transform).Stretch();
             SafeRoot.gameObject.AddComponent<SafeArea>();

@@ -55,9 +55,7 @@ namespace LofiBoya
         }
 
         /// <summary>İlk açılışta (bir kez) ebeveyne çocuğun yaşını sorar; oyunlar buna göre ayarlanır.</summary>
-        public static void AskAge() => Show(AskAgeNow);
-
-        static void AskAgeNow()
+        public static void AskAge()
         {
             var (overlay, card, close) = Panel(860, 820, false);
             var t = UIKit.Label(card.transform, Loc.T("age_q"), 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);

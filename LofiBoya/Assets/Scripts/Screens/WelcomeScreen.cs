@@ -128,7 +128,11 @@ namespace LofiBoya
             A11y.Label(gear, Loc.T("a11y_settings"));
 
             // ilk açılış: oyunlar çocuğun yaşına göre ayarlansın (bir kez sorulur; sonra Ayarlar'dan değişir)
-            if (!SaveSystem.AgeAsked) Tween.Delay(0.9f, () => { if (this != null && !SaveSystem.AgeAsked) ParentGate.AskAge(); });
+            if (!SaveSystem.AgeAsked && !_ageShown)
+            {
+                _ageShown = true;
+                Tween.Delay(0.9f, () => { if (this != null && !SaveSystem.AgeAsked) ParentGate.AskAge(); });
+            }
         }
 
         void Bubble(RectTransform mascot, string text)
@@ -251,6 +255,8 @@ namespace LofiBoya
                 if (_startBtn.localScale.x > 0.5f) _startBtn.localScale = new Vector3(s, s, 1);
             }
         }
+
+        static bool _ageShown;
 
         // Android geri tuşu: yanlışlıkla basılınca uygulama kapanmasın; 2 sn içinde ikinci basış çıkar
         float _backAt = -10f;

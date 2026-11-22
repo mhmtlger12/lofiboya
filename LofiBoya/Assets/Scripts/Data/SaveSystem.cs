@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace LofiBoya
 {
@@ -35,8 +37,61 @@ namespace LofiBoya
         static string JsonPath(string key) => Path.Combine(Dir, key + ".json");
         static string ThumbPath(string key) => Path.Combine(Dir, key + ".png");
 
+        // ---------------- Arka planda yazma ----------------
+        // PNG sıkıştırma ve disk yazımı ana iş parçacığını (çizimi) dondurmasın diye arka planda yapılır.
+        // Aynı resmin yazımları sırayla zincirlenir; o resmi okuyan/silen her çağrı önce bekleyen yazımı bitirir.
+
+        static readonly Dictionary<string, Task> _pending = new();
+
+        /// <summary>Kayıt: pikseller hazır verilir (doku yok). paint null ise mevcut boya dosyasına dokunulmaz
+        /// (hasPaint false ise silinir). background false: hemen, bu iş parçacığında yazılır.</summary>
+        public static void SaveAsync(string key, LevelSave save, Color32[] thumb, int tw, int th, Color32[] paint, int pw, int ph, bool background)
+        {
+            string json = JsonUtility.ToJson(save);
+            bool hasPaint = save.hasPaint;
+            string jp = JsonPath(key), tp = ThumbPath(key), pp = PaintPath(key);
+            void Work()
+            {
+                try
+                {
+                    File.WriteAllText(jp, json);
+                    if (thumb != null) File.WriteAllBytes(tp, Png(thumb, tw, th));
+                    if (paint != null && hasPaint) File.WriteAllBytes(pp, Png(paint, pw, ph));
+                    else if (!hasPaint && File.Exists(pp)) File.Delete(pp);
+                }
+                catch (Exception e) { Debug.LogWarning($"Kayıt yazılamadı {key}: {e.Message}"); }
+            }
+            if (!background)
+            {
+                WaitPending(key);
+                Work();
+                return;
+            }
+            _pending.TryGetValue(key, out var prev);
+            _pending[key] = prev == null || prev.IsCompleted ? Task.Run(Work) : prev.ContinueWith(_ => Work());
+        }
+
+        static byte[] Png(Color32[] px, int w, int h) =>
+            ImageConversion.EncodeArrayToPNG(px, GraphicsFormat.R8G8B8A8_UNorm, (uint)w, (uint)h);
+
+        /// <summary>Bu resmin arka planda süren yazımı varsa bitmesini bekler.</summary>
+        public static void WaitPending(string key)
+        {
+            if (!_pending.TryGetValue(key, out var t)) return;
+            try { t.Wait(); } catch (Exception e) { Debug.LogWarning(e.Message); }
+            _pending.Remove(key);
+        }
+
+        /// <summary>Bütün bekleyen yazımlar (uygulama arka plana geçerken / kapanırken).</summary>
+        public static void WaitAll()
+        {
+            foreach (var t in _pending.Values) { try { t.Wait(); } catch (Exception e) { Debug.LogWarning(e.Message); } }
+            _pending.Clear();
+        }
+
         public static LevelSave Load(string key)
         {
+            WaitPending(key);
             try
             {
                 var p = JsonPath(key);
@@ -53,6 +108,7 @@ namespace LofiBoya
 
         public static void Save(string key, LevelSave save, Texture2D thumb, Texture2D paint = null)
         {
+            WaitPending(key);
             try
             {
                 File.WriteAllText(JsonPath(key), JsonUtility.ToJson(save));
@@ -68,6 +124,7 @@ namespace LofiBoya
 
         public static void Delete(string key)
         {
+            WaitPending(key);
             try
             {
                 if (File.Exists(JsonPath(key))) File.Delete(JsonPath(key));
@@ -79,6 +136,7 @@ namespace LofiBoya
 
         public static Texture2D LoadThumb(string key)
         {
+            WaitPending(key);
             var p = ThumbPath(key);
             if (!File.Exists(p)) return null;
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
@@ -90,6 +148,7 @@ namespace LofiBoya
         /// <summary>Kalem katmanı (premultiplied, sRGB baytları olduğu gibi).</summary>
         public static Texture2D LoadPaint(string key)
         {
+            WaitPending(key);
             var p = PaintPath(key);
             if (!File.Exists(p)) return null;
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, false);
@@ -252,6 +311,7 @@ namespace LofiBoya
         /// <summary>Kaydı olan bütün resimler (en yeni önce): "grup_id" anahtarları.</summary>
         public static List<string> SavedKeys()
         {
+            WaitAll();
             var list = new List<(string key, DateTime time)>();
             try
             {

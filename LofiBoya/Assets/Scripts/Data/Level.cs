@@ -229,9 +229,19 @@ namespace LofiBoya
         public Texture2D RenderThumbnail(Color32[] regionColors, Texture2D paint, int maxSide = 360)
         {
             Color32[] paintPix = paint != null ? paint.GetPixels32() : null;
-            int pw = paint != null ? paint.width : 0, ph = paint != null ? paint.height : 0;
+            var px = RenderThumbnailPixels(regionColors, paintPix, paint != null ? paint.width : 0, paint != null ? paint.height : 0, maxSide, out int tw, out int th);
+            var tex = new Texture2D(tw, th, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            tex.SetPixels32(px);
+            tex.Apply();
+            return tex;
+        }
+
+        /// <summary>Küçük resmin pikselleri (paintPix: boya katmanı, premultiplied; yoksa null).</summary>
+        public Color32[] RenderThumbnailPixels(Color32[] regionColors, Color32[] paintPix, int pw, int ph, int maxSide, out int tw, out int th)
+        {
             float s = Mathf.Min(1f, (float)maxSide / Mathf.Max(Width, Height));
-            int tw = Mathf.Max(1, Mathf.RoundToInt(Width * s)), th = Mathf.Max(1, Mathf.RoundToInt(Height * s));
+            tw = Mathf.Max(1, Mathf.RoundToInt(Width * s));
+            th = Mathf.Max(1, Mathf.RoundToInt(Height * s));
             var px = new Color32[tw * th];
             for (int y = 0; y < th; y++)
             {
@@ -262,10 +272,7 @@ namespace LofiBoya
                     px[y * tw + x] = new Color32((byte)(c.r * l / 255), (byte)(c.g * l / 255), (byte)(c.b * l / 255), 255);
                 }
             }
-            var tex = new Texture2D(tw, th, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
-            tex.SetPixels32(px);
-            tex.Apply();
-            return tex;
+            return px;
         }
 
         /// <summary>

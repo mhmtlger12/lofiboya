@@ -6,6 +6,7 @@ using UnityEngine.UI;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
+using UnityEngine.InputSystem.LowLevel;
 using ETouch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 #endif
 
@@ -181,8 +182,25 @@ namespace LofiBoya
         {
 #if ENABLE_INPUT_SYSTEM
             EnhancedTouchSupport.Enable();
+            InputSystem.onEvent += OnInputEvent;
 #endif
         }
+
+#if ENABLE_INPUT_SYSTEM
+        void OnDisable() => InputSystem.onEvent -= OnInputEvent;
+
+        // Fare kare başına tek konum verir; ama işletim sistemi kareler arasında çok daha sık (125–1000 Hz) bildirir.
+        // Çizerken o ara konumlar toplanır: hızlı daireler köşeli/kesik değil, parmaktaki gibi düzgün çıkar.
+        readonly List<Vector2> _mouseTrail = new();
+
+        void OnInputEvent(InputEventPtr ev, InputDevice device)
+        {
+            if (!_stroking || TouchInput || device is not Mouse mouse) return;
+            if (!ev.IsA<StateEvent>() && !ev.IsA<DeltaStateEvent>()) return;
+            if (mouse.leftButton.ReadValueFromEvent(ev, out float btn) && btn < 0.5f) return;
+            if (_mouseTrail.Count < 512 && mouse.position.ReadValueFromEvent(ev, out var pos)) _mouseTrail.Add(pos);
+        }
+#endif
 
         public void Init(Level level, LevelSave save, Texture2D savedPaint)
         {
@@ -262,6 +280,7 @@ namespace LofiBoya
         }
 
         /// <summary>Boya katmanında bir şey var mı (kalem ya da damga).</summary>
+        /// <summary>Boya katmanında bir şey var mı (kalem çizgisi, damga ya da eski kayıt).</summary>
         public bool HasPaint => _stamped || HasAnyBrush;
 
         public bool HasAnyBrush
@@ -295,6 +314,8 @@ namespace LofiBoya
 
         void Update()
         {
+            // geri alma dokuları çizilmezken ayrılır (çizim sırasında sürücü takılması olmasın)
+            if (!_stroking && Paint != null) Paint.Prewarm(MaxPaintSnapshots + 1);
             if (Level == null) return;
             if (Viewport.rect.size != _lastViewportSize) Fit();
             HandleInput();
@@ -384,7 +405,7 @@ namespace LofiBoya
                         var e = hist[h];
                         if (e.time <= _lastTouchTime) continue;
                         _lastTouchTime = e.time;
-                        StrokeTo(DrawPoint(e.screenPosition));
+                        StrokeTo(DrawPoint(e.screenPosition), false);
                     }
                 }
                 _lastTouchTime = t.time;
@@ -421,6 +442,11 @@ namespace LofiBoya
                 else if (panBtnDown && InViewport(mp) && !OverOtherUI(mp)) BeginGesture(mp, true);
                 return;
             }
+            if (_stroking)
+            {
+                foreach (var tp in _mouseTrail) StrokeTo(tp, false);
+            }
+            _mouseTrail.Clear();
             if (mouse.leftButton.isPressed || panBtnHeld) PointerMove(mp, mp);
             else PointerUp(mp, mp);
 #endif
@@ -657,10 +683,15 @@ namespace LofiBoya
             float dt = Mathf.Max(Time.unscaledDeltaTime, 1e-4f);
             var p = PointerScreen;
             if (_ptrHas) _ptrVel = Vector2.Lerp(_ptrVel, (p - _ptrPrev) / dt, 0.6f);
+
+            var move = p - _ptrPrev;
             _ptrPrev = p;
             _ptrHas = true;
-
-            bool show = _stroking && Tool == Tool.Pencil && _strokeLength > 0f;
+            // farede gecikme zaten az (vSync kapalı, ara noktalar okunuyor): uzatma yok.
+            // Dokunmatikte yavaşken ya da yön değiştirirken de yok: yanlış yöne fırlayıp geri çekilmesin.
+            float speed = _ptrVel.magnitude;
+            bool steady = speed > 250f && move.sqrMagnitude > 1f && Vector2.Dot(_ptrVel / speed, move.normalized) > 0.85f;
+            bool show = _stroking && Tool == Tool.Pencil && _strokeLength > 0f && TouchInput && steady;
             if (!show)
             {
                 if (_tip != null && _tip.gameObject.activeSelf) _tip.gameObject.SetActive(false);
@@ -671,9 +702,9 @@ namespace LofiBoya
             var r = Image.rectTransform.rect;
             // çizginin son boyanan noktası (yerel) ve parmağın 1–2 kare sonraki tahmini yeri
             var a = new Vector2(r.xMin + _lastStampUv.x * r.width, r.yMin + _lastStampUv.y * r.height) - r.center;
-            // 2–3 kare ileri (60 Hz'de ~40 ms, 120 Hz'de ~25 ms); hızlı hareketlerde de en çok 140 px
-            float lead = Mathf.Clamp(dt * 2.5f, 0.02f, 0.042f);
-            var pred = p + Vector2.ClampMagnitude(_ptrVel * lead, 140f);
+            // ~1,5 kare ileri (60 Hz'de ~25 ms); en çok 70 px
+            float lead = Mathf.Clamp(dt * 1.5f, 0.012f, 0.025f);
+            var pred = p + Vector2.ClampMagnitude(_ptrVel * lead, 70f);
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(Image.rectTransform, pred, null, out var bl)) return;
             var b = bl - r.center;
             float thick = BrushRadiusPaintPx() * 2f * r.width / Paint.Width * 0.9f;
@@ -758,9 +789,19 @@ namespace LofiBoya
                 }
         }
 
+        Vector2 _lastCoverUv;
+        bool _coverFresh;
+
         void AddPencilStamp(Vector2 uv, float radiusPaintPx)
         {
             Paint.AddStamp(uv, radiusPaintPx);
+            // kaplama hesabı: damgalar yarım ızgara karesinden sık; her damgada değil, yarım kare ilerleyince
+            float dx = (uv.x - _lastCoverUv.x) * Level.Width / CoverCell, dy = (uv.y - _lastCoverUv.y) * Level.Height / CoverCell;
+            float rx = radiusPaintPx / Paint.Width * Level.Width / CoverCell;   // kare biriminde yarıçap
+            float step = Mathf.Max(0.5f, rx * 0.5f);
+            if (!_coverFresh && dx * dx + dy * dy < step * step) return;
+            _coverFresh = false;
+            _lastCoverUv = uv;
             Cover(uv, radiusPaintPx);
         }
 
@@ -878,11 +919,15 @@ namespace LofiBoya
             }
             _lastStampUv = uv;
             _strokeRegions.Clear();
+            _coverFresh = true;
+#if ENABLE_INPUT_SYSTEM
+            _mouseTrail.Clear();
+#endif
             AddPencilStamp(uv, BrushRadiusPaintPx());
             FlushStroke();
         }
 
-        void StrokeTo(Vector2 screen)
+        void StrokeTo(Vector2 screen, bool flush = true)
         {
             if (!_stroking) return;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(Image.rectTransform, screen, null, out var local);
@@ -892,8 +937,8 @@ namespace LofiBoya
             var a = new Vector2(_lastStampUv.x * Paint.Width, _lastStampUv.y * Paint.Height);
             var b = new Vector2(uv.x * Paint.Width, uv.y * Paint.Height);
             float dist = Vector2.Distance(a, b);
-            float spacing = Mathf.Max(0.75f, radius * 0.22f);
-            if (dist < spacing) return;
+            float spacing = Mathf.Max(0.75f, radius * 0.3f);
+            if (dist < spacing) { if (flush) FlushStroke(); return; }
             int steps = Mathf.Min(400, Mathf.FloorToInt(dist / spacing));
             for (int i = 1; i <= steps; i++)
             {
@@ -906,7 +951,7 @@ namespace LofiBoya
             float screenDist = dist / Paint.Width * Content.sizeDelta.x * _zoom;
             _strokeLength += screenDist;
             _scribble = Mathf.Clamp01(_scribble + screenDist / 120f);
-            FlushStroke();
+            if (flush) FlushStroke();
         }
 
         void FlushStroke()
@@ -920,11 +965,12 @@ namespace LofiBoya
         void EndStroke()
         {
             if (!_stroking) return;
+            FlushStroke();   // bu karede toplanıp henüz basılmamış damgalar
             _stroking = false;
             _strokeUndo.Paint = Paint.Snapshot(); // işlenmeden önceki hâl
             Paint.Commit(CurrentColor, Tool == Tool.Eraser);
             MatF(IdStrokeMode, 0);
-            if (Tool == Tool.Pencil) ApplyCoverage();
+            if (Tool == Tool.Pencil) { ApplyCoverage(); _stamped = true; }
             else if (Tool == Tool.Eraser) ApplyErase();
             PushUndo(_strokeUndo);
             _strokeUndo = null;
@@ -1008,9 +1054,12 @@ namespace LofiBoya
             if (_undo.Count > 300) { Release(_undo[0]); _undo.RemoveAt(0); }
         }
 
-        static void Release(UndoStep s)
+        void Release(UndoStep s)
         {
-            if (s?.Paint != null) { s.Paint.Release(); Destroy(s.Paint); s.Paint = null; }
+            if (s?.Paint == null) return;
+            if (Paint != null) Paint.Recycle(s.Paint);
+            else { s.Paint.Release(); Destroy(s.Paint); }
+            s.Paint = null;
         }
 
         public void Undo()
@@ -1090,6 +1139,15 @@ namespace LofiBoya
         }
 
         // ================= Kayıt yardımcıları =================
+
+        /// <summary>Galeri küçük resminin pikselleri (doku oluşturmadan; kayıt arka planda PNG'ye çevirir).</summary>
+        public Color32[] MakeThumbnailPixels(Color32[] paint, out int w, out int h)
+        {
+            CommitAnimation();
+            var cols = new Color32[RegionColors.Length];
+            for (int i = 0; i < cols.Length; i++) cols[i] = Filled[i] ? RegionColors[i] : (Color32)Theme.Paper;
+            return Level.RenderThumbnailPixels(cols, paint, paint != null ? Paint.Width : 0, paint != null ? Paint.Height : 0, 360, out w, out h);
+        }
 
         /// <summary>Galeri küçük resmi; boya katmanı varsa onu da içerir.</summary>
         public Texture2D MakeThumbnail(Texture2D paintReadback)

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace LofiBoya
@@ -39,7 +40,7 @@ namespace LofiBoya
         int _milestone;                 // 0..3: %25 / %50 / %75 söylendi mi
         float _lastActivity, _lastIdlePeek = -999f;
         float _openedAt;
-        int _prevQueued;                // boyamadan çıkınca eski kare kuyruğu ayarı                // resim açıldığından beri geçen süre (sürece övgü için)
+        static int _prevQueued, _prevVSync = -1, _live;                // boyamadan çıkınca eski kare kuyruğu ayarı                // resim açıldığından beri geçen süre (sürece övgü için)
 
         // Sayılı mod (1-5): her bölgenin bir numarası, her numaranın bir rengi var
         bool _numbers;
@@ -73,8 +74,19 @@ namespace LofiBoya
             int hz = Mathf.RoundToInt((float)Screen.currentResolution.refreshRateRatio.value);
             Application.targetFrameRate = Mathf.Clamp(hz, 60, 120);
             // ekran kartı en fazla 1 kare önden hazırlasın: parmak ile boya arasındaki gecikme kısalır
-            _prevQueued = QualitySettings.maxQueuedFrames;
+            if (_live++ == 0)
+            {
+                _prevQueued = QualitySettings.maxQueuedFrames;
+                _prevVSync = QualitySettings.vSyncCount;
+            }
             QualitySettings.maxQueuedFrames = 1;
+            // Bilgisayarda vSync açıkken targetFrameRate yok sayılır ve görüntü 1–2 kare daha geç çıkar.
+            // Boyarken vSync kapanır, kare hızı ekranın iki katına çıkar (fare ile boya arasındaki gecikme yarıya iner).
+            if (!Application.isMobilePlatform)
+            {
+                QualitySettings.vSyncCount = 0;
+                Application.targetFrameRate = Mathf.Clamp(hz * 2, 120, 240);
+            }
             _level = Level.Load(Group, Id);
             if (_level == null) { App.I.ShowGallery(Group); return; }
             var save = SaveSystem.Load(_level.Key);
@@ -220,6 +232,7 @@ namespace LofiBoya
             maskImg.pixelsPerUnitMultiplier = 0.7f;
             maskImg.raycastTarget = false;
             vp.gameObject.AddComponent<Mask>().showMaskGraphic = false;
+            UIKit.SubCanvas(vp, false);   // tuval, numaralar ve tahmini uç kendi katmanında
             var content = UIKit.Node("Content", vp);
             content.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(100, 100));
             var raw = content.gameObject.AddComponent<RawImage>();
@@ -517,6 +530,7 @@ namespace LofiBoya
             _crayonRow = UIKit.Node("Crayons", area).Stretch(10, 0, 10, 0);
             // kalemler sığmazsa parmakla yana kaydırılır (dokunma alanları küçülmesin diye)
             _crayonScroll = area.gameObject.AddComponent<ScrollRect>();
+            UIKit.SubCanvas(area, true);   // zıplayan kalemler kendi katmanında (dokunulabilir)
             _crayonScroll.horizontal = true;
             _crayonScroll.vertical = false;
             _crayonScroll.movementType = ScrollRect.MovementType.Elastic;
@@ -747,9 +761,12 @@ namespace LofiBoya
                 c.LiftVel += force * dt;
                 c.Lift += c.LiftVel * dt;
                 c.Wobble = Mathf.MoveTowards(c.Wobble, 0f, dt * 1.6f);
+                if (Mathf.Abs(target - c.Lift) < 0.05f && Mathf.Abs(c.LiftVel) < 0.5f) { c.Lift = target; c.LiftVel = 0f; }
                 if (c.Rt == null) continue;
-                c.Rt.anchoredPosition = new Vector2(0, c.Lift);
-                c.Rt.localRotation = Motion.Reduced ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Sin(Time.unscaledTime * 22f) * 7f * c.Wobble * c.Wobble);
+                var pos = new Vector2(0, c.Lift);
+                if ((c.Rt.anchoredPosition - pos).sqrMagnitude > 1e-4f) c.Rt.anchoredPosition = pos;
+                var rot = Motion.Reduced || c.Wobble <= 0f ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Sin(Time.unscaledTime * 22f) * 7f * c.Wobble * c.Wobble);
+                if (c.Rt.localRotation != rot) c.Rt.localRotation = rot;
             }
         }
 
@@ -775,7 +792,7 @@ namespace LofiBoya
             {
                 Tween.Punch(_numBtnBg.transform, 0.12f);
                 if (on) Speech.Say(Loc.T("numbers_on"));
-                _saveTimer = 1.2f;
+                _saveTimer = IdleSave;
             }
         }
 
@@ -946,7 +963,7 @@ namespace LofiBoya
                 _progressFill.parent.gameObject.SetActive(!fin);
                 _progressText.gameObject.SetActive(!fin);
             }
-            _saveTimer = 1.2f;
+            _saveTimer = IdleSave;
 
             if (allDone && !_completedShown && !_wasDone && !_level.IsBlank)
                 Tween.Delay(0.6f, () => { if (this != null && _canvas != null && _canvas.AllDone && !_completedShown) ShowComplete(); });
@@ -992,32 +1009,93 @@ namespace LofiBoya
                     else if (_canvas.ShowHint()) _buddy.Peek(Loc.T("buddy_idle"));
                 }
             }
+            // kayıt çizerken yapılmaz: çocuk birkaç saniye dokunmayınca (çizgi ortasında asla)
             if (_saveTimer > 0)
             {
-                _saveTimer -= Time.unscaledDeltaTime;
-                if (_saveTimer <= 0) SaveNow();
+                if (_canvas != null && _canvas.Stroking) _saveTimer = IdleSave;
+                else
+                {
+                    _saveTimer -= Time.unscaledDeltaTime;
+                    if (_saveTimer <= 0) SaveIdle();
+                }
             }
         }
 
-        void SaveNow()
+        // ================= Kayıt =================
+        // Eskiden her çizgiden 1,2 sn sonra ana iş parçacığında: boya katmanı ekran kartından eşzamanlı okunur
+        // (ekran kartı bekletilir), küçük resim hesaplanır ve iki PNG sıkıştırılıp yazılırdı — çizerken 100–500 ms
+        // takılma. Şimdi: 4 sn boşlukta, boya katmanı eşzamansız okunur (AsyncGPUReadback), PNG'ler arka planda yazılır.
+        // Boya değişmediyse (yalnızca kova) katman hiç okunmaz.
+
+        const float IdleSave = 4f;
+        Color32[] _paintPix;
+        int _paintVersion = -1;
+        bool _readPending;
+
+        bool PaintStale => _canvas.HasPaint && (_paintPix == null || _paintVersion != _canvas.Paint.Version);
+
+        void SaveIdle()
         {
+            _saveTimer = -1;
+            if (_canvas == null || _canvas.Level == null) return;
+            if (PaintStale && SystemInfo.supportsAsyncGPUReadback)
+            {
+                if (_readPending) { _saveTimer = 0.5f; return; }
+                _readPending = true;
+                int ver = _canvas.Paint.Version;
+                AsyncGPUReadback.Request(_canvas.Paint.Texture, 0, TextureFormat.RGBA32, req =>
+                {
+                    _readPending = false;
+                    if (this == null || _canvas == null || _canvas.Paint == null) return;
+                    if (req.hasError) { _saveTimer = IdleSave; return; }
+                    _paintPix = req.GetData<Color32>().ToArray();
+                    _paintVersion = ver;
+                    // okuma sürerken yeni çizgi geldiyse sonraki boşlukta yeniden kaydedilir
+                    if (ver == _canvas.Paint.Version && !_canvas.Stroking) SaveNow(true);
+                    else _saveTimer = IdleSave;
+                });
+                return;
+            }
+            SaveNow(true);
+        }
+
+        /// <param name="background">true: PNG'ler arka planda yazılır. false: hemen (uygulama arka plana geçerken).</param>
+        void SaveNow(bool background = true)
+        {
+            _saveTimer = -1;
             if (_canvas == null || _canvas.Level == null) return;
             var s = _canvas.ToSave();
             if (s.progress <= 0 && !s.done && !s.hasPaint)
             {
                 SaveSystem.Delete(_level.Key);
-                _saveTimer = -1;
                 return;
             }
-            var paint = s.hasPaint ? _canvas.Paint.ReadBack() : null;
-            var thumb = _canvas.MakeThumbnail(paint);
-            SaveSystem.Save(_level.Key, s, thumb, paint);
-            Destroy(thumb);
-            if (paint != null) Destroy(paint);
-            _saveTimer = -1;
+            Color32[] paint = null;
+            bool paintChanged = false;
+            if (s.hasPaint)
+            {
+                if (PaintStale)
+                {
+                    _paintPix = _canvas.Paint.ReadBackPixels();   // eşzamanlı: yalnızca çıkışta / boşluk beklenemediğinde
+                    _paintVersion = _canvas.Paint.Version;
+                    paintChanged = true;
+                }
+                else paintChanged = _savedPaintVersion != _paintVersion;
+                paint = _paintPix;
+            }
+            var thumb = _canvas.MakeThumbnailPixels(paint, out int tw, out int th);
+            SaveSystem.SaveAsync(_level.Key, s, thumb, tw, th, paintChanged ? paint : null, _canvas.Paint.Width, _canvas.Paint.Height, background);
+            if (paintChanged) _savedPaintVersion = _paintVersion;
         }
 
-        void OnApplicationPause(bool paused) { if (paused) SaveNow(); }
+        int _savedPaintVersion = -1;
+
+        void OnApplicationPause(bool paused)
+        {
+            if (!paused) return;
+            SaveNow(false);
+            SaveSystem.WaitAll();
+        }
 
         string BackGroup => _level != null && _level.IsBlank ? "kolay" : Group;
 
@@ -1230,10 +1308,14 @@ namespace LofiBoya
 
         void OnDestroy()
         {
-            Application.targetFrameRate = 60;
-            if (_prevQueued > 0) QualitySettings.maxQueuedFrames = _prevQueued;
+            if (--_live == 0)
+            {
+                Application.targetFrameRate = 60;
+                if (_prevQueued > 0) QualitySettings.maxQueuedFrames = _prevQueued;
+                if (_prevVSync >= 0) QualitySettings.vSyncCount = _prevVSync;
+            }
             foreach (var sp in _previewSprites) if (sp != null) { Destroy(sp.texture); Destroy(sp); }
-            if (_canvas != null && _canvas.Level != null && _saveTimer > 0) SaveNow();
+            if (_canvas != null && _canvas.Level != null && (_saveTimer > 0 || _readPending)) SaveNow(false);
             _level?.Unload();
         }
     }

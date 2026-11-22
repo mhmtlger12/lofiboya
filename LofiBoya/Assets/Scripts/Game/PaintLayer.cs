@@ -16,7 +16,14 @@ namespace LofiBoya
         public int Height { get; }
         /// <summary>Resim pikselinden boya katmanı pikseline oran.</summary>
         public float Scale { get; }
-        public bool Dirty { get; set; }
+        /// <summary>Katman her değiştiğinde artar (kayıt, son okunan hâli yeniden okumasın diye).</summary>
+        public int Version { get; private set; }
+        bool _dirty;
+        public bool Dirty { get => _dirty; set { _dirty = value; if (value) Version++; } }
+
+        // Geri alma kopyaları için hazır doku havuzu: her çizgide yeni 1024×1024 doku ayırmak sürücüde takılma yapıyordu
+        readonly Stack<RenderTexture> _pool = new();
+        const int PoolMax = 14;
 
         readonly Material _brush;
         readonly List<Vector4> _stamps = new(); // x, y (uv), radius uv x, radius uv y
@@ -37,6 +44,8 @@ namespace LofiBoya
             };
             Stroke.Create();
             ClearTo(Stroke);
+            // ilk çizgiler havuzdan beslensin; geri kalanı boşta (çizilmezken) karede bir tane ayrılır
+            for (int i = 0; i < 2; i++) { _pool.Push(NewRT()); _made++; }
 
             _brush = new Material(Resources.Load<Shader>("Shaders/BrushStamp"));
             _brush.SetTexture("_RegionTex", level.Regions);
@@ -164,11 +173,33 @@ namespace LofiBoya
 
         // ---------------- Geri alma ----------------
 
+        int _made;
+
+        /// <summary>Çizilmezken çağrılır: geri alma havuzunu karede bir doku olacak şekilde doldurur (çizim sırasında ayırma olmasın).</summary>
+        public void Prewarm(int target)
+        {
+            if (_made >= Mathf.Min(target, PoolMax)) return;
+            _pool.Push(NewRT());
+            _made++;
+        }
+
         public RenderTexture Snapshot()
         {
-            var rt = NewRT();
+            if (_pool.Count == 0) _made++;
+            var rt = _pool.Count > 0 ? _pool.Pop() : NewRT();
+            if (!rt.IsCreated()) rt.Create();
             Graphics.CopyTexture(Texture, rt);
             return rt;
+        }
+
+        /// <summary>Artık gerekmeyen geri alma kopyasını havuza geri verir.</summary>
+        public void Recycle(RenderTexture rt)
+        {
+            if (rt == null) return;
+            if (_pool.Count < PoolMax && rt.width == Width && rt.height == Height) { _pool.Push(rt); return; }
+            rt.Release();
+            Object.Destroy(rt);
+            _made--;
         }
 
         public void Restore(RenderTexture snap)
@@ -179,6 +210,15 @@ namespace LofiBoya
         }
 
         // ---------------- Kaydet / yükle ----------------
+
+        /// <summary>Katmanın pikselleri (eşzamanlı; ekran kartını bekletir — yalnızca çıkışta/arka plana geçerken).</summary>
+        public Color32[] ReadBackPixels()
+        {
+            var tex = ReadBack();
+            var px = tex.GetPixels32();
+            Object.Destroy(tex);
+            return px;
+        }
 
         public Texture2D ReadBack()
         {
@@ -228,6 +268,7 @@ namespace LofiBoya
         {
             if (Texture != null) { Texture.Release(); Object.Destroy(Texture); }
             if (Stroke != null) { Stroke.Release(); Object.Destroy(Stroke); }
+            while (_pool.Count > 0) { var rt = _pool.Pop(); if (rt != null) { rt.Release(); Object.Destroy(rt); } }
             if (_brush != null) Object.Destroy(_brush);
         }
     }

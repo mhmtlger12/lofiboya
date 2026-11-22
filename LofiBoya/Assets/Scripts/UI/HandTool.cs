@@ -27,6 +27,7 @@ namespace LofiBoya
         {
             var rt = UIKit.Node("HandTool", parent).Stretch();
             var h = rt.gameObject.AddComponent<HandTool>();
+            UIKit.SubCanvas(h, false);   // kalem her kare hareket eder: yalnızca kendi katmanı yeniden kurulur
             h._canvas = canvas;
             h.Build();
             return h;
