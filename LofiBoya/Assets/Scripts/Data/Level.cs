@@ -236,6 +236,77 @@ namespace LofiBoya
             return tex;
         }
 
+        /// <summary>
+        /// Gölge oyunu için siluet: resmin kenarına değen bölgeler arka plandır (saydam), geri kalan her şey
+        /// tek renk. Kenarlar yumuşak (2×2 örnekleme), dış çizgi de gölgeye dahil olsun diye 1 piksel genişletilir.
+        /// </summary>
+        /// <summary>Resmin kenarına değen bölgeler: arka plan.</summary>
+        public HashSet<int> BorderRegions()
+        {
+            var bg = new HashSet<int>();
+            for (int x = 0; x < Width; x++) { bg.Add(RegionAt(x, 0)); bg.Add(RegionAt(x, Height - 1)); }
+            for (int y = 0; y < Height; y++) { bg.Add(RegionAt(0, y)); bg.Add(RegionAt(Width - 1, y)); }
+            return bg;
+        }
+
+        /// <summary>
+        /// Pastel renklerle boyanmış önizleme (arka plan kâğıt rengi). share &lt; 1: bölgelerin yalnızca bir kısmı
+        /// boyalı (sıralama oyununda "boyanıyor" aşaması). Aynı seed her zaman aynı renkleri verir.
+        /// </summary>
+        public Texture2D RenderPastel(int seed, int maxSide = 360, float share = 1f)
+        {
+            var pal = Theme.Palettes[0].Colors;
+            var rnd = new System.Random(seed);
+            var bg = BorderRegions();
+            var cols = new Color32[Count + 1];
+            for (int i = 0; i <= Count; i++)
+            {
+                Color32 c = pal[rnd.Next(pal.Length - 2)];   // her bölge için hep çekilir: share değişse de renkler aynı kalır
+                bool painted = share >= 1f || (i * 37 % 100) < share * 100f;
+                cols[i] = bg.Contains(i) || !painted ? (Color32)Theme.Paper : c;
+            }
+            return RenderThumbnail(cols, maxSide);
+        }
+
+        public Texture2D RenderSilhouette(Color32 color, int maxSide = 300)
+        {
+            var bg = BorderRegions();
+            float s = Mathf.Min(1f, (float)maxSide / Mathf.Max(Width, Height));
+            int tw = Mathf.Max(1, Mathf.RoundToInt(Width * s)), th = Mathf.Max(1, Mathf.RoundToInt(Height * s));
+            var cover = new float[tw * th];
+            for (int y = 0; y < th; y++)
+            for (int x = 0; x < tw; x++)
+            {
+                int inside = 0;
+                for (int sy = 0; sy < 2; sy++)
+                for (int sx = 0; sx < 2; sx++)
+                {
+                    int px = Mathf.Min(Width - 1, (int)((x + 0.25f + sx * 0.5f) / s));
+                    int py = Mathf.Min(Height - 1, (int)((y + 0.25f + sy * 0.5f) / s));
+                    if (!bg.Contains(RegionAt(px, py))) inside++;
+                }
+                cover[y * tw + x] = inside / 4f;
+            }
+            var pix = new Color32[tw * th];
+            for (int y = 0; y < th; y++)
+            for (int x = 0; x < tw; x++)
+            {
+                float a = 0;
+                for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int nx = x + dx, ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= tw || ny >= th) continue;
+                    a = Mathf.Max(a, cover[ny * tw + nx] * (dx == 0 && dy == 0 ? 1f : 0.85f));
+                }
+                pix[y * tw + x] = new Color32(color.r, color.g, color.b, (byte)(a * color.a));
+            }
+            var tex = new Texture2D(tw, th, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            tex.SetPixels32(pix);
+            tex.Apply();
+            return tex;
+        }
+
         public void Unload()
         {
             if (Lines) UnityEngine.Object.Destroy(Lines);

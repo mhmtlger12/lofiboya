@@ -11,7 +11,7 @@ namespace LofiBoya
     /// </summary>
     public static class Stats
     {
-        public static readonly string[] Games = { "colors", "pictures", "shapes", "counting", "feelings", "trace", "letters", "patterns", "memory" };
+        public static readonly string[] Games = { "colors", "pictures", "shapes", "counting", "feelings", "trace", "letters", "patterns", "memory", "opposites", "sequence", "shadows", "seasons" };
 
         /// <summary>Doğruluk oranı anlamsız olan oyunlar: yalnızca kaç kez tamamlandığı raporlanır.</summary>
         public static bool IsDoneGame(string game) => game == "trace" || game == "memory";

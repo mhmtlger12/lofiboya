@@ -19,7 +19,7 @@ namespace LofiBoya
     /// </summary>
     public partial class LearnScreen : MonoBehaviour, IScreen
     {
-        enum Mode { Menu, Colors, Animals, Shapes, Count, Feelings, Trace, Letters, Patterns, Memory }
+        enum Mode { Menu, Colors, Animals, Shapes, Count, Feelings, Trace, Letters, Patterns, Memory, Opposites, Sequence, Shadows, Seasons }
 
         Mode _mode = Mode.Menu;
         RectTransform _root, _area;
@@ -70,11 +70,29 @@ namespace LofiBoya
         {
             _mode = Mode.Menu;
             ClearArea();
+            if (_mascot != null) _mascot.gameObject.SetActive(false);   // menüde kartların önünü kapatmasın
             FitMenuToScreen();
             var title = UIKit.Label(_area, Loc.T("learn"), 96, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Band(true, 120, 200);
             var sub = UIKit.Label(_area, Loc.T("learn_sub"), 44, Theme.TextSoft);
             sub.rectTransform.Band(true, 60, 315);
+
+            // kartlar dikey kaydırılan alanda: uzun ekranda hepsi görünür, kısa ekranda parmakla kayar
+            var view = UIKit.Node("MenuScroll", _area).Stretch(0, MenuTop, 0, 0);
+            view.gameObject.AddComponent<Image>().color = Color.clear;
+            view.gameObject.AddComponent<RectMask2D>().softness = new Vector2Int(0, 40);
+            var sr = view.gameObject.AddComponent<ScrollRect>();
+            sr.horizontal = false;
+            sr.movementType = ScrollRect.MovementType.Elastic;
+            sr.scrollSensitivity = 40;
+            _menuGrid = UIKit.Node("Grid", view);
+            _menuGrid.anchorMin = new Vector2(0, 1);
+            _menuGrid.anchorMax = new Vector2(1, 1);
+            _menuGrid.pivot = new Vector2(0.5f, 1);
+            _menuGrid.offsetMin = _menuGrid.offsetMax = Vector2.zero;
+            _menuGrid.sizeDelta = new Vector2(0, MenuPad * 2 + MenuRows * _rowStep);
+            sr.viewport = view;
+            sr.content = _menuGrid;
 
             // 3x3 kart: Renkler, Resimler, Şekiller / Sayılar, Yazalım, Harfler / Duygular, Örüntü, Hafıza
             var colors = MenuCard(Cell(0), Loc.T("colors"), Loc.T("colors_sub"), Theme.Accent, 0.1f, () => StartGame(Mode.Colors));
@@ -154,27 +172,38 @@ namespace LofiBoya
             TraceBoard.Mini(mini, 2, new Vector2(80, 110), Theme.Text.WithAlpha(0.7f));
 
             MoreMenuCards();
+            ConceptMenuCards();
         }
 
-        // Uzun ekranlarda (19.5:9 vb.) ızgara boşlukta yüzmesin: kartlar boyca büyür, satırlar açılır.
+        // Menü: 13 oyun, 3 sütun × 5 satır (son satırda tek kart ortada). Kartlar kaydırılan alanın içindedir;
+        // boyları ekrana göre ayarlanır: uzun ekranda hepsi sığar, kısa ekranda biraz kayar.
+        const float MenuTop = 390f, MenuPad = 24f;
+        const int MenuCards = 13, MenuRows = 5;
         float _cardH = 316f, _rowStep = 344f;
+        RectTransform _menuGrid;
 
         void FitMenuToScreen()
         {
             float h = App.I != null && App.I.SafeRoot != null ? App.I.SafeRoot.rect.height : 1920f;
-            float extra = Mathf.Max(0f, h - 1920f);
-            _cardH = 316f + Mathf.Min(extra * 0.22f, 110f);
-            _rowStep = _cardH + 28f + Mathf.Min(extra * 0.04f, 24f);
+            float view = h - MenuTop - MenuPad * 2;
+            _cardH = Mathf.Clamp(view / MenuRows - 26f, 290f, 340f);
+            _rowStep = _cardH + 26f;
         }
 
-        /// <summary>Menü ızgarası: 0..8, soldan sağa, yukarıdan aşağı.</summary>
-        Vector2 Cell(int i) => new((i % 3 - 1) * 312, -44 + (1 - i / 3) * _rowStep);
+        /// <summary>Menü ızgarası: soldan sağa, yukarıdan aşağı; tek kalan son kart ortalanır. Izgaranın üstüne göre.</summary>
+        Vector2 Cell(int i)
+        {
+            int row = i / 3, col = i % 3;
+            bool lone = row == (MenuCards - 1) / 3 && MenuCards % 3 == 1;
+            float x = lone ? 0 : (col - 1) * 312;
+            return new Vector2(x, -(MenuPad + _cardH * 0.5f + row * _rowStep));
+        }
 
         RectTransform MenuCard(Vector2 pos, string title, string sub, Color color, float delay, System.Action onClick)
         {
-            var b = UIKit.Button(_area, "", color, Theme.Text, 10, onClick, 0.7f);
+            var b = UIKit.Button(_menuGrid != null ? _menuGrid : _area, "", color, Theme.Text, 10, onClick, 0.7f);
             var rt = (RectTransform)b.transform;
-            rt.Place(new Vector2(0.5f, 0.5f), pos, new Vector2(292, _cardH));
+            rt.Place(new Vector2(0.5f, 1f), pos, new Vector2(292, _cardH));
             var face = b.transform.Find("Face");
             var t = UIKit.Label(face, title, 52, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.anchorMin = new Vector2(0, 0);
@@ -220,6 +249,7 @@ namespace LofiBoya
 
         void StartGame(Mode mode)
         {
+            if (_mascot != null) _mascot.gameObject.SetActive(true);
             _mode = mode;
             _streak = 0;
             _roundNo = 0;
@@ -256,6 +286,10 @@ namespace LofiBoya
             else if (_mode == Mode.Letters) { if (SaveSystem.AgeBand == 0 || r % 2 == 0) LetterMatchRound(); else FirstLetterRound(); }
             else if (_mode == Mode.Patterns) PatternRound();
             else if (_mode == Mode.Memory) MemoryRound();
+            else if (_mode == Mode.Opposites) OppositeRound();
+            else if (_mode == Mode.Sequence) SequenceRound();
+            else if (_mode == Mode.Shadows) ShadowRound();
+            else if (_mode == Mode.Seasons) SeasonRound();
             else { if (r % 2 == 0 || !ClassifyRound()) AnimalRound(); }
             Tween.Pop(_prompt.rectTransform, 0.05f, 0.4f);
             Speech.Say(_promptVoice);
@@ -965,7 +999,9 @@ namespace LofiBoya
         {
             Mode.Colors => "colors", Mode.Animals => "pictures", Mode.Shapes => "shapes",
             Mode.Count => "counting", Mode.Feelings => "feelings", Mode.Letters => "letters",
-            Mode.Patterns => "patterns", Mode.Memory => "memory", _ => "trace",
+            Mode.Patterns => "patterns", Mode.Memory => "memory",
+            Mode.Opposites => "opposites", Mode.Sequence => "sequence", Mode.Shadows => "shadows", Mode.Seasons => "seasons",
+            _ => "trace",
         };
 
         void Answer(bool right, RectTransform option, string name, string sayRight = null, float nextDelay = 2.0f, string key = null)
