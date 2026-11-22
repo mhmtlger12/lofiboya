@@ -47,7 +47,8 @@ namespace LofiBoya
         (string name, string acc, Color color)[] _numColors;
         Text[] _numLabels;
         RectTransform _numLayer;
-        const int NumberCount = 5;
+        // sayılı boyamada renk sayısı yaşa göre: 3–4 yaş 1-3, 5–6 yaş 1-5, 7+ yaş 1-7
+        static int NumberCount => SaveSystem.AgeBand switch { 0 => 3, 1 => 5, _ => 7 };
 
         class Crayon
         {
@@ -156,7 +157,7 @@ namespace LofiBoya
             ((RectTransform)clear.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap * 2, -100), new Vector2(size, size));
             A11y.Label(clear, Loc.T("a11y_clear"));
 
-            var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, size, () => Popup.Toast(Sfx.NextTrack()), 0.48f);
+            var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, size, () => Popup.Toast(Sfx.MusicButton()), 0.48f);
             ((RectTransform)music.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap * 3, -100), new Vector2(size, size));
             A11y.Label(music, Loc.T("a11y_music"));
 
@@ -288,16 +289,18 @@ namespace LofiBoya
             SelectSize(Mathf.Clamp(SaveSystem.BrushSize, 0, 2));
 
             // Sol kenar (kova seçiliyken): sihirli boyalar
-            _magicPicker = SidePill(card.transform, "MagicPicker", true, MagicPaint.Count, _magicItems, i => { SelectMagic(i, true); });
+            _magicPicker = SidePill(card.transform, "MagicPicker", true, MagicPaint.Count, _magicItems, i => { SelectMagic(i, true); },
+                i => i == 0 ? Loc.T("magic_normal_say") : Loc.T("magic_say", Loc.T("magic_" + i)));
             // Sağ kenar (damga seçiliyken): şekiller
-            _stampPicker = SidePill(card.transform, "StampPicker", false, Art.Stamps.Length, _stampItems, i => SelectStamp(i, true));
+            _stampPicker = SidePill(card.transform, "StampPicker", false, Art.Stamps.Length, _stampItems, i => SelectStamp(i, true),
+                i => Loc.T("a11y_tool_3") + ": " + Loc.T("stamp_" + i));
             var stamps = Art.Stamps;
             for (int i = 0; i < stamps.Length; i++) { _stampItems[i].img.sprite = stamps[i]; _stampItems[i].img.preserveAspect = true; }
             SelectMagic(0, false);
             SelectStamp(Random.Range(0, stamps.Length), false);
         }
 
-        RectTransform SidePill(Transform parent, string name, bool left, int count, List<(Image img, Image ring)> items, System.Action<int> onPick)
+        RectTransform SidePill(Transform parent, string name, bool left, int count, List<(Image img, Image ring)> items, System.Action<int> onPick, System.Func<int, string> label)
         {
             const float cellH = 92f;
             var rt = UIKit.Node(name, parent);
@@ -325,6 +328,7 @@ namespace LofiBoya
                 var b = cell.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => { Sfx.Tap(); onPick(idx); });
+                A11y.Label(b, label(idx));
                 items.Add((img, ring));
             }
             rt.gameObject.SetActive(false);
@@ -793,18 +797,44 @@ namespace LofiBoya
             _numLayer = UIKit.Node("Numbers", _canvas.Content).Stretch();
             _numLabels = new Text[n + 1];
             int border = _canvas.BorderRegion;
+            int count = NumberCount;
+            // önce numarasız bölgeler (arka plan, minik bölgeler) ayrılır
+            var numbered = new List<int>();
             for (int i = 1; i <= n; i++)
             {
-                if (i == border) { _target[i] = -1; continue; }
-                _target[i] = (int)(((((uint)i * 2654435761u) ^ seed) >> 9) % (uint)NumberCount);
-                float r = _canvas.RegionLocalRadius(i);
-                if (r < 14f)
+                _target[i] = -1;
+                if (i == border) continue;
+                if (_canvas.RegionLocalRadius(i) < 14f)
                 {
                     // parmağın sığmayacağı minik bölgeleri kendimiz boyarız
                     if (!_canvas.Filled[i]) _canvas.FillSilently(i, Color.white);
-                    _target[i] = -1;
                     continue;
                 }
+                numbered.Add(i);
+            }
+            // büyükten küçüğe: her bölge, komşularında olmayan bir numara alır (resme özgü sabit sırayla denenir);
+            // hepsi doluysa komşular arasında en az kullanılan numara
+            var nb = _level.Neighbors();
+            numbered.Sort((a, b) => _level.Meta.area[b - 1].CompareTo(_level.Meta.area[a - 1]));
+            var used = new int[count];
+            foreach (int i in numbered)
+            {
+                int start = (int)(((((uint)i * 2654435761u) ^ seed) >> 9) % (uint)count);
+                System.Array.Clear(used, 0, count);
+                foreach (int j in nb[i]) if (_target[j] >= 0) used[_target[j]]++;
+                int best = start;
+                for (int k = 0; k < count; k++)
+                {
+                    int c = (start + k) % count;
+                    if (used[c] < used[best]) best = c;
+                    if (used[c] == 0) { best = c; break; }
+                }
+                _target[i] = best;
+            }
+            for (int i = 1; i <= n; i++)
+            {
+                if (_target[i] < 0) continue;
+                float r = _canvas.RegionLocalRadius(i);
                 var uv = new Vector2((_level.Meta.cx[i - 1] + 0.5f) / _level.Width, (_level.Meta.cy[i - 1] + 0.5f) / _level.Height);
                 var t = UIKit.Label(_numLayer, (_target[i] + 1).ToString(), Mathf.RoundToInt(Mathf.Clamp(r * 1.25f, 22f, 72f)), Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
                 t.rectTransform.anchorMin = t.rectTransform.anchorMax = uv;
@@ -850,7 +880,8 @@ namespace LofiBoya
         void AskClear()
         {
             if (_canvas.Progress <= 0 && !_canvas.HasPaint) { Popup.Toast(Loc.T("already_clean")); return; }
-            Popup.Confirm(Loc.T("clear_title"), Loc.T("clear_msg"), Loc.T("clear_yes"), Loc.T("clear_no"), () =>
+            // "vazgeç" renkli ve öne çıkan düğme; silme sade düğmede (okuyamayan çocuk renkliye basar)
+            Popup.Confirm(Loc.T("clear_title"), Loc.T("clear_msg"), Loc.T("clear_yes"), Loc.T("clear_no"), true, () =>
             {
                 _canvas.ClearAll();
                 _completedShown = false;
@@ -869,6 +900,7 @@ namespace LofiBoya
             if (allDone) pct = 100;
             _progressText.text = Loc.T("percent", pct);
             _lastActivity = Time.unscaledTime;
+            if (_canvas.MarkedDone) _wasDone = true;   // "temizle" geri alındıysa bitmiş resim yeniden yıldız vermesin
             // Pofuduk: çeyrek, yarı ve üç çeyrekte kısa bir cesaretlendirme (not değil, sevinç)
             if (_ready && _buddy != null && !_level.IsBlank && !_completedShown && !allDone)
             {
@@ -1005,6 +1037,7 @@ namespace LofiBoya
             _completedShown = true;
             bool first = !_wasDone;
             _wasDone = true;
+            _canvas.MarkedDone = true;   // "Bitir"e basıldıysa minik bölgeler kalsa da resim bitmiş kaydedilir
             _finishBtn.gameObject.SetActive(false);
             SaveNow();
             Sfx.Win();

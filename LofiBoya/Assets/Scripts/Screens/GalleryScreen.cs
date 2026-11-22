@@ -27,7 +27,7 @@ namespace LofiBoya
             var back = UIKit.CircleButton(root, "‹", Theme.Card, Theme.Text, 120, 90, () => App.I.ShowWelcome());
             ((RectTransform)back.transform).Place(new Vector2(0, 1), new Vector2(110, -110), new Vector2(120, 120));
 
-            var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, 120, () => Popup.Toast(Sfx.NextTrack()), 0.5f);
+            var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, 120, () => Popup.Toast(Sfx.MusicButton()), 0.5f);
             A11y.Label(music, Loc.T("a11y_music"));
             ((RectTransform)music.transform).Place(new Vector2(1, 1), new Vector2(-110, -110), new Vector2(120, 120));
 
@@ -144,13 +144,13 @@ namespace LofiBoya
                 return;
             }
 
-            if (Group == "kolay")
             {
-                // en başta: serbest çizim için boş sayfa
+                // her sekmenin başında: serbest çizim için boş sayfa (büyükler de çizebilsin)
                 var cell = UIKit.Node("Blank", _gridRoot);
                 BuildCard(cell, new LevelEntry { id = Level.BlankId }, Level.BlankGroup);
                 Tween.Pop(cell.GetChild(0), 0f, 0.4f);
             }
+            levels = NumbersTogether(levels);
             for (int i = 0; i < levels.Count; i++)
             {
                 var entry = levels[i];
@@ -162,6 +162,29 @@ namespace LofiBoya
             LayoutRebuilder.ForceRebuildLayoutImmediate(_gridRoot);
             _scroll.StopMovement();
             _scroll.verticalNormalizedPosition = _scrollMemory.TryGetValue(Group, out var pos) ? pos : 1f;
+        }
+
+        /// <summary>
+        /// Sayı sayfaları (lofi-num-1..10) bölge sayısına göre sıralanınca listeye dağılıyordu; ilk sayı sayfasının
+        /// yerinde 1'den 10'a sırayla bir arada dururlar ("5'i aç" diyen öğretmen aramak zorunda kalmaz).
+        /// </summary>
+        static List<LevelEntry> NumbersTogether(List<LevelEntry> levels)
+        {
+            const string prefix = "lofi-num-";
+            static int Num(LevelEntry e) => int.TryParse(e.id.Substring(prefix.Length), out var n) ? n : 999;
+            var nums = levels.FindAll(e => e.id.StartsWith(prefix));
+            if (nums.Count < 2) return levels;
+            nums.Sort((a, b) => Num(a).CompareTo(Num(b)));
+            var list = new List<LevelEntry>(levels.Count);
+            bool placed = false;
+            foreach (var e in levels)
+            {
+                if (!e.id.StartsWith(prefix)) { list.Add(e); continue; }
+                if (placed) continue;
+                list.AddRange(nums);
+                placed = true;
+            }
+            return list;
         }
 
         void BuildCard(RectTransform cell, LevelEntry entry, string groupOverride = null)

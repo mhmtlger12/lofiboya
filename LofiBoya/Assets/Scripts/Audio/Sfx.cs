@@ -183,16 +183,39 @@ namespace LofiBoya
             _music.Stop();
             _music.clip = t.clip;
             _music.volume = t.gen != null ? 1f : 0.5f;
-            if (play && SaveSystem.MusicOn) _music.Play();
+            if (play && SaveSystem.MusicPlaying) _music.Play();
         }
 
-        /// <summary>Sıradaki parçaya geç; adını döndürür. Müzik kapalıysa açar.</summary>
+        /// <summary>Sıradaki parçaya geç; adını döndürür (ebeveyn ayarı). Müzik kapalıysa açmaz.</summary>
         public static string NextTrack()
         {
             if (_i == null) return "";
-            if (!SaveSystem.MusicOn) SaveSystem.MusicOn = true;
             _i.SetTrack(_i._track + 1, true);
             return TrackName;
+        }
+
+        /// <summary>
+        /// Ekranlardaki nota düğmesi: parçalar arasında gezer, son parçadan sonra "sessiz" olur, bir dokunuşla yeniden başlar.
+        /// Ebeveyn/öğretmen müziği Ayarlar'dan kapattıysa çocuk düğmeyle açamaz (sınıfta sessizlik). Balon metnini döndürür.
+        /// </summary>
+        public static string MusicButton()
+        {
+            if (_i == null) return "";
+            if (!SaveSystem.MusicOn) return Loc.T("music_locked");
+            if (SaveSystem.MusicHush)
+            {
+                SaveSystem.MusicHush = false;
+                _i.SetTrack(0, true);
+                return Loc.T("music_toast", TrackName);
+            }
+            if (_i._track >= _i._tracks.Count - 1)
+            {
+                SaveSystem.MusicHush = true;
+                _i._music.Stop();
+                return Loc.T("music_quiet");
+            }
+            _i.SetTrack(_i._track + 1, true);
+            return Loc.T("music_toast", TrackName);
         }
 
         public static string TrackName
@@ -208,7 +231,7 @@ namespace LofiBoya
         public static void ApplySettings()
         {
             if (_i == null) return;
-            if (SaveSystem.MusicOn) { if (!_i._music.isPlaying) _i._music.Play(); }
+            if (SaveSystem.MusicPlaying) { if (!_i._music.isPlaying) _i._music.Play(); }
             else _i._music.Stop();
         }
 

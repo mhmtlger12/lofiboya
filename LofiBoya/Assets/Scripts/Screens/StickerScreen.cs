@@ -60,7 +60,7 @@ namespace LofiBoya
             grid.spacing = new Vector2(16, 20);
             grid.padding = new RectOffset(8, 8, 30, 60);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = 3;
+            grid.constraintCount = App.I.CanvasWidth >= 1380f ? 4 : 3;   // tablette 4 sütun
             grid.childAlignment = TextAnchor.UpperCenter;
             content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             sr.content = content;
@@ -221,6 +221,8 @@ namespace LofiBoya
                 }
             });
             cell.gameObject.AddComponent<PressFeedback>();
+            // kilitli çıkartma ekran okuyucuda yalnızca "?" değil: resmin adı ve "boyayınca açılır"
+            A11y.Label(b, done ? Names.LevelTitle(id) : Loc.T("a11y_sticker_todo", Names.LevelTitle(id)));
             holder.localScale = Vector3.zero;
             Tween.Pop(holder, 0.05f + Mathf.Min(index, 15) * 0.03f, 0.45f);
         }

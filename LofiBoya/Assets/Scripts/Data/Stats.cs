@@ -69,6 +69,41 @@ namespace LofiBoya
             return best;
         }
 
+        /// <summary>
+        /// Rapor yalnızca son 14 günü kullanır (bu hafta + geçen hafta). Daha eski günlük sayaçlar ve artık sayılmayan
+        /// karışıklık çiftleri silinir; PlayerPrefs aylar içinde şişmez. Günde bir kez, açılışta çalışır.
+        /// </summary>
+        public static void Prune()
+        {
+            const int Keep = 14;
+            var today = DateTime.Now.Date;
+            int todayKey = int.Parse(today.ToString("yyyyMMdd"));
+            int last = PlayerPrefs.GetInt("st_pruned", 0);
+            if (last == todayKey) return;
+            // ilk temizlikte geriye 120 gün, sonra yalnızca son temizlikten bu yana eskiyen günler
+            int from = 120;
+            if (last > 0 && DateTime.TryParseExact(last.ToString(), "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var lastDay))
+                from = Mathf.Clamp((int)(today - lastDay).TotalDays + Keep, Keep, 120);
+
+            var fields = new System.Collections.Generic.List<string> { "pic", "sec" };
+            foreach (var g in Games) { fields.Add(g + "_ok"); fields.Add(g + "_no"); fields.Add(g + "_done"); }
+            var cf = PlayerPrefs.GetString("cf_list", "").Split(',');
+            foreach (var id in cf) if (id.Length > 0) fields.Add("cf_" + id);
+
+            for (int d = Keep; d <= from; d++)
+            {
+                var day = today.AddDays(-d);
+                foreach (var f in fields) PlayerPrefs.DeleteKey(Key(day, f));
+            }
+            // son iki haftada hiç görülmeyen karışıklık çiftleri listeden çıkar
+            var keep = new System.Collections.Generic.List<string>();
+            foreach (var id in cf)
+                if (id.Length > 0 && Week("cf_" + id) + Week("cf_" + id, 1) > 0) keep.Add(id);
+            PlayerPrefs.SetString("cf_list", string.Join(",", keep));
+            PlayerPrefs.SetInt("st_pruned", todayKey);
+            PlayerPrefs.Save();
+        }
+
         /// <summary>Son 7 günde uygulamanın açık olduğu gün sayısı.</summary>
         public static int ActiveDays()
         {
@@ -82,6 +117,8 @@ namespace LofiBoya
     public class StatsClock : MonoBehaviour
     {
         float _acc;
+
+        void Start() => Stats.Prune();
 
         void Update()
         {

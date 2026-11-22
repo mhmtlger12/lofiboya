@@ -119,7 +119,7 @@ namespace LofiBoya
             // ---- Üst köşeler: müzik (sol), ebeveyn ayarları (sağ) ----
             var music = UIKit.IconButton(root, Art.Note, Theme.Card.WithAlpha(0.9f), Theme.Text, 110, () =>
             {
-                Popup.Toast(Loc.T("music_toast", Sfx.NextTrack()));
+                Popup.Toast(Sfx.MusicButton());
             }, 0.46f);
             ((RectTransform)music.transform).Place(new Vector2(0, 1), new Vector2(100, -100), new Vector2(110, 110));
             A11y.Label(music, Loc.T("a11y_music"));
@@ -193,7 +193,18 @@ namespace LofiBoya
         {
             var groups = Level.Index.groups;
             var all = new System.Collections.Generic.List<(string g, string id)>();
-            foreach (var g in groups) foreach (var l in g.levels) all.Add((g.name, l.id));
+            // bugünün resmi çocuğun yaşına uygun gruptan gelir (3–4 yaşa 400 bölgeli mandala çıkmasın);
+            // 7+ yaşta orta ve zor birlikte; o grupta resim yoksa hepsinden
+            string[] want = SaveSystem.AgeBand switch
+            {
+                0 => new[] { "kolay" },
+                1 => new[] { "kolay", "orta" },
+                _ => new[] { "orta", "zor" },
+            };
+            foreach (var g in groups)
+                if (System.Array.IndexOf(want, g.name) >= 0)
+                    foreach (var l in g.levels) all.Add((g.name, l.id));
+            if (all.Count == 0) foreach (var g in groups) foreach (var l in g.levels) all.Add((g.name, l.id));
             if (all.Count == 0) return;
             // Bugünün resmi: her gün değişir, gün içinde aynı kalır; bitmemişler öncelikli
             var undone = all.FindAll(e => { var s = SaveSystem.Load(e.g + "_" + e.id); return s == null || !s.done; });
@@ -241,9 +252,18 @@ namespace LofiBoya
             }
         }
 
+        // Android geri tuşu: yanlışlıkla basılınca uygulama kapanmasın; 2 sn içinde ikinci basış çıkar
+        float _backAt = -10f;
+
         public bool OnBack()
         {
-            Application.Quit();
+            if (Time.unscaledTime - _backAt < 2f)
+            {
+                Application.Quit();
+                return true;
+            }
+            _backAt = Time.unscaledTime;
+            Popup.Toast(Loc.T("back_again"));
             return true;
         }
 

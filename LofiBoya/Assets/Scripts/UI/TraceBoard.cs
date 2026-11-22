@@ -42,26 +42,43 @@ namespace LofiBoya
         public static TraceBoard Create(Transform parent, Vector2 size, int digit, Color ink) => Make(parent, size, Digit(digit), ink);
 
         /// <summary>Harf tahtası (yalnızca Latin alfabesi olan dillerde).</summary>
-        public static TraceBoard CreateLetter(Transform parent, Vector2 size, char letter, Color ink) => Make(parent, size, Letter(letter), ink);
+        public static TraceBoard CreateLetter(Transform parent, Vector2 size, char letter, Color ink) =>
+            Make(parent, size, Letter(letter), ink, char.IsLower(letter));
 
-        static TraceBoard Make(Transform parent, Vector2 size, List<List<Vector2>> strokes, Color ink)
+        static TraceBoard Make(Transform parent, Vector2 size, List<List<Vector2>> strokes, Color ink, bool lines = false)
         {
             var rt = UIKit.Node("Trace", parent);
             rt.sizeDelta = size;
             var hit = rt.gameObject.AddComponent<Image>();
             hit.color = Color.clear;
             var b = rt.gameObject.AddComponent<TraceBoard>();
-            b.Build(strokes, size, ink);
+            b.Build(strokes, size, ink, lines);
             return b;
         }
 
-        void Build(List<List<Vector2>> strokes, Vector2 size, Color ink)
+        void Build(List<List<Vector2>> strokes, Vector2 size, Color ink, bool lines)
         {
             _rt = (RectTransform)transform;
             _inkColor = ink;
             // küçük parmaklara (3–4 yaş) daha geniş pay
             _hitRadius = SaveSystem.AgeBand == 0 ? 72f : 58f;
             Vector2 Map(Vector2 u) => new((u.x - 0.5f) * size.x * 0.78f, (u.y - 0.5f) * size.y * 0.84f);
+
+            // küçük harflerde defterdeki gibi 4 çizgili kılavuz: üst, orta (x yüksekliği), taban, alt uzantı.
+            // Taban çizgisi daha belirgin; l ile ı, g/p/y'nin aşağı inen kuyruğu böylece ayırt edilir.
+            if (lines)
+            {
+                var guideRoot = UIKit.Node("Lines", _rt);
+                foreach (var (y, strong) in new[] { (1f, false), (Mid, false), (Base, true), (0f, false) })
+                {
+                    var line = UIKit.Box(guideRoot, "Line", Theme.Text.WithAlpha(strong ? 0.32f : 0.16f), null);
+                    line.raycastTarget = false;
+                    var lrt = line.rectTransform;
+                    lrt.anchorMin = lrt.anchorMax = new Vector2(0.5f, 0.5f);
+                    lrt.anchoredPosition = new Vector2(0, Map(new Vector2(0.5f, y)).y);
+                    lrt.sizeDelta = new Vector2(size.x * 0.94f, strong ? 6f : 4f);
+                }
+            }
 
             var road = UIKit.Node("Road", _rt);
             var dots = UIKit.Node("Dots", _rt);
@@ -324,8 +341,10 @@ namespace LofiBoya
             4 => new() { L(0.55f, 0.97f, 0.14f, 0.32f, 0.86f, 0.32f), L(0.66f, 0.70f, 0.66f, 0.03f) },
             5 => new() { Join(L(0.30f, 0.97f, 0.27f, 0.57f), Arc(0.48f, 0.31f, 0.30f, 0.27f, 125f, -150f)), L(0.30f, 0.97f, 0.80f, 0.97f) },
             6 => new() { Join(Arc(0.56f, 0.50f, 0.34f, 0.46f, 70f, 195f), Arc(0.50f, 0.29f, 0.28f, 0.26f, 180f, 540f)) },
-            7 => new() { L(0.18f, 0.97f, 0.82f, 0.97f, 0.40f, 0.03f) },
-            8 => new() { Arc(0.5f, 0.75f, 0.22f, 0.20f, 90f, 450f), Arc(0.5f, 0.29f, 0.27f, 0.25f, 90f, -270f) },
+            7 => Loc.Lang == "tr"
+                ? new() { L(0.18f, 0.97f, 0.82f, 0.97f, 0.40f, 0.03f), L(0.38f, 0.50f, 0.78f, 0.50f) }
+                : new() { L(0.18f, 0.97f, 0.82f, 0.97f, 0.40f, 0.03f) },
+            8 => new() { Join(Arc(0.5f, 0.75f, 0.22f, 0.20f, 30f, 270f), Arc(0.5f, 0.29f, 0.27f, 0.25f, 90f, -270f), Arc(0.5f, 0.75f, 0.22f, 0.20f, 270f, 390f)) },
             9 => new() { Join(Arc(0.48f, 0.70f, 0.26f, 0.25f, 0f, 360f), L(0.74f, 0.70f, 0.66f, 0.03f)) },
             _ => new() { Arc(0.5f, 0.5f, 0.31f, 0.46f, 90f, 450f) },
         };
@@ -334,12 +353,12 @@ namespace LofiBoya
 
         /// <summary>
         /// Yazma oyununda sırayla çıkan harfler. Latin alfabesi olmayan dillerde boş (yalnızca rakam).
-        /// Türkçe: 1. sınıftaki ses temelli okuma-yazma sırası ve küçük (dik temel) harf:
-        /// e l a k i n / o m u t ü y / ö r ı d s b / z ç g ş c p / h ğ v f j.
+        /// Türkçe: Türkiye Yüzyılı Maarif Modeli (2024–2025) 1. sınıf ses temelli okuma-yazma sırası, küçük (dik temel) harf:
+        /// a n e t i l / o k u r ı m / ü s ö y d z / ç b g c ş / p h v ğ f j.
         /// </summary>
         public static string Letters => Loc.Lang switch
         {
-            "tr" => "elakinomutüyörıdsbzçgşcphğvfj",
+            "tr" => "anetilokurımüsöydzçbgcşphvğfj",
             "en" or "de" or "fr" or "es" or "it" or "pt" => "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             _ => "",
         };
@@ -432,8 +451,8 @@ namespace LofiBoya
             'J' => new() { Join(L(0.65f, 1f, 0.65f, 0.28f), Arc(0.42f, 0.28f, 0.23f, 0.28f, 0f, -180f)) },
             'K' => new() { L(0.25f, 1f, 0.25f, 0f), L(0.78f, 1f, 0.27f, 0.45f), L(0.42f, 0.6f, 0.8f, 0f) },
             'L' => new() { L(0.28f, 1f, 0.28f, 0f, 0.78f, 0f) },
-            'M' => new() { L(0.15f, 0f, 0.15f, 1f, 0.5f, 0.4f, 0.85f, 1f, 0.85f, 0f) },
-            'N' => new() { L(0.2f, 0f, 0.2f, 1f, 0.8f, 0f, 0.8f, 1f) },
+            'M' => new() { L(0.15f, 1f, 0.15f, 0f), L(0.15f, 1f, 0.5f, 0.4f, 0.85f, 1f, 0.85f, 0f) },
+            'N' => new() { L(0.2f, 1f, 0.2f, 0f), L(0.2f, 1f, 0.8f, 0f, 0.8f, 1f) },
             'O' => new() { Arc(0.5f, 0.5f, 0.36f, 0.5f, 90f, 450f) },
             'P' => new() { L(0.25f, 1f, 0.25f, 0f), Join(L(0.25f, 1f, 0.55f, 1f), Arc(0.55f, 0.76f, 0.23f, 0.24f, 90f, -90f), L(0.55f, 0.52f, 0.25f, 0.52f)) },
             'Q' => new() { Arc(0.5f, 0.5f, 0.36f, 0.5f, 90f, 450f), L(0.6f, 0.25f, 0.88f, -0.04f) },

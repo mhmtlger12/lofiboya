@@ -15,6 +15,8 @@ namespace LofiBoya
         /// <summary>Kalemle boyanmış bölgeler (ilerleme için).</summary>
         public bool[] brushed;
         public bool hasPaint;
+        /// <summary>Kalem kaplama ızgarası (bit dizisi, base64): yarım kalan bölgelerin ilerlemesi kaybolmasın.</summary>
+        public string cover;
     }
 
     /// <summary>İlerlemeyi cihazda saklar (Application.persistentDataPath/saves).</summary>
@@ -80,7 +82,9 @@ namespace LofiBoya
             var p = ThumbPath(key);
             if (!File.Exists(p)) return null;
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-            return tex.LoadImage(File.ReadAllBytes(p), true) ? tex : null;
+            if (tex.LoadImage(File.ReadAllBytes(p), true)) return tex;
+            UnityEngine.Object.Destroy(tex);   // bozuk dosya: boş dokuyu bellekte bırakma
+            return null;
         }
 
         /// <summary>Kalem katmanı (premultiplied, sRGB baytları olduğu gibi).</summary>
@@ -89,7 +93,9 @@ namespace LofiBoya
             var p = PaintPath(key);
             if (!File.Exists(p)) return null;
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, false);
-            return tex.LoadImage(File.ReadAllBytes(p), false) ? tex : null;
+            if (tex.LoadImage(File.ReadAllBytes(p), false)) return tex;
+            UnityEngine.Object.Destroy(tex);
+            return null;
         }
 
         /// <summary>Toplanan yıldızlar (boyama bitirme ve öğrenme oyunları).</summary>
@@ -134,19 +140,19 @@ namespace LofiBoya
         public static bool NumberMode
         {
             get => PlayerPrefs.GetInt("numbers", 0) == 1;
-            set => PlayerPrefs.SetInt("numbers", value ? 1 : 0);
+            set { PlayerPrefs.SetInt("numbers", value ? 1 : 0); PlayerPrefs.Save(); }
         }
 
         public static int ToolIndex
         {
             get => PlayerPrefs.GetInt("tool", 0);
-            set => PlayerPrefs.SetInt("tool", value);
+            set { PlayerPrefs.SetInt("tool", value); PlayerPrefs.Save(); }
         }
 
         public static int BrushSize
         {
             get => PlayerPrefs.GetInt("brushSize", 1);
-            set => PlayerPrefs.SetInt("brushSize", value);
+            set { PlayerPrefs.SetInt("brushSize", value); PlayerPrefs.Save(); }
         }
 
         public static bool MusicOn
@@ -154,6 +160,16 @@ namespace LofiBoya
             get => PlayerPrefs.GetInt("music", 1) == 1;
             set { PlayerPrefs.SetInt("music", value ? 1 : 0); PlayerPrefs.Save(); }
         }
+
+        /// <summary>Çocuğun nota düğmesiyle seçtiği "sessiz" durak (ebeveynin müzik ayarından ayrı).</summary>
+        public static bool MusicHush
+        {
+            get => PlayerPrefs.GetInt("musicHush", 0) == 1;
+            set { PlayerPrefs.SetInt("musicHush", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>Müzik çalmalı mı: ebeveyn açık bıraktı ve çocuk sessize almadı.</summary>
+        public static bool MusicPlaying => MusicOn && !MusicHush;
 
         public static bool SoundOn
         {
@@ -182,6 +198,18 @@ namespace LofiBoya
             set { PlayerPrefs.SetInt("ageBand", value); PlayerPrefs.Save(); }
         }
 
+        /// <summary>Sayılar oyununun seviyesi (yaş grubu değişince o yaşın başlangıcına döner).</summary>
+        public static int CountLevel
+        {
+            get => PlayerPrefs.GetInt("countAge", -1) == AgeBand ? PlayerPrefs.GetInt("countLevel", AgeBand * 4) : AgeBand * 4;
+            set
+            {
+                PlayerPrefs.SetInt("countLevel", Mathf.Max(0, value));
+                PlayerPrefs.SetInt("countAge", AgeBand);
+                PlayerPrefs.Save();
+            }
+        }
+
         public static readonly string[] AgeLabels = { "3–4", "5–6", "7+" };
 
         /// <summary>Yaş ilk açılışta ebeveyne soruldu mu.</summary>
@@ -205,6 +233,13 @@ namespace LofiBoya
         {
             get => PlayerPrefs.GetInt("easyTrace", 0) == 1;
             set { PlayerPrefs.SetInt("easyTrace", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>Solak çocuk: dokunmatik kalem ucu parmağın sağ önüne kayar.</summary>
+        public static bool LeftHanded
+        {
+            get => PlayerPrefs.GetInt("leftHanded", 0) == 1;
+            set { PlayerPrefs.SetInt("leftHanded", value ? 1 : 0); PlayerPrefs.Save(); }
         }
 
         /// <summary>Renk körü desteği: boya kalemlerinin üstünde her renge özel küçük bir işaret.</summary>
@@ -244,7 +279,7 @@ namespace LofiBoya
         public static int PaletteIndex
         {
             get => PlayerPrefs.GetInt("palette", 0);
-            set => PlayerPrefs.SetInt("palette", value);
+            set { PlayerPrefs.SetInt("palette", value); PlayerPrefs.Save(); }
         }
     }
 }

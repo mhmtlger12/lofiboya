@@ -13,12 +13,12 @@ namespace LofiBoya
     {
         public static void Show(Action onPass)
         {
-            int a = UnityEngine.Random.Range(3, 10), b = UnityEngine.Random.Range(3, 10);
+            int a = UnityEngine.Random.Range(3, 10), b = UnityEngine.Random.Range(11, 20);
             int answer = a * b;
             var options = new System.Collections.Generic.List<int> { answer };
             while (options.Count < 4)
             {
-                int o = answer + UnityEngine.Random.Range(-12, 13);
+                int o = answer + UnityEngine.Random.Range(-2, 3) * a + UnityEngine.Random.Range(-3, 4);
                 if (o > 4 && !options.Contains(o)) options.Add(o);
             }
             for (int i = 0; i < options.Count; i++) { int j = UnityEngine.Random.Range(i, options.Count); (options[i], options[j]) = (options[j], options[i]); }
@@ -55,9 +55,11 @@ namespace LofiBoya
         }
 
         /// <summary>İlk açılışta (bir kez) ebeveyne çocuğun yaşını sorar; oyunlar buna göre ayarlanır.</summary>
-        public static void AskAge()
+        public static void AskAge() => Show(AskAgeNow);
+
+        static void AskAgeNow()
         {
-            var (overlay, card, close) = Panel(860, 820);
+            var (overlay, card, close) = Panel(860, 820, false);
             var t = UIKit.Label(card.transform, Loc.T("age_q"), 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 100, 50);
             var sub = UIKit.Label(card.transform, Loc.T("age_q_sub"), 34, Theme.TextSoft);
@@ -161,7 +163,7 @@ namespace LofiBoya
 
         static void Accessibility()
         {
-            var (overlay, card, close) = Panel(860, 1240);
+            var (overlay, card, close) = Panel(860, 1368);
             var t = UIKit.Label(card.transform, Loc.T("access_title"), 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 100, 40);
             float y = -190;
@@ -169,6 +171,7 @@ namespace LofiBoya
             Toggle(card.transform, ref y, Loc.T("color_assist"), () => SaveSystem.ColorAssist, v => SaveSystem.ColorAssist = v);
             Toggle(card.transform, ref y, Loc.T("pencil_inside"), () => SaveSystem.PencilStaysInside, v => SaveSystem.PencilStaysInside = v);
             Toggle(card.transform, ref y, Loc.T("easy_trace"), () => SaveSystem.EasyTrace, v => SaveSystem.EasyTrace = v);
+            Toggle(card.transform, ref y, Loc.T("left_hand"), () => SaveSystem.LeftHanded, v => SaveSystem.LeftHanded = v);
             var info = UIKit.Label(card.transform, Loc.T("access_info"), 32, Theme.TextSoft);
             info.rectTransform.anchorMin = info.rectTransform.anchorMax = new Vector2(0.5f, 1);
             info.rectTransform.sizeDelta = new Vector2(740, 340);
@@ -495,14 +498,19 @@ namespace LofiBoya
         }
 
         /// <summary>Karartılmış arka plan + ortada kart. close() ile kapanır.</summary>
-        static (GameObject overlay, Image card, Action close) Panel(float w, float h)
+        static (GameObject overlay, Image card, Action close) Panel(float w, float h, bool dismissable = true)
         {
             var root = App.I.SafeRoot;
             var overlay = UIKit.Node("Panel", root).Stretch(-UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed);
             var dim = overlay.gameObject.AddComponent<Image>();
             dim.color = Theme.Text.WithAlpha(0f);
             Tween.To(dim, 0.25f, k => dim.color = Theme.Text.WithAlpha(0.35f * k));
-            var holder = UIKit.Node("Holder", overlay);
+            // kısa ekranda (çentik + gezinme çubuğu) uzun kart kesilmesin: güvenli alana sığacak kadar küçülür
+            var fit = UIKit.Node("Fit", overlay);
+            fit.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(w, h));
+            float sc = Mathf.Min(1f, (root.rect.height - 60f) / h, (root.rect.width - 40f) / w);
+            fit.localScale = new Vector3(sc, sc, 1f);
+            var holder = UIKit.Node("Holder", fit);
             holder.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(w, h));
             var card = UIKit.Card(holder, "Card", Theme.Card, 0.6f);
             ((RectTransform)card.transform.parent).Stretch();
@@ -518,7 +526,7 @@ namespace LofiBoya
             }
             var dimBtn = overlay.gameObject.AddComponent<Button>();
             dimBtn.transition = Selectable.Transition.None;
-            dimBtn.onClick.AddListener(Close);
+            if (dismissable) dimBtn.onClick.AddListener(Close);
             return (overlay.gameObject, card, Close);
         }
     }

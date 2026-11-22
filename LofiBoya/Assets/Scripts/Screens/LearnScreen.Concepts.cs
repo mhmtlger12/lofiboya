@@ -121,7 +121,7 @@ namespace LofiBoya
         // ================= Sıralama =================
 
         readonly List<int> _seqBag = new();
-        int _seqNext;
+        int _seqNext, _seqKind;
         readonly List<RectTransform> _seqSlots = new();
 
         void SequenceRound()
@@ -130,6 +130,7 @@ namespace LofiBoya
             if (_seqBag.Count == 0) { _seqBag.AddRange(SaveSystem.AgeBand >= 2 ? new[] { 0, 1, 2, 3 } : new[] { 0, 1, 2 }); Shuffle(_seqBag); }
             int kind = _seqBag[0];
             _seqBag.RemoveAt(0);
+            _seqKind = kind;
             _prompt.text = Loc.T("seq_q");
 
             // aşamaların görselleri (önce → sonra)
@@ -138,6 +139,7 @@ namespace LofiBoya
             else
             {
                 if (kind == 3) kind = Random.Range(0, 3);
+                _seqKind = kind;
                 for (int st = 0; st < 3; st++)
                     pics.Add((kind == 0 ? LearnArt.Plant(st) : kind == 1 ? LearnArt.Egg(st) : LearnArt.IceCream(st), null));
             }
@@ -187,6 +189,7 @@ namespace LofiBoya
                 var b = card.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => SequenceTap(card, stage, n));
+                A11y.Label(b, Names.Cap(Loc.T("seq_s" + _seqKind + "_" + stage)));
             }
         }
 
@@ -364,7 +367,7 @@ namespace LofiBoya
         /// </summary>
         static readonly string[][] SeasonKeys =
         {
-            new[] { "snowman", "polarbear", "penguin" },
+            new[] { "snowman" },   // kutup hayvanları mevsim değil iklim: kışa eşlenmez (yanlış kavram olmasın)
             new[] { "tulip", "butterfly", "ladybug", "chick" },
             new[] { "watermelon", "ice", "strawberry", "starfish", "crab", "sunflower" },
             new[] { "acorn", "autumn", "scarecrow", "squirrel", "mushroom" },

@@ -16,15 +16,20 @@ namespace LofiBoya
             var root = App.I.SafeRoot;
             var holder = UIKit.Node("Toast", root);
             _toast = holder.gameObject;
-            holder.Place(new Vector2(0.5f, 1f), new Vector2(0, -250), new Vector2(Mathf.Clamp(120 + text.Length * 26, 360, 900), 110));
+            bool longText = text.Length > 30;
+            holder.Place(new Vector2(0.5f, 1f), new Vector2(0, -250), new Vector2(Mathf.Clamp(120 + text.Length * 26, 360, 900), longText ? 160 : 110));
             var card = UIKit.Card(holder, "Card", Theme.Text.WithAlpha(0.92f), 0.6f, 4f);
             ((RectTransform)card.transform.parent).Stretch();
             var label = UIKit.Label(card.transform, text, 42, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-            label.rectTransform.Stretch();
+            label.rectTransform.Stretch(28, 10, 28, 10);
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = 26;
+            label.resizeTextMaxSize = 42;
             var cg = holder.gameObject.AddComponent<CanvasGroup>();
             cg.blocksRaycasts = false;
             Tween.Pop(holder, 0f, 0.35f);
-            Tween.Delay(1.6f, () =>
+            Tween.Delay(longText ? 2.6f : 1.6f, () =>
             {
                 if (cg != null) Tween.Fade(cg, 1f, 0f, 0.35f, () => { if (holder != null) UnityEngine.Object.Destroy(holder.gameObject); });
             });
@@ -32,6 +37,10 @@ namespace LofiBoya
 
         /// <summary>Ortada çıkan onay kartı. Arka plana dokunmak "vazgeç" sayılır.</summary>
         public static void Confirm(string title, string message, string yes, string no, Action onYes)
+            => Confirm(title, message, yes, no, false, onYes);
+
+        /// <summary>destructive: "evet" bir şeyi siler. O zaman vazgeç düğmesi renkli ve öne çıkan, silme düğmesi sade olur.</summary>
+        public static void Confirm(string title, string message, string yes, string no, bool destructive, Action onYes)
         {
             var root = App.I.SafeRoot;
             var overlay = UIKit.Node("Confirm", root).Stretch(-UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed);
@@ -65,13 +74,17 @@ namespace LofiBoya
             m.rectTransform.offsetMin = new Vector2(50, m.rectTransform.offsetMin.y);
             m.rectTransform.offsetMax = new Vector2(-50, m.rectTransform.offsetMax.y);
 
-            var noBtn = UIKit.Button(card.transform, no, Theme.Paper, Theme.Text, 46, Close);
+            var noBtn = destructive
+                ? UIKit.Button(card.transform, no, Theme.Mint, Theme.Text, 46, Close)
+                : UIKit.Button(card.transform, no, Theme.Paper, Theme.Text, 46, Close);
             var nrt = (RectTransform)noBtn.transform;
             nrt.anchorMin = nrt.anchorMax = new Vector2(0.5f, 0);
             nrt.sizeDelta = new Vector2(320, 130);
             nrt.anchoredPosition = new Vector2(-180, 110);
 
-            var yesBtn = UIKit.Button(card.transform, yes, Theme.AccentButton, Color.white, 46, () => { Close(); onYes?.Invoke(); });
+            var yesBtn = destructive
+                ? UIKit.Button(card.transform, yes, Theme.Paper, Theme.TextSoft, 40, () => { Close(); onYes?.Invoke(); })
+                : UIKit.Button(card.transform, yes, Theme.AccentButton, Color.white, 46, () => { Close(); onYes?.Invoke(); });
             var yrt = (RectTransform)yesBtn.transform;
             yrt.anchorMin = yrt.anchorMax = new Vector2(0.5f, 0);
             yrt.sizeDelta = new Vector2(320, 130);

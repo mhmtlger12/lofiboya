@@ -20,6 +20,7 @@ namespace LofiBoya
         public static bool Active { get; private set; }
 
         float _played, _saveIn;
+        bool _warned;
         GameObject _overlay;
         Text _countdown;
 
@@ -53,8 +54,16 @@ namespace LofiBoya
             _played += Time.unscaledDeltaTime;
             _saveIn -= Time.unscaledDeltaTime;
             if (_saveIn <= 0) Persist();
+            // geçiş uyarısı: mola birden gelmesin, bir dakika önce haber verilir
+            if (!_warned && minutes * 60f - _played <= 60f && minutes * 60f - _played > 5f)
+            {
+                _warned = true;
+                Popup.Toast(Loc.T("break_soon"));
+                Speech.Say(Loc.T("break_soon"));
+            }
             if (_played >= minutes * 60f)
             {
+                _warned = false;
                 BreakUntil = Now + (long)BreakSeconds;
                 ShowOverlay(true);
             }

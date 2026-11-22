@@ -188,6 +188,9 @@ namespace LofiBoya
             Shuffle(order);
             int want = kind == 0 || kind == 2 ? n - 1 : 0;   // en büyük ya da en küçük ölçek
             var color = CountColor();
+            // ekran okuyucu ve yanlış cevaptaki ad etiketi: "en büyük", "orta", "en kısa"…
+            string SizeName(int si) => Loc.T(si == n - 1 ? (kind >= 2 ? "sz_longest" : "sz_biggest")
+                                           : si == 0 ? (kind >= 2 ? "sz_shortest" : "sz_smallest") : "sz_middle");
 
             if (kind >= 2)
             {
@@ -206,7 +209,9 @@ namespace LofiBoya
                     var b = slot.gameObject.AddComponent<Button>();
                     b.transition = Selectable.Transition.None;
                     bool right = si == want;
-                    b.onClick.AddListener(() => Answer(right, slot, ""));
+                    string nm = SizeName(si);
+                    b.onClick.AddListener(() => Answer(right, slot, nm));
+                    A11y.Label(b, Names.Cap(nm));
                     cr.localScale = Vector3.zero;
                     Tween.Pop(cr, 0.1f + i * 0.08f, 0.45f);
                 }
@@ -229,7 +234,9 @@ namespace LofiBoya
                 var b = slot.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 bool right = si == want;
-                b.onClick.AddListener(() => Answer(right, slot, ""));
+                string nm = SizeName(si);
+                b.onClick.AddListener(() => Answer(right, slot, nm));
+                A11y.Label(b, Names.Cap(nm));
                 slot.localScale = Vector3.zero;
                 Tween.Pop(slot, 0.1f + i * 0.08f, 0.45f);
             }
@@ -595,11 +602,13 @@ namespace LofiBoya
             // A, B, C + seçenekler için birkaç fazladan birim
             // ci: temel renk sırası (renk körü desteğinde işaret için)
             var units = new List<(Sprite s, Color c, int ci)>();
+            var unitNames = new List<string>();
             for (int u = 0; u < k + 2; u++)
             {
                 int ci = mode == 1 ? colorIdx[0] : colorIdx[u % colorIdx.Count];
-                var shp = Art.Shape(PatternShapes[mode == 0 ? shapeIdx[0] : shapeIdx[u % shapeIdx.Count]]);
-                units.Add((shp, Names.Basic[ci].color, ci));
+                string shKey = PatternShapes[mode == 0 ? shapeIdx[0] : shapeIdx[u % shapeIdx.Count]];
+                units.Add((Art.Shape(shKey), Names.Basic[ci].color, ci));
+                unitNames.Add(Names.Cap(Names.Shape(shKey).name) + ", " + Names.Basic[ci].name);
             }
             // yalnızca rengin değiştiği örüntüde renk körü çocuk ayırt edebilsin: her birimin altında renk işareti
             bool colorMatters = mode != 1;
@@ -663,8 +672,9 @@ namespace LofiBoya
                         qm.text = "";
                         Tween.Punch(brt, 0.12f, 0.4f);
                     }
-                    Answer(right, rt, "", null, 2.4f);
+                    Answer(right, rt, unitNames[u], null, 2.4f);
                 });
+                A11y.Label(bt, unitNames[u]);
                 rt.localScale = Vector3.zero;
                 Tween.Pop(rt, 0.1f + len * 0.12f + i * 0.08f, 0.45f);
             }
@@ -725,6 +735,9 @@ namespace LofiBoya
                 b.targetGraphic = back;
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => MemoryTap(mc));
+                int cardNo = i + 1;
+                string colorName = Names.Basic[colors[kind]].name;
+                A11y.Label(b, () => mc.Open || mc.Done ? Loc.T("a11y_card", cardNo) + ", " + colorName : Loc.T("a11y_card", cardNo));
                 holder.localScale = Vector3.zero;
                 Tween.Pop(holder, 0.05f + i * 0.05f, 0.4f);
             }

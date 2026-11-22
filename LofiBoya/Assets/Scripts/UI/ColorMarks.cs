@@ -19,7 +19,7 @@ namespace LofiBoya
             "purple" => Art.Shape("rectangle"),
             "pink" => Art.Flower,
             "brown" => Art.Balloon,
-            "turquoise" => Art.Dot,
+            "turquoise" => Art.CloudShape,
             "navy" => Art.Note,
             _ => null,
         };

@@ -45,7 +45,6 @@ namespace LofiBoya
                     if (Names.IsLearnable(l.id) && Names.TryAnimal(l.id, out var n, out var acc) && seen.Add(n))
                         _animals.Add((g.name, l.id, n, acc, Names.KeyOf(l.id)));
 
-            _countLevel = SaveSystem.AgeBand * 4;   // 3–4: 1-4 ile, 5–6: karşılaştırmayla, 7+: toplamayla başlar
 
             _mascot = Mascot.Create(_root, 240);
             var mrt = (RectTransform)_mascot.transform;
@@ -277,11 +276,12 @@ namespace LofiBoya
             _wantKey = null;
             _missed = false;
             _recorded = false;
+            _promptVoice = null;
             int r = _roundNo++;
             if (_mode == Mode.Colors) ColorRound();
             else if (_mode == Mode.Shapes) { if (r % 2 == 0) ShapeRound(); else SizeRound(); }
             else if (_mode == Mode.Count) CountDispatch();
-            else if (_mode == Mode.Feelings) { int k = r % 3; if (k == 0) FeelingsRound(); else if (k == 1) SituationRound(); else ActionRound(); }
+            else if (_mode == Mode.Feelings) { int k = r % (SaveSystem.AgeBand == 0 ? 2 : 3); if (k == 0) FeelingsRound(); else if (k == 1) SituationRound(); else ActionRound(); }
             else if (_mode == Mode.Trace) TraceRound(SaveSystem.AgeBand > 0 && TraceBoard.HasLetters && r % 2 == 1);
             else if (_mode == Mode.Letters) { if (SaveSystem.AgeBand == 0 || r % 2 == 0) LetterMatchRound(); else FirstLetterRound(); }
             else if (_mode == Mode.Patterns) PatternRound();
@@ -292,7 +292,7 @@ namespace LofiBoya
             else if (_mode == Mode.Seasons) SeasonRound();
             else { if (r % 2 == 0 || !ClassifyRound()) AnimalRound(); }
             Tween.Pop(_prompt.rectTransform, 0.05f, 0.4f);
-            Speech.Say(_promptVoice);
+            Speech.Say(string.IsNullOrEmpty(_promptVoice) ? _prompt.text : _promptVoice);
         }
 
         void ColorRound()
@@ -670,7 +670,9 @@ namespace LofiBoya
 
         // ================= Sayılar: "Kaç tane yıldız var?" =================
 
-        int _countLevel;          // doğru cevaplarla artar: sayı aralığı çocuğun hızına göre büyür
+        // doğru cevaplarla artar: sayı aralığı çocuğun hızına göre büyür. Cihazda saklanır (her girişte başa sarmaz);
+        // ilk kez: 3–4 yaş 1-4 ile, 5–6 karşılaştırmayla, 7+ toplamayla başlar
+        int _countLevel { get => SaveSystem.CountLevel; set => SaveSystem.CountLevel = value; }
         int _countAnswer;
         bool _countingTogether;
         readonly List<RectTransform> _countItems = new();
@@ -703,7 +705,7 @@ namespace LofiBoya
         }
 
         // "Hangi tarafta daha çok var?" — iki kart, çok olana dokun
-        bool _cmpShown;
+        bool _cmpShown, _cmpLess;
 
         void CompareRound()
         {
@@ -716,9 +718,10 @@ namespace LofiBoya
             do { a = Random.Range(1, max + 1); b = Random.Range(1, max + 1); } while (Mathf.Abs(a - b) < minDiff);
             int kind = Random.Range(0, 4);
             var color = CountColor();
-            _promptVoice = Loc.T("cmp_q");
+            _cmpLess = _countLevel >= 5 && Random.value < 0.5f;
+            _promptVoice = Loc.T(_cmpLess ? "cmp_q_less" : "cmp_q");
             _prompt.text = _promptVoice;
-            int more = Mathf.Max(a, b);
+            int more = _cmpLess ? Mathf.Min(a, b) : Mathf.Max(a, b);
 
             for (int side = 0; side < 2; side++)
             {
@@ -760,13 +763,13 @@ namespace LofiBoya
             if (_locked) return;
             _wantKey = null;
             Record(right, null);
-            int more = Mathf.Max(a, b);
+            int more = _cmpLess ? Mathf.Min(a, b) : Mathf.Max(a, b);
             if (right)
             {
                 if (!_missed) _countLevel++;
                 Celebrate(option);
                 string cheer = Loc.T("cheer_" + Random.Range(0, 4));
-                Speech.Say(Loc.T("cmp_right", cheer, more));
+                Speech.Say(Loc.T(_cmpLess ? "cmp_right_less" : "cmp_right", cheer, more));
                 _prompt.text = cheer;
                 Tween.Delay(2.4f, () => { if (this != null && _mode == Mode.Count) NextRound(); });
                 return;
@@ -787,7 +790,7 @@ namespace LofiBoya
                 num.rectTransform.sizeDelta = new Vector2(200, 130);
                 Tween.Pop(num.rectTransform, 0.1f + side * 0.5f, 0.4f);
             }
-            Speech.Say(Loc.T("cmp_show", a, b, more));
+            Speech.Say(Loc.T(_cmpLess ? "cmp_show_less" : "cmp_show", a, b, more));
         }
 
         // "3 tane var, 2 tane daha geldi. Hepsi kaç tane?" — basit toplama

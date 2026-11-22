@@ -182,6 +182,38 @@ namespace LofiBoya
             if (Meta.cy != null) for (int i = 0; i < Meta.cy.Length; i++) Meta.cy[i] += oy;
         }
 
+        List<int>[] _neighbors;
+
+        /// <summary>
+        /// Komşu bölgeler (aralarında yalnızca kontur çizgisi olanlar). Sayılı boyamada yan yana iki bölgeye
+        /// aynı numara düşmesin diye. İlk istekte bir kez hesaplanır.
+        /// </summary>
+        public List<int>[] Neighbors()
+        {
+            if (_neighbors != null) return _neighbors;
+            int n = Count;
+            var sets = new HashSet<int>[n + 1];
+            for (int i = 0; i <= n; i++) sets[i] = new HashSet<int>();
+            void Link(int a, int b)
+            {
+                if (a <= 0 || b <= 0 || a == b || a > n || b > n) return;
+                sets[a].Add(b);
+                sets[b].Add(a);
+            }
+            for (int y = 0; y < Height; y += 2)
+                for (int x = 0; x < Width; x += 2)
+                {
+                    int r = RegionAt(x, y);
+                    if (r <= 0) continue;
+                    // çizgi kalınlığı birkaç piksel: iki mesafeye bakılır
+                    Link(r, RegionAt(x + 3, y)); Link(r, RegionAt(x, y + 3));
+                    Link(r, RegionAt(x + 7, y)); Link(r, RegionAt(x, y + 7));
+                }
+            _neighbors = new List<int>[n + 1];
+            for (int i = 0; i <= n; i++) _neighbors[i] = new List<int>(sets[i]);
+            return _neighbors;
+        }
+
         /// <summary>Doku koordinatındaki bölge numarası (1..Count, 0 = yok).</summary>
         public int RegionAt(int x, int y)
         {
