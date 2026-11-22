@@ -161,18 +161,23 @@ namespace LofiBoya
 
         static void Accessibility()
         {
-            var (overlay, card, close) = Panel(860, 980);
+            var (overlay, card, close) = Panel(860, 1240);
             var t = UIKit.Label(card.transform, Loc.T("access_title"), 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Band(true, 100, 40);
             float y = -190;
             Toggle(card.transform, ref y, Loc.T("calm_mode"), () => SaveSystem.CalmMode, v => SaveSystem.CalmMode = v);
             Toggle(card.transform, ref y, Loc.T("color_assist"), () => SaveSystem.ColorAssist, v => SaveSystem.ColorAssist = v);
             Toggle(card.transform, ref y, Loc.T("pencil_inside"), () => SaveSystem.PencilStaysInside, v => SaveSystem.PencilStaysInside = v);
+            Toggle(card.transform, ref y, Loc.T("easy_trace"), () => SaveSystem.EasyTrace, v => SaveSystem.EasyTrace = v);
             var info = UIKit.Label(card.transform, Loc.T("access_info"), 32, Theme.TextSoft);
             info.rectTransform.anchorMin = info.rectTransform.anchorMax = new Vector2(0.5f, 1);
-            info.rectTransform.sizeDelta = new Vector2(740, 200);
-            info.rectTransform.anchoredPosition = new Vector2(0, y - 60);
+            info.rectTransform.sizeDelta = new Vector2(740, 340);
+            info.rectTransform.anchoredPosition = new Vector2(0, y - 150);
             info.horizontalOverflow = HorizontalWrapMode.Wrap;
+            info.verticalOverflow = VerticalWrapMode.Truncate;
+            info.resizeTextForBestFit = true;
+            info.resizeTextMinSize = 22;
+            info.resizeTextMaxSize = 32;
             var ok = UIKit.Button(card.transform, Loc.T("ok"), Theme.AccentButton, Color.white, 50, close);
             var ort = (RectTransform)ok.transform;
             ort.anchorMin = ort.anchorMax = new Vector2(0.5f, 0);
@@ -212,18 +217,27 @@ namespace LofiBoya
                 Theme.Accent, Theme.Mint, Theme.Lavender, Theme.Butter, Theme.Sky, Theme.Hex("FFCBA4"),
                 Theme.Hex("F5C6E0"), Theme.Hex("CDEBB5"), Theme.Hex("EBD9C4"),
             };
+            // ok/total: turun ilk cevabı (deneme-yanılma sayılmaz). Yazma ve hafızada oran yok: total = -1, ok = tamamlanan.
             var games = new System.Collections.Generic.List<(int i, int ok, int total)>();
             string weakest = null, leastPlayed = null;
             float weakRate = 2f;
             int leastN = int.MaxValue;
             for (int i = 0; i < Stats.Games.Length; i++)
             {
-                int ok = Stats.Week(Stats.Games[i] + "_ok"), no = Stats.Week(Stats.Games[i] + "_no");
-                if (ok + no < leastN) { leastN = ok + no; leastPlayed = Stats.Games[i]; }
+                string g = Stats.Games[i];
+                if (Stats.IsDoneGame(g))
+                {
+                    int done = Stats.Week(g + "_done");
+                    if (done < leastN) { leastN = done; leastPlayed = g; }
+                    if (done > 0) games.Add((i, done, -1));
+                    continue;
+                }
+                int ok = Stats.Week(g + "_ok"), no = Stats.Week(g + "_no");
+                if (ok + no < leastN) { leastN = ok + no; leastPlayed = g; }
                 if (ok + no == 0) continue;
                 games.Add((i, ok, ok + no));
                 float rate = ok / (float)(ok + no);
-                if (ok + no >= 5 && rate < weakRate) { weakRate = rate; weakest = Stats.Games[i]; }
+                if (ok + no >= 5 && rate < weakRate) { weakRate = rate; weakest = g; }
             }
             var cf = Stats.TopConfusion();
             string tipGame = weakRate < 0.7f ? weakest : leastPlayed;
@@ -231,7 +245,7 @@ namespace LofiBoya
 
             // ---- içerik yüksekliği ----
             const float tileH = 210f, rowH = 78f, gap = 34f;
-            float contentH = tileH + gap + 64 + Mathf.Max(1, games.Count) * rowH + gap;
+            float contentH = tileH + gap + 64 + 44 + Mathf.Max(1, games.Count) * rowH + gap;
             if (cf.HasValue) contentH += 130 + gap;
             if (tip != null) contentH += 210 + gap;
             contentH += 100;
@@ -307,6 +321,10 @@ namespace LofiBoya
             var head = Txt(At(content, 0, y, 800, 56), Loc.T("rep_games_title"), 40, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             head.rectTransform.Stretch();
             y += 64;
+            // ölçümün ne olduğu açık olsun: "ilk denemede doğru / soru"
+            var how = Txt(At(content, 0, y - 8, 800, 44), Loc.T("rep_first_try"), 26, Theme.TextSoft, TextAnchor.MiddleLeft);
+            how.rectTransform.Stretch();
+            y += 44;
             if (games.Count == 0)
             {
                 var none = Txt(At(content, 0, y, 800, rowH), Loc.T("rep_none"), 32, Theme.TextSoft, TextAnchor.MiddleLeft);
@@ -325,6 +343,14 @@ namespace LofiBoya
                 name.rectTransform.pivot = new Vector2(0, 0.5f);
                 name.rectTransform.anchoredPosition = new Vector2(48, 0);
                 name.rectTransform.sizeDelta = new Vector2(250, 0);
+                if (total < 0)
+                {
+                    // yazma / hafıza: oran değil, kaç kez tamamlandı
+                    var doneTxt = Txt(row, Loc.T("rep_done", ok), 30, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
+                    doneTxt.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(310 + 245, 0), new Vector2(490, 60));
+                    y += rowH;
+                    continue;
+                }
                 var track = UIKit.Box(row, "Track", Theme.Text.WithAlpha(0.08f), null, 2f);
                 track.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(310 + 200, 0), new Vector2(400, 30));
                 float rate = ok / (float)total;
@@ -424,6 +450,11 @@ namespace LofiBoya
             var l = UIKit.Label(row, label, 40, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             l.rectTransform.Stretch(0, 0, 190, 0);
             l.horizontalOverflow = HorizontalWrapMode.Wrap;
+            l.verticalOverflow = VerticalWrapMode.Truncate;   // uzun etiket satırın içinde küçülür, alttakiyle çakışmaz
+            l.lineSpacing = 0.9f;
+            l.resizeTextForBestFit = true;
+            l.resizeTextMinSize = 28;
+            l.resizeTextMaxSize = 40;
 
             // yuvarlak anahtar
             var sw = UIKit.Box(row, "Switch", Theme.Mint, null, 0.4f);
@@ -451,6 +482,7 @@ namespace LofiBoya
             var b = sw.gameObject.AddComponent<Button>();
             b.transition = Selectable.Transition.None;
             b.onClick.AddListener(() => { set(!get()); Sfx.Tap(); Refresh(true); });
+            A11y.Label(b, () => label + ", " + Loc.T(get() ? "a11y_on" : "a11y_off"));
             Refresh(false);
             y -= 128;
         }
@@ -459,7 +491,7 @@ namespace LofiBoya
         static (GameObject overlay, Image card, Action close) Panel(float w, float h)
         {
             var root = App.I.SafeRoot;
-            var overlay = UIKit.Node("Panel", root).Stretch(-200, -200, -200, -200);
+            var overlay = UIKit.Node("Panel", root).Stretch(-UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed);
             var dim = overlay.gameObject.AddComponent<Image>();
             dim.color = Theme.Text.WithAlpha(0f);
             Tween.To(dim, 0.25f, k => dim.color = Theme.Text.WithAlpha(0.35f * k));

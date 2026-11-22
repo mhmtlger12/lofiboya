@@ -82,7 +82,7 @@ namespace LofiBoya
             if (_overlay != null) return;
             Active = true;
             var root = App.I.SafeRoot;
-            var ov = UIKit.Node("Break", root).Stretch(-200, -200, -200, -200);
+            var ov = UIKit.Node("Break", root).Stretch(-UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed);
             _overlay = ov.gameObject;
             var dim = ov.gameObject.AddComponent<Image>();
             dim.color = Theme.BgMid.WithAlpha(0f);

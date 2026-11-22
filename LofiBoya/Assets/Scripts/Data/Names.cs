@@ -330,6 +330,7 @@ starfish|starfish|the starfish|deniz yıldızı|deniz yıldızını|Seestern|den
 jellyfish|jellyfish|the jellyfish|denizanası|denizanasını|Qualle|die Qualle|méduse|la méduse|medusa|la medusa|medusa|la medusa|água-viva|a água-viva|медуза|медузу|قنديل البحر|قنديل البحر|जेलीफ़िश|जेलीफ़िश
 hen|hen|the hen|tavuk|tavuğu|Huhn|das Huhn|poule|la poule|gallina|la gallina|gallina|la gallina|galinha|a galinha|курочка|курочку|دجاجة|الدجاجة|मुर्गी|मुर्गी
 camel|camel|the camel|deve|deveyi|Kamel|das Kamel|chameau|le chameau|camello|el camello|cammello|il cammello|camelo|o camelo|верблюд|верблюда|جمل|الجمل|ऊँट|ऊँट
+num0|number zero|number zero|sıfır sayısı|sıfır sayısını|Zahl Null|die Zahl Null|chiffre zéro|le chiffre zéro|número cero|el número cero|numero zero|il numero zero|número zero|o número zero|цифра ноль|цифру ноль|رقم صفر|الرقم صفر|अंक शून्य|अंक शून्य
 num1|number one|number one|bir sayısı|bir sayısını|Zahl Eins|die Zahl Eins|chiffre un|le chiffre un|número uno|el número uno|numero uno|il numero uno|número um|o número um|цифра один|цифру один|رقم واحد|الرقم واحد|अंक एक|अंक एक
 num2|number two|number two|iki sayısı|iki sayısını|Zahl Zwei|die Zahl Zwei|chiffre deux|le chiffre deux|número dos|el número dos|numero due|il numero due|número dois|o número dois|цифра два|цифру два|رقم اثنان|الرقم اثنان|अंक दो|अंक दो
 num3|number three|number three|üç sayısı|üç sayısını|Zahl Drei|die Zahl Drei|chiffre trois|le chiffre trois|número tres|el número tres|numero tre|il numero tre|número três|o número três|цифра три|цифру три|رقم ثلاثة|الرقم ثلاثة|अंक तीन|अंक तीन

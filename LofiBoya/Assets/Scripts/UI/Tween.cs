@@ -51,6 +51,8 @@ namespace LofiBoya
 
         public static Coroutine Pop(Transform t, float delay = 0f, float duration = 0.45f)
         {
+            // hareket azaltma: büyüyerek gelme yok, öğe hemen yerinde
+            if (Motion.Reduced) { t.localScale = Vector3.one; return null; }
             t.localScale = Vector3.zero;
             return To(t, duration, k => t.localScale = Vector3.one * k, OutBack, delay);
         }
@@ -62,7 +64,7 @@ namespace LofiBoya
         }
 
         public static Coroutine Punch(Transform t, float amount = 0.12f, float duration = 0.35f)
-            => To(t, duration, k => t.localScale = Vector3.one * (1f + amount * Mathf.Sin(k * Mathf.PI) * (1f - k * 0.5f)), Linear);
+            => Motion.Reduced ? null : To(t, duration, k => t.localScale = Vector3.one * (1f + amount * Mathf.Sin(k * Mathf.PI) * (1f - k * 0.5f)), Linear);
 
         // ---------- Easing ----------
         public static float Linear(float x) => x;

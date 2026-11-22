@@ -52,7 +52,7 @@ namespace LofiBoya
 
         void Update()
         {
-            if (SaveSystem.CalmMode) return;
+            if (Motion.Reduced) return;
             float t = Time.unscaledTime;
             foreach (var b in _blobs)
             {

@@ -29,6 +29,14 @@ namespace LofiBoya
 
         public bool Fired => _fired;
 
+        /// <summary>Ekran okuyucu / anahtarla erişim: basılı tutamayan kullanıcı için çift dokunuşla çalışır.</summary>
+        public void Activate()
+        {
+            if (_fired) return;
+            _fired = true;
+            _onDone?.Invoke();
+        }
+
         public void OnPointerDown(PointerEventData e) { _holding = true; }
         public void OnPointerUp(PointerEventData e) { _holding = false; }
         public void OnPointerExit(PointerEventData e) { _holding = false; }

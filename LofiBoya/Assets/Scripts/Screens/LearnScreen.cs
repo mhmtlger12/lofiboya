@@ -13,7 +13,9 @@ namespace LofiBoya
     ///    Yanlışta birlikte tek tek sayarız; doğru bildikçe sayılar büyür. Başlangıç seviyesi yaş ayarından.
     ///  • Duygular — yüz tanıma ("Üzgün yüzü bul!") ile durum–duygu eşleştirme ("Balonu uçtu. Nasıl hisseder?") sırayla.
     ///  • Rakam yaz — noktalı rakamın üzerinden parmakla geçilir (yazıya hazırlık).
-    /// Doğru cevap yıldız kazandırır; yanlışta kızmayız, rengin/hayvanın adını söyleriz.
+    /// Yanlışta kızmayız: dokunulan seçeneğin adı altında yazar ("Turuncu"), seçenek solar.
+    /// Yıldız yalnızca turun İLK denemesinde doğru bilinince verilir (deneme-yanılma ödüllenmez);
+    /// sonradan bulunca da sevinilir ama yıldız çıkmaz. Rapor da tur başına ilk denemeyi sayar.
     /// </summary>
     public partial class LearnScreen : MonoBehaviour, IScreen
     {
@@ -68,6 +70,7 @@ namespace LofiBoya
         {
             _mode = Mode.Menu;
             ClearArea();
+            FitMenuToScreen();
             var title = UIKit.Label(_area, Loc.T("learn"), 96, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Band(true, 120, 200);
             var sub = UIKit.Label(_area, Loc.T("learn_sub"), 44, Theme.TextSoft);
@@ -153,35 +156,49 @@ namespace LofiBoya
             MoreMenuCards();
         }
 
+        // Uzun ekranlarda (19.5:9 vb.) ızgara boşlukta yüzmesin: kartlar boyca büyür, satırlar açılır.
+        float _cardH = 316f, _rowStep = 344f;
+
+        void FitMenuToScreen()
+        {
+            float h = App.I != null && App.I.SafeRoot != null ? App.I.SafeRoot.rect.height : 1920f;
+            float extra = Mathf.Max(0f, h - 1920f);
+            _cardH = 316f + Mathf.Min(extra * 0.22f, 110f);
+            _rowStep = _cardH + 28f + Mathf.Min(extra * 0.04f, 24f);
+        }
+
         /// <summary>Menü ızgarası: 0..8, soldan sağa, yukarıdan aşağı.</summary>
-        static Vector2 Cell(int i) => new((i % 3 - 1) * 312, 300 - (i / 3) * 344);
+        Vector2 Cell(int i) => new((i % 3 - 1) * 312, -44 + (1 - i / 3) * _rowStep);
 
         RectTransform MenuCard(Vector2 pos, string title, string sub, Color color, float delay, System.Action onClick)
         {
             var b = UIKit.Button(_area, "", color, Theme.Text, 10, onClick, 0.7f);
             var rt = (RectTransform)b.transform;
-            rt.Place(new Vector2(0.5f, 0.5f), pos, new Vector2(292, 316));
+            rt.Place(new Vector2(0.5f, 0.5f), pos, new Vector2(292, _cardH));
             var face = b.transform.Find("Face");
             var t = UIKit.Label(face, title, 52, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.anchorMin = new Vector2(0, 0);
             t.rectTransform.anchorMax = new Vector2(1, 0);
             t.rectTransform.pivot = new Vector2(0.5f, 0);
-            t.rectTransform.offsetMin = new Vector2(16, 78);
-            t.rectTransform.offsetMax = new Vector2(-16, 158);
+            t.rectTransform.offsetMin = new Vector2(16, 94);
+            t.rectTransform.offsetMax = new Vector2(-16, 170);
             t.resizeTextForBestFit = true;
             t.resizeTextMinSize = 30;
             t.resizeTextMaxSize = 52;
             t.horizontalOverflow = HorizontalWrapMode.Wrap;   // sığmazsa küçülsün
+            t.verticalOverflow = VerticalWrapMode.Truncate;   // best fit ancak taşma kapalıyken küçültür
             var s = UIKit.Label(face, sub, 30, Theme.Text.WithAlpha(0.85f), TextAnchor.MiddleCenter);
             s.rectTransform.anchorMin = new Vector2(0, 0);
             s.rectTransform.anchorMax = new Vector2(1, 0);
             s.rectTransform.pivot = new Vector2(0.5f, 0);
-            s.rectTransform.offsetMin = new Vector2(16, 24);
-            s.rectTransform.offsetMax = new Vector2(-16, 84);
+            s.rectTransform.offsetMin = new Vector2(14, 16);
+            s.rectTransform.offsetMax = new Vector2(-14, 94);   // iki satıra yer: uzun alt yazılar okunur boyda kalır
             s.resizeTextForBestFit = true;
-            s.resizeTextMinSize = 22;
+            s.resizeTextMinSize = 24;
             s.resizeTextMaxSize = 30;
+            s.lineSpacing = 0.85f;
             s.horizontalOverflow = HorizontalWrapMode.Wrap;
+            s.verticalOverflow = VerticalWrapMode.Truncate;   // iki satıra sığmazsa küçülür, kartın dışına taşmaz
             Tween.Pop(rt, delay, 0.5f);
             return (RectTransform)face;
         }
@@ -228,6 +245,8 @@ namespace LofiBoya
             sh.effectDistance = new Vector2(0, -6);
 
             _wantKey = null;
+            _missed = false;
+            _recorded = false;
             int r = _roundNo++;
             if (_mode == Mode.Colors) ColorRound();
             else if (_mode == Mode.Shapes) { if (r % 2 == 0) ShapeRound(); else SizeRound(); }
@@ -270,6 +289,7 @@ namespace LofiBoya
                 var b = slot.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => Answer(idx == target, slot, Names.Basic[idx].name, key: BasicKeys[idx]));
+                A11y.Label(b, Names.Cap(Names.Basic[idx].name));
                 cr.localScale = Vector3.zero;
                 Tween.Pop(cr, 0.1f + i * 0.08f, 0.45f);
             }
@@ -317,6 +337,7 @@ namespace LofiBoya
                 var b = slot.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => Answer(idx == target, slot, e.name, idx == target ? sayRight : null, sayRight != null ? 3f : 2f, e.key));
+                A11y.Label(b, Names.Cap(e.name));
                 slot.localScale = Vector3.zero;
                 Tween.Pop(slot, 0.1f + i * 0.08f, 0.45f);
             }
@@ -367,6 +388,7 @@ namespace LofiBoya
                 var b = slot.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 var name = Names.Shape(key).name;
+                A11y.Label(b, Names.Cap(name));
                 b.onClick.AddListener(() =>
                 {
                     bool right = idx == target;
@@ -450,6 +472,7 @@ namespace LofiBoya
                 var b = slot.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => { if (idx == target && !_locked) m.Jump(); Answer(idx == target, slot, name, key: "feel_" + Moods[idx].key); });
+                A11y.Label(b, Names.Cap(name));
                 slot.localScale = Vector3.zero;
                 Tween.Pop(slot, 0.1f + i * 0.08f, 0.45f);
             }
@@ -549,6 +572,7 @@ namespace LofiBoya
                 bool right = idx == target;
                 var b = slot.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
+                A11y.Label(b, Names.Cap(name));
                 b.onClick.AddListener(() =>
                 {
                     if (right && !_locked) m.Jump();
@@ -565,7 +589,7 @@ namespace LofiBoya
         void TraceRound(bool letter)
         {
             int d = PlayerPrefs.GetInt("traceNext", 1);
-            if (d < 1 || d > 9) d = 1;
+            if (d < 0 || d > 9) d = 1;   // sıra: 1, 2, … 9, sonra 0
             string letters = TraceBoard.Letters;
             int li = Mathf.Clamp(PlayerPrefs.GetInt("traceLetter", 0), 0, letters.Length - 1);
             var (name, acc) = Names.Num(d);
@@ -591,8 +615,8 @@ namespace LofiBoya
             {
                 if (this == null) return;
                 if (letter) PlayerPrefs.SetInt("traceLetter", (li + 1) % letters.Length);
-                else PlayerPrefs.SetInt("traceNext", d % 9 + 1);
-                Stats.Answer("trace", true);
+                else PlayerPrefs.SetInt("traceNext", d == 9 ? 0 : d == 0 ? 1 : d + 1);
+                Stats.Done("trace");   // yazma doğru/yanlış değil: tamamlanan sayılır
                 _locked = true;
                 Sfx.Star();
                 Tween.Delay(0.15f, Sfx.Win);
@@ -691,6 +715,7 @@ namespace LofiBoya
                 var bt = slot.gameObject.AddComponent<Button>();
                 bt.transition = Selectable.Transition.None;
                 bt.onClick.AddListener(() => CompareAnswer(right, slot, a, b));
+                A11y.Label(bt, n.ToString());
                 slot.localScale = Vector3.zero;
                 Tween.Pop(slot, 0.05f + side * 0.1f, 0.4f);
             }
@@ -699,11 +724,12 @@ namespace LofiBoya
         void CompareAnswer(bool right, RectTransform option, int a, int b)
         {
             if (_locked) return;
-            Stats.Answer("counting", right);
+            _wantKey = null;
+            Record(right, null);
             int more = Mathf.Max(a, b);
             if (right)
             {
-                _countLevel++;
+                if (!_missed) _countLevel++;
                 Celebrate(option);
                 string cheer = Loc.T("cheer_" + Random.Range(0, 4));
                 Speech.Say(Loc.T("cmp_right", cheer, more));
@@ -711,9 +737,9 @@ namespace LofiBoya
                 Tween.Delay(2.4f, () => { if (this != null && _mode == Mode.Count) NextRound(); });
                 return;
             }
+            _missed = true;
             Sfx.Wrong();
-            var basePos = option.anchoredPosition;
-            Tween.To(option, 0.4f, k => option.anchoredPosition = basePos + new Vector2(Mathf.Sin(k * Mathf.PI * 6) * 18f * (1 - k), 0));
+            Shake(option);
             if (_cmpShown) return;
             // kızmadan gösteririz: iki kartın üstüne sayıları yaz
             _cmpShown = true;
@@ -779,18 +805,63 @@ namespace LofiBoya
             NumberOptions(_countAnswer, 1, 10, 1.6f);
         }
 
+        /// <summary>Doğru cevap kutlaması. Yıldız (ve konfeti) yalnızca turun ilk denemesinde doğru bilinince.</summary>
         void Celebrate(RectTransform option)
         {
             _locked = true;
             Sfx.Star();
-            Tween.Delay(0.15f, Sfx.Win);
             Tween.Punch(option, 0.25f, 0.5f);
-            Confetti.Burst(_area, 50);
             _mascot.Jump();
             _mascot.Wave(1.2f);
+            if (_missed) return;   // sonradan buldu: sevinç var, yıldız yok
+            Tween.Delay(0.15f, Sfx.Win);
+            Confetti.Burst(_area, 50);
             SaveSystem.Stars += 1;
             _starText.text = SaveSystem.Stars.ToString();
             Tween.Punch(_starText.transform.parent, 0.25f);
+        }
+
+        /// <summary>Turun ilk cevabını rapora yazar (sonraki dokunuşlar deneme-yanılmadır, sayılmaz).</summary>
+        void Record(bool right, string picked)
+        {
+            if (_recorded) return;
+            _recorded = true;
+            Stats.Answer(GameKey, right);
+            if (!right) Stats.Confused(GameKey, _wantKey, picked);
+        }
+
+        /// <summary>Yanlış seçeneğin hafifçe sallanması (hareket azaltmada yok).</summary>
+        static void Shake(RectTransform option)
+        {
+            if (Motion.Reduced) return;
+            var basePos = option.anchoredPosition;
+            Tween.To(option, 0.4f, k => option.anchoredPosition = basePos + new Vector2(Mathf.Sin(k * Mathf.PI * 6) * 18f * (1 - k), 0));
+        }
+
+        /// <summary>
+        /// Yanlış seçeneğin alt kenarına adını yazar ("Turuncu"): çocuk neye dokunduğunu öğrenir.
+        /// Etiket seçeneğin kardeşidir, seçenekle birlikte solmaz.
+        /// </summary>
+        void NameTag(RectTransform option, string name)
+        {
+            if (string.IsNullOrEmpty(name) || option == null || _area == null || option.parent != _area) return;
+            string id = "Tag " + option.GetHashCode();
+            if (_area.Find(id) != null) return;
+            string text = Names.Cap(name);
+            var tag = UIKit.Card(_area, id, Color.white, 0.5f, 4f);
+            var trt = (RectTransform)tag.transform.parent;
+            float w = Mathf.Clamp(90 + text.Length * 30, 200, Mathf.Max(200, option.sizeDelta.x + 40));
+            float bottom = option.anchoredPosition.y - option.sizeDelta.y * 0.5f;
+            trt.Place(new Vector2(0.5f, 0.5f), new Vector2(option.anchoredPosition.x, bottom + 34), new Vector2(w, 86));
+            var l = UIKit.Label(tag.transform, text, 48, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            l.rectTransform.Stretch(12, 4, 12, 8);
+            l.horizontalOverflow = HorizontalWrapMode.Wrap;
+            l.verticalOverflow = VerticalWrapMode.Truncate;
+            l.resizeTextForBestFit = true;
+            l.resizeTextMinSize = 26;
+            l.resizeTextMaxSize = 48;
+            A11y.Announce(text);
+            Tween.Pop(trt, 0f, 0.35f);
         }
 
         void CountRound()
@@ -843,21 +914,12 @@ namespace LofiBoya
         void CountAnswer(int value, RectTransform option)
         {
             if (_locked || _countingTogether) return;
-            Stats.Answer("counting", value == _countAnswer);
-            if (value != _countAnswer) Stats.Confused("counting", _countAnswer.ToString(), value.ToString());
+            _wantKey = _countAnswer.ToString();
+            Record(value == _countAnswer, value.ToString());
             if (value == _countAnswer)
             {
-                _countLevel++;
-                _locked = true;
-                Sfx.Star();
-                Tween.Delay(0.15f, Sfx.Win);
-                Tween.Punch(option, 0.25f, 0.5f);
-                Confetti.Burst(_area, 50);
-                _mascot.Jump();
-                _mascot.Wave(1.2f);
-                SaveSystem.Stars += 1;
-                _starText.text = SaveSystem.Stars.ToString();
-                Tween.Punch(_starText.transform.parent, 0.25f);
+                if (!_missed) _countLevel++;
+                Celebrate(option);
                 string cheer = Loc.T("cheer_" + Random.Range(0, 4));
                 Speech.Say(Loc.T("count_right", cheer, _countAnswer));
                 _prompt.text = cheer;
@@ -866,7 +928,8 @@ namespace LofiBoya
                 return;
             }
             // Yanlış: kızmayız, birlikte tek tek sayarız (her nesneye bir sayı)
-            _countLevel = Mathf.Max(0, _countLevel - 1);
+            if (!_missed) _countLevel = Mathf.Max(0, _countLevel - 1);   // turda bir kez düşer
+            _missed = true;
             Sfx.Wrong();
             if (!option.TryGetComponent<CanvasGroup>(out var cg)) cg = option.gameObject.AddComponent<CanvasGroup>();
             cg.alpha = 0.45f;
@@ -908,21 +971,11 @@ namespace LofiBoya
         void Answer(bool right, RectTransform option, string name, string sayRight = null, float nextDelay = 2.0f, string key = null)
         {
             if (_locked) return;
-            Stats.Answer(GameKey, right);
-            if (!right) Stats.Confused(GameKey, _wantKey, key);
-            _streak = right ? _streak + 1 : 0;
+            Record(right, key);
+            _streak = right && !_missed ? _streak + 1 : 0;
             if (right)
             {
-                _locked = true;
-                Sfx.Star();
-                Tween.Delay(0.15f, Sfx.Win);
-                Tween.Punch(option, 0.25f, 0.5f);
-                Confetti.Burst(_area, 50);
-                _mascot.Jump();
-                _mascot.Wave(1.2f);
-                SaveSystem.Stars += 1;
-                _starText.text = SaveSystem.Stars.ToString();
-                Tween.Punch(_starText.transform.parent, 0.25f);
+                Celebrate(option);
                 string cheer = Loc.T("cheer_" + Random.Range(0, 4));
                 if (sayRight != null) cheer = sayRight;   // ses yok: ipucunun tamamı ekranda
                 _prompt.text = cheer;
@@ -930,12 +983,13 @@ namespace LofiBoya
             }
             else
             {
+                _missed = true;
                 Sfx.Wrong();
-                var basePos = option.anchoredPosition;
-                Tween.To(option, 0.4f, k => option.anchoredPosition = basePos + new Vector2(Mathf.Sin(k * Mathf.PI * 6) * 18f * (1 - k), 0));
-                // yanlış seçenek biraz solar ki çocuk diğerlerine baksın
+                Shake(option);
+                // yanlış seçenek biraz solar ki çocuk diğerlerine baksın; adı alt kenarında yazar
                 if (!option.TryGetComponent<CanvasGroup>(out var cg)) cg = option.gameObject.AddComponent<CanvasGroup>();
                 cg.alpha = 0.45f;
+                NameTag(option, name);
             }
         }
 

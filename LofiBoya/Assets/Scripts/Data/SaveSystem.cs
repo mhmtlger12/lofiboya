@@ -99,29 +99,32 @@ namespace LofiBoya
             set { PlayerPrefs.SetInt("stars", Mathf.Max(0, value)); PlayerPrefs.Save(); }
         }
 
-        // ---------------- Gün serisi ("3 gündür boyuyorsun!") ----------------
+        // ---------------- Boyama günleri koleksiyonu ("7 gün boyadın!") ----------------
+        // Üst üste gün serisi yerine toplam gün: ara vermek hiçbir şeyi kaybettirmez (okul öncesi için baskısız).
 
         static int Today => (int)(DateTime.Now.Date - new DateTime(2024, 1, 1)).TotalDays;
 
-        /// <summary>Kaç gündür üst üste boyuyor (dün ya da bugün boyamadıysa seri bitmiştir: 0).</summary>
-        public static int Streak
+        /// <summary>Şimdiye kadar boyama yapılan gün sayısı. Hiç azalmaz.</summary>
+        public static int DaysColored
         {
             get
             {
-                int last = PlayerPrefs.GetInt("lastDay", -10);
-                return Today - last <= 1 ? PlayerPrefs.GetInt("streak", 0) : 0;
+                // eski sürümden geçiş: gün serisi kaydı varsa koleksiyon oradan başlar
+                if (!PlayerPrefs.HasKey("daysColored") && PlayerPrefs.HasKey("lastDay"))
+                    PlayerPrefs.SetInt("daysColored", Mathf.Max(1, PlayerPrefs.GetInt("streak", 1)));
+                return PlayerPrefs.GetInt("daysColored", 0);
             }
         }
 
         public static bool PlayedToday => PlayerPrefs.GetInt("lastDay", -10) == Today;
 
-        /// <summary>Bugün boyadı say. Yeni bir günse true döner.</summary>
+        /// <summary>Bugün boyadı say. Yeni bir günse koleksiyona bir gün eklenir ve true döner.</summary>
         public static bool RecordPlay()
         {
             int today = Today, last = PlayerPrefs.GetInt("lastDay", -10);
             if (last == today) return false;
-            int streak = last == today - 1 ? PlayerPrefs.GetInt("streak", 0) + 1 : 1;
-            PlayerPrefs.SetInt("streak", streak);
+            int days = DaysColored + 1;
+            PlayerPrefs.SetInt("daysColored", days);
             PlayerPrefs.SetInt("lastDay", today);
             PlayerPrefs.Save();
             return true;
@@ -195,6 +198,13 @@ namespace LofiBoya
         {
             get => PlayerPrefs.GetInt("calm", 0) == 1;
             set { PlayerPrefs.SetInt("calm", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        /// <summary>Kolay yazma: parmağı sürüklemekte zorlanan çocuk için tahtaya dokununca sıradaki çizgi kendiliğinden çizilir.</summary>
+        public static bool EasyTrace
+        {
+            get => PlayerPrefs.GetInt("easyTrace", 0) == 1;
+            set { PlayerPrefs.SetInt("easyTrace", value ? 1 : 0); PlayerPrefs.Save(); }
         }
 
         /// <summary>Renk körü desteği: boya kalemlerinin üstünde her renge özel küçük bir işaret.</summary>

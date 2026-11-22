@@ -58,6 +58,12 @@ namespace LofiBoya
         }
 
         const float CrayonW = 66f, CrayonH = 264f, CrayonRest = 40f, CrayonUp = 112f;
+        // Kalem başına en az dokunma genişliği (kanvas birimi). 12 kalem sığmazsa sıra yatay kayar:
+        // telefonda kalem başına ~8 mm dokunma alanı (eskiden ~5 mm, küçük parmakla komşu renge basılıyordu).
+        const float MinSlot = 118f;
+        // Tuval ile kalem kutusu arasındaki şerit: ilerleme çubuğu, neredeyse bitince "Bitir" butonu
+        const float CardBottom = 700f, StripY = 633f;
+        ScrollRect _crayonScroll;
 
         void Start()
         {
@@ -83,11 +89,12 @@ namespace LofiBoya
             BuildCanvasCard(root, save);
             BuildPalette(root);
 
+            // Bitir: tuvalle kalem kutusu arasındaki şeritte, ilerleme çubuğunun yerine çıkar (resmin üstünü kapatmaz)
             _finishBtn = (RectTransform)UIKit.Button(root, Loc.T("finish"), Theme.Mint, Theme.Text, 44, ShowComplete).transform;
             _finishBtn.anchorMin = _finishBtn.anchorMax = new Vector2(0.5f, 0);
-            _finishBtn.pivot = new Vector2(0.5f, 0);
-            _finishBtn.sizeDelta = new Vector2(280, 110);
-            _finishBtn.anchoredPosition = new Vector2(0, 600);
+            _finishBtn.pivot = new Vector2(0.5f, 0.5f);
+            _finishBtn.sizeDelta = new Vector2(320, 104);
+            _finishBtn.anchoredPosition = new Vector2(0, StripY);
             _finishBtn.gameObject.SetActive(false);
 
             // Elde kalem (kalem/silgi) ve dokununca dökülen kova
@@ -100,7 +107,7 @@ namespace LofiBoya
             if (_level.IsBlank && startTool == Tool.Fill) startTool = Tool.Pencil; // boş sayfada kalemle başla
             SelectTool(startTool, false);
             if (SaveSystem.NumberMode && !_level.IsBlank) SetNumbers(true, false);
-            _buddy = Buddy.Create(root, 610);
+            _buddy = Buddy.Create(root, CardBottom);
             var hat = Buddy.HatFor(Id);
             if (hat != MascotHat.None)
             {
@@ -139,22 +146,28 @@ namespace LofiBoya
                 if (!_canvas.ShowHint()) Popup.Toast(Loc.T("all_painted"));
             }, 0.56f);
             ((RectTransform)hint.transform).Place(new Vector2(1, 1), new Vector2(-90, -100), new Vector2(size, size));
+            A11y.Label(hint, Loc.T("a11y_hint"));
 
             _undoBtn = UIKit.IconButton(root, Art.UndoIcon, Theme.Card, Theme.Text, size, () => _canvas.Undo(), 0.5f);
             ((RectTransform)_undoBtn.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap, -100), new Vector2(size, size));
+            A11y.Label(_undoBtn, Loc.T("a11y_undo"));
 
             var clear = UIKit.IconButton(root, Art.Trash, Theme.Card, Theme.Text, size, AskClear, 0.5f);
             ((RectTransform)clear.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap * 2, -100), new Vector2(size, size));
+            A11y.Label(clear, Loc.T("a11y_clear"));
 
             var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, size, () => Popup.Toast(Sfx.NextTrack()), 0.48f);
             ((RectTransform)music.transform).Place(new Vector2(1, 1), new Vector2(-90 - gap * 3, -100), new Vector2(size, size));
+            A11y.Label(music, Loc.T("a11y_music"));
 
             var title = UIKit.Label(root, _level.IsBlank ? Loc.T("blank_page") : Names.LevelTitle(Id), 46, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             title.rectTransform.anchorMin = title.rectTransform.anchorMax = new Vector2(0, 1);
             title.rectTransform.pivot = new Vector2(0, 0.5f);
-            title.rectTransform.anchoredPosition = new Vector2(180, -78);
-            title.rectTransform.sizeDelta = new Vector2(330, 60);
+            title.rectTransform.anchoredPosition = new Vector2(180, -100);
+            title.rectTransform.sizeDelta = new Vector2(400, 110);
             title.horizontalOverflow = HorizontalWrapMode.Wrap;
+            title.verticalOverflow = VerticalWrapMode.Truncate;
+            title.lineSpacing = 0.9f;
             title.resizeTextForBestFit = true;
             title.resizeTextMinSize = 26;
             title.resizeTextMaxSize = 46;
@@ -171,22 +184,22 @@ namespace LofiBoya
                 });
             }
 
-            // İlerleme çubuğu
-            var track = UIKit.Box(root, "Track", Theme.Card.WithAlpha(0.8f), null, 3f);
-            track.rectTransform.anchorMin = track.rectTransform.anchorMax = new Vector2(0, 1);
-            track.rectTransform.pivot = new Vector2(0, 0.5f);
-            track.rectTransform.anchoredPosition = new Vector2(180, -132);
-            track.rectTransform.sizeDelta = new Vector2(230, 22);
+            // İlerleme çubuğu: tuvalin altındaki şeritte (Bitir çıkınca yerini ona bırakır)
+            var track = UIKit.Box(root, "Track", Theme.Card.WithAlpha(0.9f), null, 3f);
+            track.rectTransform.anchorMin = track.rectTransform.anchorMax = new Vector2(0.5f, 0);
+            track.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            track.rectTransform.anchoredPosition = new Vector2(-50, StripY);
+            track.rectTransform.sizeDelta = new Vector2(440, 26);
             var fill = UIKit.Box(track.transform, "Fill", Theme.Accent, null, 3f);
             _progressFill = fill.rectTransform;
             _progressFill.anchorMin = Vector2.zero;
             _progressFill.anchorMax = new Vector2(0, 1);
             _progressFill.offsetMin = _progressFill.offsetMax = Vector2.zero;
             _progressText = UIKit.Label(root, Loc.T("percent", 0), 32, Theme.TextSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _progressText.rectTransform.anchorMin = _progressText.rectTransform.anchorMax = new Vector2(0, 1);
+            _progressText.rectTransform.anchorMin = _progressText.rectTransform.anchorMax = new Vector2(0.5f, 0);
             _progressText.rectTransform.pivot = new Vector2(0, 0.5f);
-            _progressText.rectTransform.anchoredPosition = new Vector2(424, -132);
-            _progressText.rectTransform.sizeDelta = new Vector2(120, 40);
+            _progressText.rectTransform.anchoredPosition = new Vector2(190, StripY);
+            _progressText.rectTransform.sizeDelta = new Vector2(140, 44);
         }
 
         void BuildCanvasCard(RectTransform root, LevelSave save)
@@ -195,7 +208,7 @@ namespace LofiBoya
             var card = UIKit.Card(root, "CanvasCard", Theme.Paper, 0.7f);
             _cardFace = card;
             var cardRt = (RectTransform)card.transform.parent;
-            cardRt.Stretch(36, 190, 36, 590);
+            cardRt.Stretch(36, 190, 36, CardBottom);
             Tween.Pop(cardRt, 0.05f, 0.5f);
 
             // Yuvarlak köşeli maske: yakınlaşınca resim kartın köşelerinden taşmaz
@@ -237,6 +250,7 @@ namespace LofiBoya
             // Sağ alt: yalnızca yakınlaştırınca çıkan "resmi sığdır" butonu
             var fitBtn = UIKit.IconButton(card.transform, Art.Fit, Theme.Card.WithAlpha(0.95f), Theme.Text, 92, () => _canvas.ResetView(), 0.5f);
             _fitBtn = (RectTransform)fitBtn.transform;
+            A11y.Label(fitBtn, Loc.T("a11y_fit"));
             _fitBtn.anchorMin = _fitBtn.anchorMax = new Vector2(1, 0);
             _fitBtn.anchoredPosition = new Vector2(-72, 72);
             _fitBtn.gameObject.SetActive(false);
@@ -268,6 +282,7 @@ namespace LofiBoya
                 var b = cell.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => { Sfx.Tap(); SelectSize(idx); });
+                A11y.Label(b, Loc.T("a11y_size", idx + 1));
                 _sizeDots.Add((cell, dot, ring));
             }
             SelectSize(Mathf.Clamp(SaveSystem.BrushSize, 0, 2));
@@ -424,6 +439,7 @@ namespace LofiBoya
                 var b = cell.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => { Sfx.Tap(); SelectTool((Tool)idx, true); });
+                A11y.Label(b, Loc.T("a11y_tool_" + idx));
                 cell.gameObject.AddComponent<PressFeedback>();
                 _toolButtons.Add((bg, icon));
             }
@@ -444,6 +460,7 @@ namespace LofiBoya
                 var b = cell.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => { Sfx.Tap(); SetNumbers(!_numbers, true); });
+                A11y.Label(b, () => Loc.T("a11y_numbers") + ", " + Loc.T(_numbers ? "a11y_on" : "a11y_off"));
                 cell.gameObject.AddComponent<PressFeedback>();
             }
 
@@ -494,6 +511,14 @@ namespace LofiBoya
             var area = UIKit.Node("CrayonBox", panel.transform).Stretch(16, 132, 16, 0);
             area.gameObject.AddComponent<RectMask2D>();
             _crayonRow = UIKit.Node("Crayons", area).Stretch(10, 0, 10, 0);
+            // kalemler sığmazsa parmakla yana kaydırılır (dokunma alanları küçülmesin diye)
+            _crayonScroll = area.gameObject.AddComponent<ScrollRect>();
+            _crayonScroll.horizontal = true;
+            _crayonScroll.vertical = false;
+            _crayonScroll.movementType = ScrollRect.MovementType.Elastic;
+            _crayonScroll.viewport = area;
+            _crayonScroll.content = _crayonRow;
+            _crayonScroll.scrollSensitivity = 30;
 
             // Kutunun ön yüzü (kalemlerin alt kısmını örter)
             var front = UIKit.Node("BoxFront", area);
@@ -559,6 +584,15 @@ namespace LofiBoya
             }
         }
 
+        static void FadeSide(RectTransform rt, bool faded)
+        {
+            if (rt == null || !rt.gameObject.activeSelf) return;
+            if (!rt.TryGetComponent<CanvasGroup>(out var cg)) cg = rt.gameObject.AddComponent<CanvasGroup>();
+            float target = faded ? 0.25f : 1f;
+            cg.alpha = Mathf.MoveTowards(cg.alpha, target, Time.unscaledDeltaTime * 5f);
+            cg.blocksRaycasts = !faded;
+        }
+
         static void ShowSide(RectTransform rt, bool show, bool animate)
         {
             if (rt == null) return;
@@ -609,7 +643,17 @@ namespace LofiBoya
                 for (int i = 0; i < colors.Length; i++) colors[i] = _numColors[i].color;
             }
             int n = colors.Length;
-            float cw = _numbers ? 92f : CrayonW;
+            // satır genişliği: kalem başına en az MinSlot; sığarsa kutuya yayılır, sığmazsa kayar
+            float viewW = ((RectTransform)_crayonRow.parent).rect.width - 20f;
+            float slotW = Mathf.Max(MinSlot, viewW / n);
+            bool scrolls = slotW * n > viewW + 1f;
+            _crayonRow.anchorMin = new Vector2(0, 0);
+            _crayonRow.anchorMax = new Vector2(scrolls ? 0 : 1, 1);
+            _crayonRow.pivot = new Vector2(0, 0.5f);
+            _crayonRow.offsetMin = new Vector2(10, 0);
+            _crayonRow.offsetMax = new Vector2(scrolls ? 10 + slotW * n : -10, 0);
+            _crayonScroll.enabled = scrolls;
+            float cw = _numbers ? 92f : Mathf.Clamp(slotW - 34f, CrayonW, 84f);
             for (int i = 0; i < n; i++)
             {
                 int idx = i;
@@ -653,6 +697,7 @@ namespace LofiBoya
                 var b = slot.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => SelectCrayon(idx, true));
+                A11y.Label(b, _numbers ? (idx + 1) + ", " + Names.Cap(_numColors[idx].name) : Names.Cap(Names.ColorName(colors[idx])));
 
                 var cr = new Crayon { Rt = holder, Color = colors[i], Lift = animate ? -CrayonH : CrayonRest, Target = CrayonRest, Hold = animate };
                 _crayons.Add(cr);
@@ -664,6 +709,8 @@ namespace LofiBoya
                 }
             }
             SelectCrayon(Mathf.Clamp(_selected, 0, n - 1), false);
+            // seçili kalem görünür kalsın
+            if (scrolls) _crayonScroll.horizontalNormalizedPosition = n > 1 ? Mathf.Clamp01(_selected / (float)(n - 1)) : 0f;
         }
 
         void SelectCrayon(int index, bool feedback)
@@ -698,7 +745,7 @@ namespace LofiBoya
                 c.Wobble = Mathf.MoveTowards(c.Wobble, 0f, dt * 1.6f);
                 if (c.Rt == null) continue;
                 c.Rt.anchoredPosition = new Vector2(0, c.Lift);
-                c.Rt.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(Time.unscaledTime * 22f) * 7f * c.Wobble * c.Wobble);
+                c.Rt.localRotation = Motion.Reduced ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Sin(Time.unscaledTime * 22f) * 7f * c.Wobble * c.Wobble);
             }
         }
 
@@ -845,10 +892,10 @@ namespace LofiBoya
             // Neredeyse bitince (ya da kalemle çalışırken) "Bitir" her zaman ulaşılabilir olsun
             bool showFinish = (_level.IsBlank ? _canvas.HasPaint || p > 0 : p >= 0.8f) && !_completedShown;
 
-            // gün serisi: bugün ilk kez boyadıysa say
+            // boyama günleri koleksiyonu: bugün ilk kez boyadıysa bir gün eklenir
             if (_ready && SaveSystem.RecordPlay())
             {
-                int streak = SaveSystem.Streak;
+                int streak = SaveSystem.DaysColored;
                 if (streak >= 2)
                 {
                     Popup.Toast(Loc.T("streak_toast", streak));
@@ -859,6 +906,13 @@ namespace LofiBoya
             {
                 _finishBtn.gameObject.SetActive(showFinish);
                 if (showFinish) Tween.Pop(_finishBtn);
+            }
+            // şeritte ya ilerleme ya Bitir görünür
+            if (!_level.IsBlank)
+            {
+                bool fin = _finishBtn.gameObject.activeSelf;
+                _progressFill.parent.gameObject.SetActive(!fin);
+                _progressText.gameObject.SetActive(!fin);
             }
             _saveTimer = 1.2f;
 
@@ -876,6 +930,14 @@ namespace LofiBoya
         void Update()
         {
             AnimateCrayons(Mathf.Min(Time.unscaledDeltaTime, 1f / 30f));
+            // tuvalin kenarındaki seçiciler (kalınlık, sihirli boya, damga) çizerken saydamlaşır ve dokunuşu engellemez
+            if (_canvas != null)
+            {
+                bool stroking = _canvas.Stroking;
+                FadeSide(_sizePicker, stroking);
+                FadeSide(_magicPicker, stroking);
+                FadeSide(_stampPicker, stroking);
+            }
             // "sığdır" butonu yalnızca yakınlaştırılmışken görünür
             if (_canvas != null && _fitBtn != null)
             {
@@ -948,7 +1010,7 @@ namespace LofiBoya
             Sfx.Win();
 
             var root = (RectTransform)transform;
-            _overlay = UIKit.Node("Complete", root).Stretch(-200, -200, -200, -200).gameObject;
+            _overlay = UIKit.Node("Complete", root).Stretch(-UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed).gameObject;
             var dim = _overlay.AddComponent<Image>();
             dim.color = Theme.Text.WithAlpha(0f);
             Tween.To(dim, 0.4f, k => dim.color = Theme.Text.WithAlpha(0.35f * k));

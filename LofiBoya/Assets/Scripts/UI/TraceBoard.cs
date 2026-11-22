@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -13,8 +14,10 @@ namespace LofiBoya
     /// • Her çizginin başında numaralı yeşil nokta vardır; sıradaki çizgininki parlak, diğerleri soluk.
     /// • Yoldan taşmak ceza değildir (mürekkep her yere çıkar), ama ilerleme saymaz.
     /// Yollar 0..1 kutusunda (y yukarı) çizgiler olarak tanımlıdır.
+    /// • Kolay yazma (ayar) ya da ekran okuyucu / anahtarla erişim: tahtaya dokununca sıradaki çizgi
+    ///   doğru yönde kendiliğinden çizilir; sürükleyemeyen çocuk da sırayı ve yönü izleyerek tamamlar.
     /// </summary>
-    public class TraceBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+    public class TraceBoard : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler, IA11yAction
     {
         public event Action Completed;
 
@@ -121,7 +124,7 @@ namespace LofiBoya
 
         void Update()
         {
-            if (_cursor != null && _cursor.enabled && !SaveSystem.CalmMode)
+            if (_cursor != null && _cursor.enabled && !Motion.Reduced)
                 _cursor.rectTransform.localScale = Vector3.one * (1f + Mathf.Sin(Time.unscaledTime * 5f) * 0.08f);
         }
 
@@ -164,13 +167,14 @@ namespace LofiBoya
         public void OnPointerDown(PointerEventData e)
         {
             if (_done) return;
+            if (SaveSystem.EasyTrace) { AutoStroke(); return; }
             _last = Local(e);
             if (_last.HasValue) Stamp(_last.Value);
         }
 
         public void OnDrag(PointerEventData e)
         {
-            if (_done || !_last.HasValue) return;
+            if (_done || _auto || !_last.HasValue) return;
             var p = Local(e);
             if (!p.HasValue) return;
             Vector2 a = _last.Value, b = p.Value;
@@ -188,6 +192,42 @@ namespace LofiBoya
         }
 
         public float Progress => _samples.Count == 0 ? 0 : _next / (float)_samples.Count;
+
+        // ---------------- Kolay yazma / ekran okuyucu ----------------
+
+        bool _auto;
+
+        public string A11yText => Loc.T("a11y_trace");
+        public bool A11yAvailable => !_done;
+        public void A11yActivate() => AutoStroke();
+
+        /// <summary>Sıradaki çizgiyi baştan sona, yazım yönünde kendiliğinden çizer.</summary>
+        public void AutoStroke()
+        {
+            if (_done || _auto || _samples.Count == 0) return;
+            StartCoroutine(AutoRoutine());
+        }
+
+        IEnumerator AutoRoutine()
+        {
+            _auto = true;
+            int s = StrokeOf(_next), start = s == 0 ? 0 : _strokeEnd[s - 1], end = _strokeEnd[s];
+            Vector2? prev = _next > start ? _samples[_next - 1] : null;
+            float wait = Motion.Reduced ? 0.01f : 0.03f;
+            while (!_done && _next < end)
+            {
+                var p = _samples[_next];
+                if (prev.HasValue)
+                {
+                    int n = Mathf.Max(1, Mathf.CeilToInt(Vector2.Distance(prev.Value, p) / InkStep));
+                    for (int i = 1; i <= n && !_done; i++) Stamp(Vector2.Lerp(prev.Value, p, i / (float)n));
+                }
+                else Stamp(p);
+                prev = p;
+                yield return new WaitForSecondsRealtime(wait);
+            }
+            _auto = false;
+        }
 
         void Stamp(Vector2 p)
         {
@@ -228,6 +268,8 @@ namespace LofiBoya
         public void Clear()
         {
             if (_done) return;
+            StopAllCoroutines();
+            _auto = false;
             for (int i = _inkRoot.childCount - 1; i >= 0; i--) Destroy(_inkRoot.GetChild(i).gameObject);
             _ink = 0;
             _next = 0;
@@ -288,12 +330,16 @@ namespace LofiBoya
             _ => new() { Arc(0.5f, 0.5f, 0.31f, 0.46f, 90f, 450f) },
         };
 
-        // ---------------- Harfler (büyük harf) ----------------
+        // ---------------- Harfler ----------------
 
-        /// <summary>Yazma oyununda sırayla çıkan harfler. Latin alfabesi olmayan dillerde boş (yalnızca rakam).</summary>
+        /// <summary>
+        /// Yazma oyununda sırayla çıkan harfler. Latin alfabesi olmayan dillerde boş (yalnızca rakam).
+        /// Türkçe: 1. sınıftaki ses temelli okuma-yazma sırası ve küçük (dik temel) harf:
+        /// e l a k i n / o m u t ü y / ö r ı d s b / z ç g ş c p / h ğ v f j.
+        /// </summary>
         public static string Letters => Loc.Lang switch
         {
-            "tr" => "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ",
+            "tr" => "elakinomutüyörıdsbzçgşcphğvfj",
             "en" or "de" or "fr" or "es" or "it" or "pt" => "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             _ => "",
         };
@@ -306,6 +352,7 @@ namespace LofiBoya
         /// </summary>
         public static List<List<Vector2>> Letter(char c)
         {
+            if (char.IsLower(c)) return Lower(c);
             var body = Body(char.ToUpperInvariant(c) switch
             {
                 'Ç' => 'C', 'Ğ' => 'G', 'İ' => 'I', 'Ö' => 'O', 'Ş' => 'S', 'Ü' => 'U', _ => c,
@@ -320,6 +367,55 @@ namespace LofiBoya
             }
             return res;
         }
+
+        // ---------------- Küçük harfler (Türkçe dik temel harf) ----------------
+        // 0..1 kutusu, y yukarı: alt çizgi (taban) y=0.25, orta çizgi (x yüksekliği) y=0.62,
+        // üst çizgi y=1 (b d f h k l t), alt uzantı y=0 (g j p y). Yazım yönü okulda öğretildiği gibi.
+
+        const float Base = 0.25f, Mid = 0.62f, Cy = 0.435f, Ry = 0.185f;
+
+        static List<Vector2> Tittle(float x) => L(x, 0.80f, x, 0.79f);
+        static List<Vector2> Cedilla(float x) => Join(L(x, Base, x, 0.17f), Arc(x - 0.05f, 0.16f, 0.06f, 0.05f, 30f, -150f));
+        static List<Vector2> Breve(float x) => Arc(x, 0.84f, 0.12f, 0.07f, 200f, 340f);
+
+        static List<List<Vector2>> Lower(char c) => c switch
+        {
+            // daire harfleri: saat yönünün tersine, sağ üstten başlar
+            'a' => new() { Arc(0.47f, Cy, 0.21f, Ry, 20f, 380f), L(0.68f, Mid, 0.68f, Base) },
+            'c' => new() { Arc(0.52f, Cy, 0.21f, Ry, 45f, 315f) },
+            'ç' => new() { Arc(0.52f, Cy, 0.21f, Ry, 45f, 315f), Cedilla(0.52f) },
+            'd' => new() { Arc(0.47f, Cy, 0.21f, Ry, 20f, 380f), L(0.68f, 1f, 0.68f, Base) },
+            'e' => new() { Join(L(0.28f, Cy, 0.72f, Cy), Arc(0.5f, Cy, 0.22f, Ry, 0f, 320f)) },
+            'g' => new() { Arc(0.47f, Cy, 0.21f, Ry, 20f, 380f), Join(L(0.68f, Mid, 0.68f, 0.13f), Arc(0.48f, 0.13f, 0.2f, 0.11f, 0f, -180f)) },
+            'ğ' => new() { Arc(0.47f, Cy, 0.21f, Ry, 20f, 380f), Join(L(0.68f, Mid, 0.68f, 0.13f), Arc(0.48f, 0.13f, 0.2f, 0.11f, 0f, -180f)), Breve(0.48f) },
+            'o' => new() { Arc(0.5f, Cy, 0.21f, Ry, 90f, 450f) },
+            'ö' => new() { Arc(0.5f, Cy, 0.21f, Ry, 90f, 450f), Tittle(0.4f), Tittle(0.6f) },
+            'q' => new() { Arc(0.47f, Cy, 0.21f, Ry, 20f, 380f), L(0.68f, Mid, 0.68f, 0f) },
+            // uzun çubuklu harfler: önce çubuk (yukarıdan aşağı), sonra göbek/kol
+            'b' => new() { L(0.3f, 1f, 0.3f, Base), Arc(0.5f, Cy, 0.2f, Ry, 180f, -180f) },
+            'f' => new() { Join(Arc(0.62f, 0.86f, 0.14f, 0.12f, 30f, 180f), L(0.48f, 0.86f, 0.48f, Base)), L(0.32f, Mid, 0.68f, Mid) },
+            'h' => new() { L(0.3f, 1f, 0.3f, Base), Join(Arc(0.48f, 0.47f, 0.18f, 0.15f, 180f, 0f), L(0.66f, 0.47f, 0.66f, Base)) },
+            'k' => new() { L(0.3f, 1f, 0.3f, Base), L(0.68f, Mid, 0.32f, 0.4f), L(0.44f, 0.47f, 0.7f, Base) },
+            'l' => new() { L(0.5f, 1f, 0.5f, Base) },
+            't' => new() { Join(L(0.45f, 0.9f, 0.45f, 0.33f), Arc(0.58f, 0.33f, 0.13f, 0.08f, 180f, 330f)), L(0.3f, Mid, 0.66f, Mid) },
+            // kısa harfler
+            'ı' => new() { L(0.5f, Mid, 0.5f, Base) },
+            'i' => new() { L(0.5f, Mid, 0.5f, Base), Tittle(0.5f) },
+            'j' => new() { Join(L(0.56f, Mid, 0.56f, 0.13f), Arc(0.41f, 0.13f, 0.15f, 0.11f, 0f, -180f)), Tittle(0.56f) },
+            'm' => new() { L(0.2f, Mid, 0.2f, Base), Join(Arc(0.33f, 0.49f, 0.13f, 0.13f, 180f, 0f), L(0.46f, 0.49f, 0.46f, Base)),
+                           Join(Arc(0.59f, 0.49f, 0.13f, 0.13f, 180f, 0f), L(0.72f, 0.49f, 0.72f, Base)) },
+            'n' => new() { L(0.3f, Mid, 0.3f, Base), Join(Arc(0.48f, 0.47f, 0.18f, 0.15f, 180f, 0f), L(0.66f, 0.47f, 0.66f, Base)) },
+            'p' => new() { L(0.3f, Mid, 0.3f, 0f), Arc(0.5f, Cy, 0.2f, Ry, 180f, -180f) },
+            'r' => new() { L(0.34f, Mid, 0.34f, Base), Arc(0.52f, 0.47f, 0.18f, 0.15f, 180f, 30f) },
+            's' => new() { Join(Arc(0.5f, 0.53f, 0.17f, 0.09f, 30f, 270f), Arc(0.5f, 0.345f, 0.18f, 0.095f, 90f, -150f)) },
+            'ş' => new() { Join(Arc(0.5f, 0.53f, 0.17f, 0.09f, 30f, 270f), Arc(0.5f, 0.345f, 0.18f, 0.095f, 90f, -150f)), Cedilla(0.5f) },
+            'u' => new() { Join(L(0.32f, Mid, 0.32f, 0.4f), Arc(0.49f, 0.4f, 0.17f, 0.15f, 180f, 360f)), L(0.66f, Mid, 0.66f, Base) },
+            'ü' => new() { Join(L(0.32f, Mid, 0.32f, 0.4f), Arc(0.49f, 0.4f, 0.17f, 0.15f, 180f, 360f)), L(0.66f, Mid, 0.66f, Base), Tittle(0.4f), Tittle(0.6f) },
+            'v' => new() { L(0.28f, Mid, 0.5f, Base, 0.72f, Mid) },
+            'y' => new() { L(0.28f, Mid, 0.5f, Base), L(0.72f, Mid, 0.36f, 0f) },
+            'z' => new() { L(0.3f, Mid, 0.7f, Mid, 0.3f, Base, 0.72f, Base) },
+            _ => Body(char.ToUpperInvariant(c)),
+        };
 
         static List<List<Vector2>> Body(char c) => c switch
         {

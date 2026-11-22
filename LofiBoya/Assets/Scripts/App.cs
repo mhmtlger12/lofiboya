@@ -41,8 +41,9 @@ namespace LofiBoya
             _scaler.matchWidthOrHeight = (float)Screen.height / Screen.width >= 1920f / 1080f ? 0f : 1f;
         }
 
-        /// <summary>Canvas'ın şu anki genişliği (tablette 1080'den büyük olur).</summary>
-        public float CanvasWidth => Canvas != null ? ((RectTransform)Canvas.transform).rect.width : 1080f;
+        /// <summary>İçerik alanının (güvenli alan sütunu) genişliği: tablette 1080'den büyük olur.</summary>
+        public float CanvasWidth => SafeRoot != null && SafeRoot.rect.width > 0 ? SafeRoot.rect.width
+            : Canvas != null ? ((RectTransform)Canvas.transform).rect.width : 1080f;
         GameObject _current;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -58,6 +59,7 @@ namespace LofiBoya
             DontDestroyOnLoad(gameObject);
             Application.targetFrameRate = 60;
             Screen.sleepTimeout = SleepTimeout.SystemSetting;
+            AllowTabletRotation();
             Input2D();
             Loc.Init();
             Sfx.Init();
@@ -66,6 +68,26 @@ namespace LofiBoya
             ShowWelcome();
             gameObject.AddComponent<BreakTimer>();
             gameObject.AddComponent<StatsClock>();
+            gameObject.AddComponent<A11y>();   // TalkBack / Anahtarla Erişim
+        }
+
+        /// <summary>
+        /// Telefon dikey kalır. Tablet (kısa kenarı ~3.4 inçten büyük) dört yöne de döner: sınıfta tabletler
+        /// çoğunlukla yatay tutulur. Yatayda içerik ortada dikey bir sütundur (bkz. SafeArea).
+        /// </summary>
+        static void AllowTabletRotation()
+        {
+#if !UNITY_EDITOR
+            float dpi = Screen.dpi;
+            if (dpi <= 0) return;
+            float shortInches = Mathf.Min(Screen.width, Screen.height) / dpi;
+            if (shortInches < 3.4f) return;
+            Screen.autorotateToPortrait = true;
+            Screen.autorotateToPortraitUpsideDown = true;
+            Screen.autorotateToLandscapeLeft = true;
+            Screen.autorotateToLandscapeRight = true;
+            Screen.orientation = ScreenOrientation.AutoRotation;
+#endif
         }
 
         void Input2D()
@@ -153,11 +175,12 @@ namespace LofiBoya
             setup?.Invoke(screen);
             _current = rt.gameObject;
             cg.alpha = 0;
-            rt.anchoredPosition = new Vector2(0, -40);
+            float slide = Motion.Reduced ? 0f : -40f;   // hareket azaltma: kaymadan, yalnızca solarak gelir
+            rt.anchoredPosition = new Vector2(0, slide);
             Tween.To(rt, 0.4f, k =>
             {
                 cg.alpha = k;
-                rt.anchoredPosition = new Vector2(0, -40 * (1 - k));
+                rt.anchoredPosition = new Vector2(0, slide * (1 - k));
             }, Tween.OutCubic, 0.08f);
             return screen;
         }

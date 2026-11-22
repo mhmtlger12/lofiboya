@@ -6,11 +6,15 @@ namespace LofiBoya
     /// <summary>
     /// Ebeveyn raporu için günlük sayaçlar (yalnızca bu cihazda, PlayerPrefs).
     /// Anahtar: st_&lt;yyyyMMdd&gt;_&lt;alan&gt;. Alanlar: "pic" (bitirilen resim), "sec" (uygulamada saniye),
-    /// "&lt;oyun&gt;_ok" / "&lt;oyun&gt;_no" (öğrenme oyunlarında doğru / yanlış dokunuş).
+    /// "&lt;oyun&gt;_ok" / "&lt;oyun&gt;_no" (öğrenme oyununda turun İLK cevabı doğru / yanlış — deneme-yanılma sayılmaz),
+    /// "&lt;oyun&gt;_done" (doğru/yanlışı olmayan oyunlarda tamamlanan tur: yazma, hafıza).
     /// </summary>
     public static class Stats
     {
         public static readonly string[] Games = { "colors", "pictures", "shapes", "counting", "feelings", "trace", "letters", "patterns", "memory" };
+
+        /// <summary>Doğruluk oranı anlamsız olan oyunlar: yalnızca kaç kez tamamlandığı raporlanır.</summary>
+        public static bool IsDoneGame(string game) => game == "trace" || game == "memory";
 
         static string Key(DateTime day, string field) => "st_" + day.ToString("yyyyMMdd") + "_" + field;
 
@@ -20,8 +24,11 @@ namespace LofiBoya
             PlayerPrefs.SetInt(k, PlayerPrefs.GetInt(k, 0) + n);
         }
 
-        /// <summary>Öğrenme oyununda bir cevap.</summary>
+        /// <summary>Öğrenme oyununda turun ilk cevabı.</summary>
         public static void Answer(string game, bool right) => Add(game + (right ? "_ok" : "_no"));
+
+        /// <summary>Doğru/yanlışı olmayan oyunda bir tur tamamlandı (yazma, hafıza).</summary>
+        public static void Done(string game) => Add(game + "_done");
 
         /// <summary>Son 7 günün toplamı (bugün dahil). weeksAgo = 1: ondan önceki 7 gün.</summary>
         public static int Week(string field, int weeksAgo = 0)

@@ -18,7 +18,7 @@ namespace LofiBoya
 
         void Update()
         {
-            if (SaveSystem.CalmMode) return;
+            if (Motion.Reduced) return;
             float dt = Time.unscaledDeltaTime;
             _t += dt;
             float b = Mathf.Abs(Mathf.Sin(_t * 3.2f));          // zıplama
@@ -47,7 +47,7 @@ namespace LofiBoya
 
         void Update()
         {
-            if (SaveSystem.CalmMode) return;
+            if (Motion.Reduced) return;
             _next -= Time.unscaledDeltaTime;
             if (_next > 0) return;
             _next = Random.Range(0.18f, 0.4f);

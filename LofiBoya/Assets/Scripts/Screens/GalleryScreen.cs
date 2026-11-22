@@ -28,6 +28,7 @@ namespace LofiBoya
             ((RectTransform)back.transform).Place(new Vector2(0, 1), new Vector2(110, -110), new Vector2(120, 120));
 
             var music = UIKit.IconButton(root, Art.Note, Theme.Card, Theme.Text, 120, () => Popup.Toast(Sfx.NextTrack()), 0.5f);
+            A11y.Label(music, Loc.T("a11y_music"));
             ((RectTransform)music.transform).Place(new Vector2(1, 1), new Vector2(-110, -110), new Vector2(120, 120));
 
             var title = UIKit.Label(root, Loc.T("gallery_title"), 84, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -207,8 +208,10 @@ namespace LofiBoya
             name.rectTransform.offsetMin = new Vector2(34, 22);
             name.rectTransform.offsetMax = new Vector2(-170, 92);
             name.horizontalOverflow = HorizontalWrapMode.Wrap;
+            name.verticalOverflow = VerticalWrapMode.Truncate;   // "Oyuncak kutusu" gibi iki satırlık adlar kartın içinde küçülür
+            name.lineSpacing = 0.85f;
             name.resizeTextForBestFit = true;
-            name.resizeTextMinSize = 24;
+            name.resizeTextMinSize = 22;
             name.resizeTextMaxSize = 36;
 
             // Durum rozeti

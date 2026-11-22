@@ -13,6 +13,7 @@ namespace LofiBoya
         static bool _greeted;
         string _dailyGroup, _dailyId;
         const float PolX = 40f, PolY = 70f;
+        float _polScale = 1f;   // uzun ekranda polaroid büyür, başlıkla butonlar arasındaki boşluk dolar
 
         void Start()
         {
@@ -37,8 +38,11 @@ namespace LofiBoya
             sub.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(0, -120), new Vector2(900, 70));
 
             // ---- Polaroid (rastgele bir resim, pastel renklerle) ----
+            // başlık (üstten 480) ile Başla (alttan 495) arasındaki boşluğa göre büyür
+            float h = App.I != null && App.I.SafeRoot != null ? App.I.SafeRoot.rect.height : 1920f;
+            _polScale = Mathf.Clamp((h - 975f - 200f) / 745f, 1f, 1.3f);
             _polaroid = UIKit.Node("Polaroid", root);
-            _polaroid.Place(new Vector2(0.5f, 0.5f), new Vector2(PolX, PolY), new Vector2(600, 700));
+            _polaroid.Place(new Vector2(0.5f, 0.5f), new Vector2(PolX, PolY) * _polScale, new Vector2(600, 700) * _polScale);
             _polaroid.localRotation = Quaternion.Euler(0, 0, -5);
             var card = UIKit.Card(_polaroid, "Card", Theme.Card);
             ((RectTransform)card.transform.parent).Stretch();
@@ -57,6 +61,7 @@ namespace LofiBoya
             var hit = _polaroid.gameObject.AddComponent<Image>();
             hit.color = Color.clear;
             var pb = _polaroid.gameObject.AddComponent<Button>();
+            A11y.Label(pb, Loc.T("a11y_daily"));
             pb.transition = Selectable.Transition.None;
             pb.onClick.AddListener(() =>
             {
@@ -70,10 +75,10 @@ namespace LofiBoya
             // ---- Pofuduk: polaroidin köşesinde oturur, dokununca kıkırdar ----
             _mascot = Mascot.Create(root, 320);
             var mrt = (RectTransform)_mascot.transform;
-            mrt.Place(new Vector2(0.5f, 0.5f), new Vector2(-300, -250), mrt.sizeDelta);
+            mrt.Place(new Vector2(0.5f, 0.5f), new Vector2(-300, -250 * _polScale), mrt.sizeDelta);   // yalnızca dikeyde: yana taşmasın
             Tween.Pop(mrt, 0.45f, 0.6f);
-            // Gün serisi: Pofuduk'un konuşma balonunda
-            int streak = SaveSystem.Streak;
+            // Boyama günleri koleksiyonu: Pofuduk'un konuşma balonunda (ara vermek kaybettirmez)
+            int streak = SaveSystem.DaysColored;
             if (streak >= 2) Bubble(mrt, Loc.T("bubble_streak", streak));
             else if (!SaveSystem.PlayedToday) Bubble(mrt, Loc.T("bubble_daily"));
             if (!_greeted)
@@ -100,6 +105,7 @@ namespace LofiBoya
             var stickers = BigButton(root, Loc.T("stickers_btn"), MascotArt.Star, Color.white, Theme.Butter, new Vector2(342, 225), 0.5f, () => App.I.ShowStickers());
             // yıldız sayısı rozeti
             int stars = SaveSystem.Stars;
+            A11y.Label(stickers, Loc.T("stickers_btn") + ", " + Loc.T("a11y_stars", stars));
             if (stars > 0)
             {
                 var badge = UIKit.Box(stickers.transform, "Badge", Theme.AccentButton, null, 0.5f);
@@ -116,8 +122,10 @@ namespace LofiBoya
                 Popup.Toast(Loc.T("music_toast", Sfx.NextTrack()));
             }, 0.46f);
             ((RectTransform)music.transform).Place(new Vector2(0, 1), new Vector2(100, -100), new Vector2(110, 110));
+            A11y.Label(music, Loc.T("a11y_music"));
             var gear = UIKit.IconButton(root, Art.Gear, Theme.Card.WithAlpha(0.9f), Theme.TextSoft, 110, () => ParentGate.Show(ParentGate.Settings), 0.5f);
             ((RectTransform)gear.transform).Place(new Vector2(1, 1), new Vector2(-100, -100), new Vector2(110, 110));
+            A11y.Label(gear, Loc.T("a11y_settings"));
 
             // ilk açılış: oyunlar çocuğun yaşına göre ayarlansın (bir kez sorulur; sonra Ayarlar'dan değişir)
             if (!SaveSystem.AgeAsked) Tween.Delay(0.9f, () => { if (this != null && !SaveSystem.AgeAsked) ParentGate.AskAge(); });
@@ -218,10 +226,11 @@ namespace LofiBoya
 
         void Update()
         {
+            if (Motion.Reduced) return;   // sakin mod / sistem animasyonları kapalı: her şey yerinde dursun
             float t = Time.unscaledTime - _t0;
             if (_polaroid != null && t > 0.8f)
             {
-                _polaroid.anchoredPosition = new Vector2(PolX, PolY + Mathf.Sin(t * 1.1f) * 14f);
+                _polaroid.anchoredPosition = new Vector2(PolX, PolY) * _polScale + new Vector2(0, Mathf.Sin(t * 1.1f) * 14f);
                 _polaroid.localRotation = Quaternion.Euler(0, 0, -5 + Mathf.Sin(t * 0.7f) * 2f);
             }
             if (_title != null) _title.anchoredPosition = new Vector2(0, 10 + Mathf.Sin(t * 1.6f) * 6f);

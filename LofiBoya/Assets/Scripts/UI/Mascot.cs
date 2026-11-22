@@ -148,6 +148,7 @@ namespace LofiBoya
         {
             float dt = Time.unscaledDeltaTime;
             _t += dt;
+            bool still = Motion.Reduced;
 
             // nefes alma: hafif ezilip uzama
             float breathe = Mathf.Sin(_t * 2.2f);
@@ -167,6 +168,7 @@ namespace LofiBoya
                     sx += squash; sy -= squash;
                 }
             }
+            if (still) { y = 0; sx = sy = 1f; }   // hareket azaltma: yerinde dursun, yüzü yine güler
             _body.anchoredPosition = new Vector2(0, y);
             _body.localScale = new Vector3(sx, sy, 1);
 
@@ -182,12 +184,12 @@ namespace LofiBoya
             }
 
             // el sallama
-            if (_t > _nextWave) { Wave(); _nextWave = _t + Random.Range(5f, 9f); }
-            float wave = _t < _waveUntil ? Mathf.Sin(_t * 14f) : 0f;
+            if (_t > _nextWave) { if (!still) Wave(); _nextWave = _t + Random.Range(5f, 9f); }
+            float wave = _t < _waveUntil && !still ? Mathf.Sin(_t * 14f) : 0f;
             _hand.anchoredPosition = new Vector2(-_size * 0.03f, _size * (0.02f + 0.08f * Mathf.Abs(wave)) + (_t < _waveUntil ? _size * 0.08f : 0f));
             _hand.localRotation = Quaternion.Euler(0, 0, wave * 25f);
 
-            if (_crayon != null) _crayon.localRotation = Quaternion.Euler(0, 0, -28 + Mathf.Sin(_t * 1.7f) * 4f);
+            if (_crayon != null) _crayon.localRotation = Quaternion.Euler(0, 0, -28 + (still ? 0f : Mathf.Sin(_t * 1.7f) * 4f));
         }
     }
 }

@@ -34,7 +34,7 @@ namespace LofiBoya
         public static void Confirm(string title, string message, string yes, string no, Action onYes)
         {
             var root = App.I.SafeRoot;
-            var overlay = UIKit.Node("Confirm", root).Stretch(-200, -200, -200, -200);
+            var overlay = UIKit.Node("Confirm", root).Stretch(-UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed, -UIKit.Bleed);
             var dim = overlay.gameObject.AddComponent<Image>();
             dim.color = Theme.Text.WithAlpha(0f);
             Tween.To(dim, 0.25f, k => dim.color = Theme.Text.WithAlpha(0.35f * k));

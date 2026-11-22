@@ -15,6 +15,8 @@ namespace LofiBoya
     public partial class LearnScreen
     {
         int _streak, _roundNo;
+        bool _missed;      // bu turda yanlış dokunuş oldu mu (yıldız yalnızca ilk denemede)
+        bool _recorded;    // turun ilk cevabı rapora yazıldı mı
         string _wantKey;   // sorulan şeyin anahtarı (rapordaki karışıklık kaydı için)
 
         static readonly string[] BasicKeys = { "red", "orange", "yellow", "green", "blue", "purple", "pink", "brown" };
@@ -591,13 +593,16 @@ namespace LofiBoya
             Shuffle(colorIdx);
             Shuffle(shapeIdx);
             // A, B, C + seçenekler için birkaç fazladan birim
-            var units = new List<(Sprite s, Color c)>();
+            // ci: temel renk sırası (renk körü desteğinde işaret için)
+            var units = new List<(Sprite s, Color c, int ci)>();
             for (int u = 0; u < k + 2; u++)
             {
-                var col = Names.Basic[mode == 1 ? colorIdx[0] : colorIdx[u % colorIdx.Count]].color;
+                int ci = mode == 1 ? colorIdx[0] : colorIdx[u % colorIdx.Count];
                 var shp = Art.Shape(PatternShapes[mode == 0 ? shapeIdx[0] : shapeIdx[u % shapeIdx.Count]]);
-                units.Add((shp, col));
+                units.Add((shp, Names.Basic[ci].color, ci));
             }
+            // yalnızca rengin değiştiği örüntüde renk körü çocuk ayırt edebilsin: her birimin altında renk işareti
+            bool colorMatters = mode != 1;
 
             int len = Mathf.Min(7, type.Length * 2 + Random.Range(0, type.Length));
             int answer = type[len % type.Length] - 'A';
@@ -609,11 +614,12 @@ namespace LofiBoya
             float step = 118f, x0 = -(len) * step * 0.5f;
             for (int i = 0; i < len; i++)
             {
-                var (s, c) = units[type[i % type.Length] - 'A'];
+                var (s, c, ci) = units[type[i % type.Length] - 'A'];
                 var img = UIKit.Box(board.transform, "Item", c, s);
                 img.type = Image.Type.Simple;
                 img.raycastTarget = false;
                 img.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(x0 + i * step, 0), new Vector2(98, 98));
+                if (colorMatters) ColorMarks.AddBasic(img.rectTransform, ci, 60, -0.3f);
                 img.rectTransform.localScale = Vector3.zero;
                 Tween.Pop(img.rectTransform, 0.1f + i * 0.12f, 0.35f);
             }
@@ -644,6 +650,7 @@ namespace LofiBoya
                 img.type = Image.Type.Simple;
                 img.raycastTarget = false;
                 img.rectTransform.Stretch(40, 40, 40, 40);
+                if (colorMatters) ColorMarks.AddBasic(img.rectTransform, units[u].ci, 66, -0.2f);
                 bool right = u == answer;
                 bt.onClick.AddListener(() =>
                 {
@@ -652,6 +659,7 @@ namespace LofiBoya
                         // cevap boş yere oturur
                         slot.sprite = units[u].s;
                         slot.color = units[u].c;
+                        if (colorMatters) ColorMarks.AddBasic(slot.rectTransform, units[u].ci, 60, -0.3f);
                         qm.text = "";
                         Tween.Punch(brt, 0.12f, 0.4f);
                     }
@@ -743,8 +751,7 @@ namespace LofiBoya
             var first = _memFirst;
             _memFirst = null;
             _memBusy = true;
-            bool match = first.Kind == mc.Kind;
-            Stats.Answer("memory", match);
+            bool match = first.Kind == mc.Kind;   // eşleşmeyen çift keşiftir, yanlış sayılmaz
             Tween.Delay(match ? 0.35f : 1.0f, () =>
             {
                 if (this == null || mc.Rt == null) return;
@@ -757,6 +764,7 @@ namespace LofiBoya
                     Tween.Punch(mc.Rt, 0.15f, 0.4f);
                     if (_mem.TrueForAll(x => x.Done))
                     {
+                        Stats.Done("memory");
                         Celebrate(_prompt.rectTransform);
                         _prompt.text = Loc.T("memory_done");
                         Tween.Delay(2.6f, () => { if (this != null && _mode == Mode.Memory) NextRound(); });

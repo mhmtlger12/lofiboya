@@ -78,6 +78,12 @@ namespace LofiBoya
 
         // ---------- Yerleşim yardımcıları ----------
 
+        /// <summary>
+        /// Tam ekran perdelerin (açılır pencere, mola, kutlama) güvenli alanın dışına taşma payı.
+        /// Tablet yatayken içerik ortada bir sütundur; perde iki yandaki boşluğu da örtsün diye geniş.
+        /// </summary>
+        public const float Bleed = 3000f;
+
         public static RectTransform Node(string name, Transform parent)
         {
             var go = new GameObject(name, typeof(RectTransform));
