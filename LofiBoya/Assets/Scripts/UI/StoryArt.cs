@@ -521,7 +521,7 @@ namespace LofiBoya
                 case "rope": Rope(p); break;
                 case "wheat": Wheat(p, n < 0 ? 3 : n); break;
                 case "bread": Bread(p); break;
-                case "leaf": BigLeaf(p, bg == "rain"); break;
+                case "leaf": BigLeaf(p, bg == "rain", c); break;
                 case "sprout": Sprout(p, n < 0 ? 0 : n, mood); break;
                 case "can": Can(p); break;
                 case "kite": Kite(p, n != 0); break;
@@ -1371,12 +1371,15 @@ namespace LofiBoya
             p.Gloss(-0.14f, 0.3f, 0.1f, 0.03f, 0.45f, 10);
         }
 
-        static void BigLeaf(P p, bool wet)
+        // tint: sonbahar yaprağı gibi renkli yaprak için (c=...); verilmezse yeşil
+        static void BigLeaf(P p, bool wet, Color? tint = null)
         {
-            p.Line(0.02f, -0.03f, 0.06f, -0.55f, 0.04f, Col("5FAF56"));
+            Color top = tint.HasValue ? Light(tint.Value, 0.25f) : Col("9BE38A");
+            Color bot = tint.HasValue ? Dark(tint.Value, 0.12f) : Col("4FA35A");
+            p.Line(0.02f, -0.03f, 0.06f, -0.55f, 0.04f, tint.HasValue ? Dark(tint.Value, 0.2f) : Col("5FAF56"));
             Func<Vector2, float> leaf = q => Mathf.Max(Ell(q, 0, 0, 0.64f, 0.24f, -6), -Ell(q, 0.62f, 0.0f, 0.08f, 0.06f));
-            p.Shape(R(0, 0, 0.66f, 0.3f), leaf, Col("9BE38A"), Col("4FA35A"));
-            p.Soft(R(0, -0.1f, 0.66f, 0.2f), q => Mathf.Max(leaf(q), q.y + 0.05f), A(Col("3E8E4A"), 0.35f), 0.05f);
+            p.Shape(R(0, 0, 0.66f, 0.3f), leaf, top, bot);
+            p.Soft(R(0, -0.1f, 0.66f, 0.2f), q => Mathf.Max(leaf(q), q.y + 0.05f), A(tint.HasValue ? Dark(tint.Value, 0.3f) : Col("3E8E4A"), 0.35f), 0.05f);
             p.Line(-0.58f, 0.06f, 0.56f, -0.06f, 0.016f, A(Col("D9F5C8"), 0.9f));
             for (int i = -4; i <= 4; i++)
             {
