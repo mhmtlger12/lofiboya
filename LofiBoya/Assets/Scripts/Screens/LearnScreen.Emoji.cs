@@ -72,7 +72,7 @@ namespace LofiBoya
                 string cat = vehicles ? "vehicle" : "animal";
                 bins.Add(new SortBin { Key = "sort_land", Icon = "nature/deciduous_tree", Color = Theme.Hex("D8F0C8"), Items = vehicles ? LandVehicles : LandAnimals, Cat = cat });
                 bins.Add(new SortBin { Key = "sort_water", Icon = "place/water_wave", Color = Theme.Sky, Items = vehicles ? WaterVehicles : WaterAnimals, Cat = cat });
-                if (!little) bins.Add(new SortBin { Key = "sort_sky", Icon = "nature/cloud", Color = Theme.Hex("E3EEFB"), Items = vehicles ? SkyVehicles : SkyAnimals, Cat = cat });
+                if (!little) bins.Add(new SortBin { Key = "sort_sky", Icon = "nature/cloud", Color = Theme.Hex("DCD6F7"), Items = vehicles ? SkyVehicles : SkyAnimals, Cat = cat });
             }
 
             // hangi kutuya ait bir nesne gelsin: kutular sırayla eşit şansta
@@ -162,13 +162,22 @@ namespace LofiBoya
             _lastTarget = target;
 
             int n = Mathf.Min(SaveSystem.OptionCount, colors.Count);
-            var picks = new List<int> { target };
+            var targets = Emoji.WithColor(target);
+            var picks = new List<(int c, string id)> { (target, targets[Random.Range(0, targets.Count)]) };
             var others = new List<int>(colors);
             others.Remove(target);
             // kırmızı-pembe, turuncu-kahverengi gibi karışabilenler küçük yaşta yan yana gelmesin
             if (SaveSystem.AgeBand < 2) others.RemoveAll(o => ColorConfusable(target, o));
             Shuffle(others);
-            foreach (var o in others) { if (picks.Count >= n) break; picks.Add(o); }
+            foreach (var o in others)
+            {
+                if (picks.Count >= n) break;
+                // çeldiricide sorulan renk hiç görünmesin (yeşil sorulurken yeşil yapraklı lale/üzüm çıkmaz)
+                var pool = Emoji.WithColor(o);
+                pool.RemoveAll(id => Emoji.Shows(id, target));
+                if (pool.Count > 0) picks.Add((o, pool[Random.Range(0, pool.Count)]));
+            }
+            if (picks.Count < 2) { ColorRound(); return; }
             Shuffle(picks);
 
             var t = Names.Basic[target];
@@ -178,9 +187,7 @@ namespace LofiBoya
 
             for (int i = 0; i < picks.Count; i++)
             {
-                int c = picks[i];
-                var list = Emoji.WithColor(c);
-                string id = list[Random.Range(0, list.Count)];
+                var (c, id) = picks[i];
                 var slot = PictureCard(OptionSlot(i, picks.Count), Emoji.Get(id), 0.1f + i * 0.08f, 0.14f);
                 slot.localRotation = Quaternion.Euler(0, 0, (i % 2 == 0 ? 1 : -1) * 3f);
                 string name = Names.Basic[c].name, key = BasicKeys[c];
@@ -228,7 +235,8 @@ namespace LofiBoya
                 face.raycastTarget = true;
                 var sil = Emoji.Image(face.transform, ids[i], w * 0.78f);
                 sil.raycastTarget = false;
-                sil.color = shadow;   // saydam olmayan her yer koyu: gölge
+                sil.color = shadow;   // saydam olmayan her yer düz koyu: gerçek gölge
+                sil.material = Emoji.Silhouette;
                 sil.rectTransform.anchorMin = sil.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
                 bool right = i == target;
                 var b = slot.gameObject.AddComponent<Button>();
@@ -236,7 +244,13 @@ namespace LofiBoya
                 b.onClick.AddListener(() =>
                 {
                     // doğru gölge renklenir
-                    if (right && !_locked) Tween.To(sil, 0.45f, k => sil.color = Color.Lerp(shadow, Color.white, k));
+                    if (right && !_locked)
+                        Tween.To(sil, 0.5f, k =>
+                        {
+                            // gölge solar, renkli resim olarak geri gelir
+                            if (k >= 0.5f && sil.material != sil.defaultMaterial) sil.material = null;
+                            sil.color = k < 0.5f ? shadow.WithAlpha(1f - k * 2f) : Color.white.WithAlpha((k - 0.5f) * 2f);
+                        });
                     Answer(right, slot, null, null, 2.4f);
                 });
                 A11y.Label(b, Loc.T("a11y_card", i + 1));

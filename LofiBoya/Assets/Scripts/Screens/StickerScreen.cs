@@ -15,6 +15,7 @@ namespace LofiBoya
         void Start()
         {
             var root = (RectTransform)transform;
+            Emoji.Use();
 
             var back = UIKit.CircleButton(root, "‹", Theme.Card, Theme.Text, 120, 90, () => App.I.ShowWelcome());
             ((RectTransform)back.transform).Place(new Vector2(0, 1), new Vector2(110, -110), new Vector2(120, 120));
@@ -338,7 +339,7 @@ namespace LofiBoya
         void OnDestroy()
         {
             foreach (var t in _textures) if (t) Destroy(t);
-            Emoji.Unload();
+            Emoji.Release();
         }
     }
 }

@@ -34,6 +34,7 @@ namespace LofiBoya
         void Start()
         {
             _root = (RectTransform)transform;
+            Emoji.Use();
             var back = UIKit.CircleButton(_root, "‹", Theme.Card, Theme.Text, 120, 90, () => OnBack());
             ((RectTransform)back.transform).Place(new Vector2(0, 1), new Vector2(110, -110), new Vector2(120, 120));
             _starText = StickerScreen.StarPill(_root, SaveSystem.Stars);
@@ -70,7 +71,6 @@ namespace LofiBoya
             _mode = Mode.Menu;
             ClearArea();
             if (_mascot != null) _mascot.gameObject.SetActive(false);   // menüde kartların önünü kapatmasın
-            FitMenuToScreen();
             var title = UIKit.Label(_area, Loc.T("learn"), 96, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Band(true, 120, 200);
             var sub = UIKit.Label(_area, Loc.T("learn_sub"), 44, Theme.TextSoft);
@@ -93,7 +93,7 @@ namespace LofiBoya
             sr.viewport = view;
             sr.content = _menuGrid;
 
-            // 3x3 kart: Renkler, Resimler, Şekiller / Sayılar, Yazalım, Harfler / Duygular, Örüntü, Hafıza
+            // 2 sütun: Renkler, Resimler, Şekiller / Sayılar, Yazalım, Harfler / Duygular, Örüntü, Hafıza
             var colors = MenuCard(Cell(0), Loc.T("colors"), Loc.T("colors_sub"), Theme.Accent, 0.1f, () => StartGame(Mode.Colors));
             for (int i = 0; i < 3; i++)
             {
@@ -173,59 +173,73 @@ namespace LofiBoya
             MoreMenuCards();
             ConceptMenuCards();
             EmojiMenuCards();
+            ScaleMenuArt();
         }
 
-        // Menü: 13 oyun + Ayır + Çıkartma Dünyası = 15 kart, 3 sütun × 5 satır. Kartlar kaydırılan alanın içindedir;
-        // boyları ekrana göre ayarlanır: uzun ekranda hepsi sığar, kısa ekranda biraz kayar.
+        // Menü: 13 oyun + Ayır + Çıkartma Dünyası = 15 kart, 2 sütunlu büyük kartlar. Kartlar kaydırılan alanın içindedir;
+        // parmakla aşağı kayar. Kart süsleri 3 sütunlu küçük kart için çizildi: ArtScale ile birlikte büyütülür.
         const float MenuTop = 390f, MenuPad = 24f;
         static int MenuCards => Emoji.Available ? 15 : 13;
-        const int MenuRows = 5;
-        float _cardH = 316f, _rowStep = 344f;
+        const int MenuCols = 2;
+        static int MenuRows => (MenuCards + MenuCols - 1) / MenuCols;
+        const float CardW = 450f, CardGap = 26f, ArtScale = 1.35f;
+        const float _cardH = 380f, _rowStep = _cardH + CardGap;
         RectTransform _menuGrid;
-
-        void FitMenuToScreen()
-        {
-            float h = App.I != null && App.I.SafeRoot != null ? App.I.SafeRoot.rect.height : 1920f;
-            float view = h - MenuTop - MenuPad * 2;
-            _cardH = Mathf.Clamp(view / MenuRows - 26f, 290f, 340f);
-            _rowStep = _cardH + 26f;
-        }
+        readonly List<(Transform face, int labels)> _menuFaces = new();
 
         /// <summary>Menü ızgarası: soldan sağa, yukarıdan aşağı; tek kalan son kart ortalanır. Izgaranın üstüne göre.</summary>
         Vector2 Cell(int i)
         {
-            int row = i / 3, col = i % 3;
-            bool lone = row == (MenuCards - 1) / 3 && MenuCards % 3 == 1;
-            float x = lone ? 0 : (col - 1) * 312;
+            int row = i / MenuCols, col = i % MenuCols;
+            bool lone = row == MenuRows - 1 && MenuCards % MenuCols == 1;
+            float x = lone ? 0 : (col - (MenuCols - 1) * 0.5f) * (CardW + CardGap);
             return new Vector2(x, -(MenuPad + _cardH * 0.5f + row * _rowStep));
+        }
+
+        /// <summary>Kartlar kurulduktan sonra: başlık/alt yazı dışındaki süsleri (boya kalemleri, emojiler…) büyütür.</summary>
+        void ScaleMenuArt()
+        {
+            foreach (var (face, labels) in _menuFaces)
+            {
+                if (face == null) continue;
+                for (int i = labels; i < face.childCount; i++)
+                {
+                    var c = face.GetChild(i) as RectTransform;
+                    if (c == null) continue;
+                    c.localScale *= ArtScale;
+                    c.anchoredPosition = c.anchoredPosition * ArtScale + new Vector2(0, -16);   // üst kenara yapışmasın
+                }
+            }
+            _menuFaces.Clear();
         }
 
         RectTransform MenuCard(Vector2 pos, string title, string sub, Color color, float delay, System.Action onClick)
         {
             var b = UIKit.Button(_menuGrid != null ? _menuGrid : _area, "", color, Theme.Text, 10, onClick, 0.7f);
             var rt = (RectTransform)b.transform;
-            rt.Place(new Vector2(0.5f, 1f), pos, new Vector2(292, _cardH));
+            rt.Place(new Vector2(0.5f, 1f), pos, new Vector2(CardW, _cardH));
             var face = b.transform.Find("Face");
-            var t = UIKit.Label(face, title, 52, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var t = UIKit.Label(face, title, 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.anchorMin = new Vector2(0, 0);
             t.rectTransform.anchorMax = new Vector2(1, 0);
             t.rectTransform.pivot = new Vector2(0.5f, 0);
-            t.rectTransform.offsetMin = new Vector2(16, 94);
-            t.rectTransform.offsetMax = new Vector2(-16, 170);
+            t.rectTransform.offsetMin = new Vector2(18, 100);
+            t.rectTransform.offsetMax = new Vector2(-18, 184);
             t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = 30;
-            t.resizeTextMaxSize = 52;
+            t.resizeTextMinSize = 34;
+            t.resizeTextMaxSize = 60;
             t.horizontalOverflow = HorizontalWrapMode.Wrap;   // sığmazsa küçülsün
             t.verticalOverflow = VerticalWrapMode.Truncate;   // best fit ancak taşma kapalıyken küçültür
-            var s = UIKit.Label(face, sub, 30, Theme.Text.WithAlpha(0.85f), TextAnchor.MiddleCenter);
+            var s = UIKit.Label(face, sub, 34, Theme.Text.WithAlpha(0.85f), TextAnchor.MiddleCenter);
             s.rectTransform.anchorMin = new Vector2(0, 0);
             s.rectTransform.anchorMax = new Vector2(1, 0);
             s.rectTransform.pivot = new Vector2(0.5f, 0);
-            s.rectTransform.offsetMin = new Vector2(14, 16);
-            s.rectTransform.offsetMax = new Vector2(-14, 94);   // iki satıra yer: uzun alt yazılar okunur boyda kalır
+            s.rectTransform.offsetMin = new Vector2(16, 18);
+            s.rectTransform.offsetMax = new Vector2(-16, 100);   // iki satıra yer: uzun alt yazılar okunur boyda kalır
             s.resizeTextForBestFit = true;
-            s.resizeTextMinSize = 24;
-            s.resizeTextMaxSize = 30;
+            s.resizeTextMinSize = 26;
+            s.resizeTextMaxSize = 34;
+            _menuFaces.Add((face, face.childCount));
             s.lineSpacing = 0.85f;
             s.horizontalOverflow = HorizontalWrapMode.Wrap;
             s.verticalOverflow = VerticalWrapMode.Truncate;   // iki satıra sığmazsa küçülür, kartın dışına taşmaz
@@ -1040,7 +1054,7 @@ namespace LofiBoya
             }
         }
 
-        static void Shuffle(List<int> l)
+        static void Shuffle<T>(List<T> l)
         {
             for (int i = 0; i < l.Count; i++) { int j = Random.Range(i, l.Count); (l[i], l[j]) = (l[j], l[i]); }
         }
@@ -1055,7 +1069,7 @@ namespace LofiBoya
         void OnDestroy()
         {
             foreach (var t in _textures) if (t) Destroy(t);
-            Emoji.Unload();   // atlasları bırak
+            Emoji.Release();   // kullanan kalmadıysa atlasları bırak
         }
     }
 }

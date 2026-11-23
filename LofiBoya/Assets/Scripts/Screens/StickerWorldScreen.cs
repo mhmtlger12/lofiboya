@@ -40,6 +40,7 @@ namespace LofiBoya
         void Start()
         {
             _root = (RectTransform)transform;
+            Emoji.Use();
 
             var back = UIKit.CircleButton(_root, "‹", Theme.Card, Theme.Text, 120, 90, () => OnBack());
             ((RectTransform)back.transform).Place(new Vector2(0, 1), new Vector2(110, -110), new Vector2(120, 120));
@@ -441,7 +442,7 @@ namespace LofiBoya
             Save();
             PlayerPrefs.Save();
             if (_bgTex != null) Destroy(_bgTex);
-            Emoji.Unload();
+            Emoji.Release();
         }
 
         /// <summary>Sahnedeki tek çıkartma: dokununca seçilir, sürükleyince taşınır.</summary>

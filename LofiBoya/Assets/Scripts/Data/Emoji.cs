@@ -30,6 +30,7 @@ namespace LofiBoya
             _index = null;
             _sheets = null;
             _sprites.Clear();
+            _users = 0;
         }
 
         static bool Load()
@@ -76,6 +77,34 @@ namespace LofiBoya
             return list;
         }
 
+        /// <summary>
+        /// Renk etiketli emojilerde ana rengin yanında belirgin görünen başka renkler (yaprak, sap, gövde…).
+        /// Renk oyununda çeldirici, sorulan rengi taşımasın diye: "Yeşili bul" sorusunda yeşil yapraklı lale çıkmaz.
+        /// Kaynak PNG'lerde renk oranı ölçülüp (yeşil ≥ %5) gözle tamamlandı. Names.Basic sırası:
+        /// 0 kırmızı, 1 turuncu, 2 sarı, 3 yeşil, 4 mavi, 5 mor, 6 pembe, 7 kahverengi.
+        /// </summary>
+        static readonly Dictionary<string, int[]> Parts = new()
+        {
+            ["red_apple"] = new[] { 3, 7 }, ["strawberry"] = new[] { 3 }, ["cherries"] = new[] { 3 }, ["tomato"] = new[] { 3 },
+            ["hot_pepper"] = new[] { 3 }, ["rose"] = new[] { 3 }, ["fire_engine"] = new[] { 4 },
+            ["tangerine"] = new[] { 3 }, ["carrot"] = new[] { 3 }, ["jack-o-lantern"] = new[] { 3, 7 },
+            ["banana"] = new[] { 7 }, ["lemon"] = new[] { 3 }, ["ear_of_corn"] = new[] { 3 }, ["baby_chick"] = new[] { 1 },
+            ["taxi"] = new[] { 4 }, ["sunflower"] = new[] { 3, 7 },
+            ["green_apple"] = new[] { 7 }, ["kiwi_fruit"] = new[] { 7 }, ["frog"] = new[] { 2 }, ["turtle"] = new[] { 2, 7 },
+            ["evergreen_tree"] = new[] { 7 }, ["seedling"] = new[] { 7 },
+            ["grapes"] = new[] { 3 }, ["eggplant"] = new[] { 3 }, ["hyacinth"] = new[] { 3 },
+            ["tulip"] = new[] { 3 }, ["hibiscus"] = new[] { 2, 3 }, ["cherry_blossom"] = new[] { 2 },
+            ["chocolate_bar"] = new[] { 0 },
+        };
+
+        /// <summary>Emojide bu temel renk (ana renk ya da belirgin bir parçası olarak) görünüyor mu?</summary>
+        public static bool Shows(string id, int basic)
+        {
+            if (!Load() || !_byId.TryGetValue(id, out var it)) return false;
+            if (it.c == basic) return true;
+            return Parts.TryGetValue(it.id, out var p) && Array.IndexOf(p, basic) >= 0;
+        }
+
         public static string Category(string id) => Load() && _byId.TryGetValue(id, out var it) ? it.cat : null;
 
         /// <summary>Emojinin sprite'ı ("kategori/ad" ya da yalnızca "ad"). Yoksa null.</summary>
@@ -119,8 +148,23 @@ namespace LofiBoya
             return pool;
         }
 
-        /// <summary>Yüklü atlasları bellekten bırakır (ekran kapanırken). Sprite'lar bir sonraki istekte yeniden kurulur.</summary>
-        public static void Unload()
+        static int _users;
+
+        /// <summary>
+        /// Emoji kullanan ekran açıldı. Ekranlar arası geçişte yeni ekran eskisi kapanmadan açılır: sayaç sayesinde
+        /// kapanan ekran, yeni ekranın kullandığı atlasları boşaltmaz.
+        /// </summary>
+        public static void Use() => _users++;
+
+        /// <summary>Emoji kullanan ekran kapandı; kullanan kalmadıysa atlaslar bellekten bırakılır.</summary>
+        public static void Release()
+        {
+            _users = Mathf.Max(0, _users - 1);
+            if (_users == 0) Unload();
+        }
+
+        /// <summary>Yüklü atlasları bellekten bırakır. Sprite'lar bir sonraki istekte yeniden kurulur.</summary>
+        static void Unload()
         {
             foreach (var sp in _sprites.Values) if (sp != null) UnityEngine.Object.Destroy(sp);
             _sprites.Clear();
@@ -129,6 +173,20 @@ namespace LofiBoya
             {
                 if (_sheets[i] != null) Resources.UnloadAsset(_sheets[i]);
                 _sheets[i] = null;
+            }
+        }
+
+        static Material _silhouette;
+
+        /// <summary>Gölge malzemesi: resmin yalnızca saydamlığı, renk Image renginden (düz gölge).</summary>
+        public static Material Silhouette
+        {
+            get
+            {
+                if (_silhouette != null) return _silhouette;
+                var sh = Resources.Load<Shader>("Shaders/UISilhouette");
+                if (sh != null) _silhouette = new Material(sh) { name = "UISilhouette" };
+                return _silhouette;
             }
         }
 
