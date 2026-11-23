@@ -20,7 +20,7 @@ namespace LofiBoya
         static void Parse()
         {
             _map = new Dictionary<string, string[]>();
-            foreach (var raw in Table.Split('\n'))
+            foreach (var raw in (Table + "\n" + BookStrings.Table).Split('\n'))
             {
                 var line = raw.Trim('\r');
                 if (line.Length == 0 || line.StartsWith("#")) continue;

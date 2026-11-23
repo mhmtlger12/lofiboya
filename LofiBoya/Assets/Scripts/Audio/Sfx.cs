@@ -100,8 +100,25 @@ namespace LofiBoya
             // Yanlış: yumuşak, üzmeyen bir "bıp"
             _wrong = Synth("wrong", 0.3f, (t, k) => Mathf.Sin(2 * Mathf.PI * (320f - 160f * t) * t) * Mathf.Exp(-t * 9f) * 0.4f);
 
+            // Sayfa çevirme: kâğıdın havayı süpürmesi (yükselen-sönen hışırtı) ve sonda yumuşak bir "fıp"
+            var prnd = new System.Random(12);
+            float plp = 0, plp2 = 0;
+            _page = Synth("page", 0.42f, (t, k) =>
+            {
+                float w = (float)prnd.NextDouble() * 2f - 1f;
+                plp += (w - plp) * 0.35f;
+                plp2 += (plp - plp2) * 0.08f;
+                float band = plp - plp2;
+                float env = Mathf.Sin(Mathf.Clamp01(t / 0.3f) * Mathf.PI) * Mathf.Exp(-t * 2f);
+                float flap = Mathf.Sin(2 * Mathf.PI * 140f * t) * Mathf.Exp(-Mathf.Pow((t - 0.3f) / 0.03f, 2f)) * 0.5f;
+                return band * env * 0.9f + flap * 0.4f;
+            });
+
             ApplySettings();
         }
+
+        AudioClip _page;
+        public static void Page() => Play(_i ? _i._page : null, 0.12f);
 
         AudioClip _giggle, _clap, _star, _wrong;
         public static void Giggle() => Play(_i ? _i._giggle : null, 0.08f);

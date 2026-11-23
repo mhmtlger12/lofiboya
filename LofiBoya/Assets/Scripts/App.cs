@@ -193,5 +193,7 @@ namespace LofiBoya
         public void ShowStickers() => Show<StickerScreen>();
         public void ShowLearn() => Show<LearnScreen>();
         public void ShowAlbum() => Show<AlbumScreen>();
+        public void ShowLibrary() => Show<LibraryScreen>();
+        public void ShowBook(string id) => Show<BookScreen>(s => s.BookId = id);
     }
 }

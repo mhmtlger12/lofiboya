@@ -93,27 +93,36 @@ namespace LofiBoya
                 });
             }
 
-            // ---- Başla ----
-            var start = UIKit.Button(root, Loc.T("start"), Theme.AccentButton, Color.white, 64, () => App.I.ShowGallery());
+            // ---- Başla: tam genişlikte, nefes alan ana buton ----
+            var start = UIKit.Button(root, Loc.T("start"), Theme.AccentButton, Color.white, 66, () => App.I.ShowGallery());
             _startBtn = (RectTransform)start.transform;
-            _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 410), new Vector2(700, 170));
+            _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 400), new Vector2(1000, 160));
             Tween.Pop(_startBtn, 0.35f);
+            var startTxt = UIKit.ButtonText(start);
+            startTxt.resizeTextForBestFit = true;
+            startTxt.resizeTextMinSize = 36;
+            startTxt.resizeTextMaxSize = 66;
+            startTxt.rectTransform.Stretch(40, 0, 40, 4);
 
-            // ---- Büyük ikonlu butonlar: Öğren / Resimlerim / Çıkartmalarım ----
-            BigButton(root, Loc.T("learn"), MascotArt.Puzzle, Theme.Hex("54C29A"), Theme.Mint, new Vector2(-342, 225), 0.45f, () => App.I.ShowLearn());
-            BigButton(root, Loc.T("album"), Art.Pencil, Theme.AccentDark, Theme.Sky, new Vector2(0, 225), 0.48f, () => App.I.ShowAlbum());
-            var stickers = BigButton(root, Loc.T("stickers_btn"), MascotArt.Star, Color.white, Theme.Butter, new Vector2(342, 225), 0.5f, () => App.I.ShowStickers());
-            // yıldız sayısı rozeti
+            // ---- Dört eş kutucuk: üstte yuvarlak ikon, altta ad ----
+            const float tileW = 235, gap = 20;
+            float x0 = -(tileW * 1.5f + gap * 1.5f);
+            Tile(root, Loc.T("read_btn"), BookPages.BookIcon, Theme.Hex("8E7CC3"), Theme.Lavender, x0, 0.42f, () => App.I.ShowLibrary());
+            Tile(root, Loc.T("learn"), MascotArt.Puzzle, Theme.Hex("54C29A"), Theme.Mint, x0 + (tileW + gap), 0.46f, () => App.I.ShowLearn());
+            Tile(root, Loc.T("album"), Art.Pencil, Theme.AccentDark, Theme.Sky, x0 + 2 * (tileW + gap), 0.5f, () => App.I.ShowAlbum());
+            var stickers = Tile(root, Loc.T("stickers_btn"), MascotArt.Star, Color.white, Theme.Butter, x0 + 3 * (tileW + gap), 0.54f, () => App.I.ShowStickers());
+            // yıldız sayısı: ikonun köşesinde küçük rozet
             int stars = SaveSystem.Stars;
             A11y.Label(stickers, Loc.T("stickers_btn") + ", " + Loc.T("a11y_stars", stars));
             if (stars > 0)
             {
-                var badge = UIKit.Box(stickers.transform, "Badge", Theme.AccentButton, null, 0.5f);
+                var icon = stickers.transform.Find("Face/IconBg");
+                var badge = UIKit.Box(icon, "Badge", Theme.AccentButton, null, 0.5f);
                 badge.rectTransform.anchorMin = badge.rectTransform.anchorMax = new Vector2(1, 1);
-                badge.rectTransform.sizeDelta = new Vector2(46 + stars.ToString().Length * 26, 64);
-                badge.rectTransform.anchoredPosition = new Vector2(-24, -4);
-                var bl = UIKit.Label(badge.transform, stars.ToString(), 38, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-                bl.rectTransform.Stretch(0, 0, 0, 4);
+                badge.rectTransform.sizeDelta = new Vector2(30 + stars.ToString().Length * 20, 46);
+                badge.rectTransform.anchoredPosition = new Vector2(4, -6);
+                var bl = UIKit.Label(badge.transform, stars.ToString(), 28, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+                bl.rectTransform.Stretch(0, 0, 0, 3);
             }
 
             // ---- Üst köşeler: müzik (sol), ebeveyn ayarları (sağ) ----
@@ -152,26 +161,30 @@ namespace LofiBoya
             brt.gameObject.AddComponent<Floaty>().Init(6f, 0.8f);
         }
 
-        static Button BigButton(Transform parent, string label, Sprite icon, Color iconColor, Color bg, Vector2 pos, float delay, System.Action onClick)
+        /// <summary>Ana menü kutucuğu: pastel kart, üstte beyaz daire içinde renkli ikon, altta ad.</summary>
+        static Button Tile(Transform parent, string label, Sprite icon, Color iconColor, Color bg, float x, float delay, System.Action onClick)
         {
-            var b = UIKit.Button(parent, label, bg, Theme.Text, 42, onClick);
+            var b = UIKit.Button(parent, label, bg, Theme.Text, 36, onClick, 1.2f);
             var rt = (RectTransform)b.transform;
-            rt.Place(new Vector2(0.5f, 0f), pos, new Vector2(322, 150));
+            rt.Place(new Vector2(0.5f, 0f), new Vector2(x, 185), new Vector2(235, 215));
+            var face = b.transform.Find("Face");
             var txt = UIKit.ButtonText(b);
-            txt.rectTransform.offsetMin = new Vector2(112, 0);
-            txt.alignment = Loc.IsArabic ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft;
+            txt.rectTransform.anchorMin = new Vector2(0, 0);
+            txt.rectTransform.anchorMax = new Vector2(1, 0);
+            txt.rectTransform.pivot = new Vector2(0.5f, 0);
+            txt.rectTransform.sizeDelta = new Vector2(-20, 64);
+            txt.rectTransform.anchoredPosition = new Vector2(0, 16);
             txt.resizeTextForBestFit = true;
             txt.resizeTextMinSize = 22;
-            txt.resizeTextMaxSize = 42;
-            txt.horizontalOverflow = HorizontalWrapMode.Wrap;
-            txt.rectTransform.offsetMax = new Vector2(-14, 0);
-            var bubble = UIKit.Box(b.transform.Find("Face"), "IconBg", Color.white.WithAlpha(0.7f), UIKit.Circle);
+            txt.resizeTextMaxSize = 36;
+            // ikonun arkasında hafif parlayan beyaz daire
+            var bubble = UIKit.Box(face, "IconBg", Color.white.WithAlpha(0.75f), UIKit.Circle);
             bubble.type = Image.Type.Simple;
-            bubble.rectTransform.Place(new Vector2(0, 0.5f), new Vector2(60, 0), new Vector2(88, 88));
+            bubble.rectTransform.Place(new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(110, 110));
             var img = UIKit.Box(bubble.transform, "Icon", iconColor, icon);
             img.type = Image.Type.Simple;
             img.preserveAspect = true;
-            img.rectTransform.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70, 70));
+            img.rectTransform.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(76, 76));
             Tween.Pop(rt, delay);
             return b;
         }
