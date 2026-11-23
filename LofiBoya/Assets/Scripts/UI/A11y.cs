@@ -232,13 +232,20 @@ namespace LofiBoya
             }
 
             // okuma sırası: yukarıdan aşağı, aynı satırda soldan sağa
-            _items.Sort((a, b) =>
+            // Eşikli karşılaştırma geçişli değildir (List.Sort hata fırlatabilir); önce y'ye göre sıralayıp
+            // satırlara ayırır, sonra her satırı x'e göre sıralarız.
+            var order = new List<(Item it, Rect r)>(_items.Count);
+            foreach (var it in _items) order.Add((it, ScreenRect(it.rt)));
+            order.Sort((a, b) => a.r.center.y.CompareTo(b.r.center.y));
+            for (int i = 0; i < order.Count;)
             {
-                var ra = ScreenRect(a.rt);
-                var rb = ScreenRect(b.rt);
-                if (Mathf.Abs(ra.center.y - rb.center.y) > Mathf.Max(24f, Mathf.Min(ra.height, rb.height) * 0.5f)) return ra.center.y.CompareTo(rb.center.y);
-                return ra.center.x.CompareTo(rb.center.x);
-            });
+                var first = order[i].r;
+                int j = i + 1;
+                while (j < order.Count && Mathf.Abs(order[j].r.center.y - first.center.y) <= Mathf.Max(24f, Mathf.Min(first.height, order[j].r.height) * 0.5f)) j++;
+                if (j - i > 1) order.Sort(i, j - i, Comparer<(Item it, Rect r)>.Create((a, b) => a.r.center.x.CompareTo(b.r.center.x)));
+                i = j;
+            }
+            for (int i = 0; i < order.Count; i++) _items[i] = order[i].it;
             if (close.HasValue) _items.Add(close.Value);
         }
 

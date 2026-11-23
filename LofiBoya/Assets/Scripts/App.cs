@@ -156,6 +156,7 @@ namespace LofiBoya
         void Back()
         {
             if (BreakTimer.Active) return; // mola sırasında geri tuşu molayı atlatmaz
+            if (Popup.BackModal()) return; // önce açık pencere kapanır; arkadaki ekran değişmez
             if (_current != null && _current.TryGetComponent<IScreen>(out var s) && s.OnBack()) return;
         }
 

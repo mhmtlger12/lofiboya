@@ -518,9 +518,12 @@ namespace LofiBoya
             card.raycastTarget = true;
             Tween.Pop(holder, 0f, 0.4f);
 
+            bool closed = false;
             void Close()
             {
-                if (overlay == null) return;
+                if (closed || overlay == null) return;
+                closed = true;
+                Popup.PopModal(overlay.gameObject);
                 var cg = overlay.gameObject.AddComponent<CanvasGroup>();
                 cg.blocksRaycasts = false;
                 Tween.Fade(cg, 1f, 0f, 0.2f, () => { if (overlay != null) UnityEngine.Object.Destroy(overlay.gameObject); });
@@ -528,6 +531,7 @@ namespace LofiBoya
             var dimBtn = overlay.gameObject.AddComponent<Button>();
             dimBtn.transition = Selectable.Transition.None;
             if (dismissable) dimBtn.onClick.AddListener(Close);
+            Popup.PushModal(overlay.gameObject, dismissable ? Close : null);
             return (overlay.gameObject, card, Close);
         }
     }

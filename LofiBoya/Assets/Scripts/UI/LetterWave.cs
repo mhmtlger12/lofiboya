@@ -7,7 +7,7 @@ namespace LofiBoya
     /// <summary>
     /// Harf harf dalga: harfler soldan sağa sırayla hafifçe zıplar, sonra kısa bir mola. Yazının kendi
     /// köşelerini kaydırır (Text'in ağına dokunur), bu yüzden gölge/kontur efektlerinden ÖNCE eklenmelidir ki
-    /// onlar da harfle birlikte zıplasın. Arapçada harfler birbirine bağlı olduğundan dalga yapılmaz.
+    /// onlar da harfle birlikte zıplasın. Arapçada ve Hintçede harfler birbirine bağlı olduğundan dalga yapılmaz.
     /// Hareket azaltma açıksa yazı durur.
     /// </summary>
     [RequireComponent(typeof(Text))]
@@ -27,17 +27,28 @@ namespace LofiBoya
             _t0 = Time.unscaledTime;
         }
 
+        int _letters = -1;   // henüz ölçülmedi
+        bool _moving = true;
+
+        // Arapça ve Hintçe harfler birbirine bağlıdır (Hintçede üst çizgi ve işaretler): harf harf zıplatılmaz
+        static bool Still => Motion.Reduced || Loc.IsArabic || Loc.IsHindi;
+
         void Update()
         {
-            if (!Motion.Reduced && !Loc.IsArabic) graphic.SetVerticesDirty();
+            if (Still) { if (_moving) { _moving = false; graphic.SetVerticesDirty(); } return; }
+            // molada yazı durur: ağ yeniden kurulmaz (tuvali her kare kirletmesin); dalga bitince bir kez düzlenir
+            float cycle = _letters * Step + Hop + Rest;
+            bool moving = _letters < 0 || (Time.unscaledTime - _t0) % cycle < _letters * Step + Hop;
+            if (moving || _moving) graphic.SetVerticesDirty();
+            _moving = moving;
         }
 
         public override void ModifyMesh(VertexHelper vh)
         {
-            if (!IsActive() || Motion.Reduced || Loc.IsArabic) return;
+            if (!IsActive() || Still) return;
             _verts.Clear();
             vh.GetUIVertexStream(_verts);
-            int letters = _verts.Count / 6;
+            int letters = _letters = _verts.Count / 6;
             if (letters == 0) return;
             float cycle = letters * Step + Hop + Rest;
             float t = (Time.unscaledTime - _t0) % cycle;

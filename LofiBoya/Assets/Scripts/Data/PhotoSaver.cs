@@ -14,7 +14,7 @@ namespace LofiBoya
         public static string Save(Texture2D image, string title)
         {
             byte[] png = image.EncodeToPNG();
-            string file = "LofiBoya_" + Speech.Slug(title) + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
+            string file = "LofiBoya_" + Speech.Slug(title) + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture) + ".png";
 #if UNITY_ANDROID && !UNITY_EDITOR
             try
             {

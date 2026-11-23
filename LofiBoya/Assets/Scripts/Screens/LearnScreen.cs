@@ -762,14 +762,12 @@ namespace LofiBoya
             var cells = new List<int>();
             for (int c = 0; c < 12; c++) cells.Add(c);
             Shuffle(cells);
+            // seçilen hücreler soldan sağa, yukarıdan aşağı sıralı: birlikte sayarken göz takip etsin
+            var chosen = cells.GetRange(0, n);
+            chosen.Sort();
             var spots = new List<Vector2>();
-            for (int i = 0; i < n; i++)
-            {
-                int c = cells[i];
+            foreach (int c in chosen)
                 spots.Add(new Vector2(-300 + (c % 4) * 200 + Random.Range(-20f, 20f), 170 - (c / 4) * 170 + Random.Range(-15f, 15f)));
-            }
-            // soldan sağa, yukarıdan aşağı sırala: birlikte sayarken göz takip etsin
-            spots.Sort((a, b) => Mathf.Abs(a.y - b.y) > 60 ? b.y.CompareTo(a.y) : a.x.CompareTo(b.x));
             for (int i = 0; i < n; i++)
             {
                 var item = UIKit.Box(board.transform, "Item", color, emo != null ? Emoji.Get(emo) : CountSprite(kind));

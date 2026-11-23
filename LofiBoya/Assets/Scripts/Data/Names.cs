@@ -46,7 +46,7 @@ namespace LofiBoya
             if (s < 0.12f) return v > 0.85f ? "white" : "gray";
             if (s < 0.3f && v > 0.8f && (h < 50 || h > 340)) return h < 20 || h > 340 ? "pink" : "cream";
             if (h < 15 || h >= 345) return v > 0.8f && s < 0.55f ? "pink" : "red";
-            if (h < 40) return v < 0.65f ? "brown" : "orange";
+            if (h < 40) return v < 0.75f ? "brown" : "orange";   // A9744F (kendi kahverengimiz) v=0.66
             if (h < 65) return v < 0.6f ? "brown" : "yellow";
             if (h < 160) return "green";
             if (h < 195) return "turquoise";

@@ -204,8 +204,11 @@ namespace LofiBoya
         public void OnPointerUp(PointerEventData e)
         {
             _last = null;
-            // son bir iki nokta kaçtıysa yine de tamam say
-            if (!_done && _next >= _samples.Count - 2) Finish();
+            // son bir iki nokta kaçtıysa yine de tamam say; ama yalnızca son çizgiye başlanmışsa
+            // (i, j, ö, ü: gövde bitince parmak kalkar, nokta henüz konmadı)
+            if (_done || _next >= _samples.Count || _next < _samples.Count - 2) return;
+            int s = StrokeOf(_next), start = s == 0 ? 0 : _strokeEnd[s - 1];
+            if (s == _strokeEnd.Count - 1 && _next > start) Finish();
         }
 
         public float Progress => _samples.Count == 0 ? 0 : _next / (float)_samples.Count;

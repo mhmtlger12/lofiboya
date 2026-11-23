@@ -16,7 +16,7 @@ namespace LofiBoya
         /// <summary>Doğruluk oranı anlamsız olan oyunlar: yalnızca kaç kez tamamlandığı raporlanır.</summary>
         public static bool IsDoneGame(string game) => game == "trace" || game == "memory";
 
-        static string Key(DateTime day, string field) => "st_" + day.ToString("yyyyMMdd") + "_" + field;
+        static string Key(DateTime day, string field) => "st_" + day.ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture) + "_" + field;
 
         public static void Add(string field, int n = 1)
         {
@@ -77,12 +77,12 @@ namespace LofiBoya
         {
             const int Keep = 14;
             var today = DateTime.Now.Date;
-            int todayKey = int.Parse(today.ToString("yyyyMMdd"));
+            int todayKey = int.Parse(today.ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture));
             int last = PlayerPrefs.GetInt("st_pruned", 0);
             if (last == todayKey) return;
             // ilk temizlikte geriye 120 gün, sonra yalnızca son temizlikten bu yana eskiyen günler
             int from = 120;
-            if (last > 0 && DateTime.TryParseExact(last.ToString(), "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var lastDay))
+            if (last > 0 && DateTime.TryParseExact(last.ToString(), "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var lastDay))
                 from = Mathf.Clamp((int)(today - lastDay).TotalDays + Keep, Keep, 120);
 
             var fields = new System.Collections.Generic.List<string> { "pic", "sec", "book" };

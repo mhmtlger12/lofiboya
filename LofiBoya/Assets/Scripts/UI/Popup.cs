@@ -9,6 +9,27 @@ namespace LofiBoya
     {
         static GameObject _toast;
 
+        struct Modal { public GameObject go; public Action close; }
+
+        /// <summary>Açık pencereler (en üstteki sonda). Android geri tuşu önce en üsttekini kapatır.</summary>
+        static readonly System.Collections.Generic.List<Modal> _modals = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() { _modals.Clear(); _toast = null; }
+
+        /// <summary>close null ise pencere geri tuşuyla kapanmaz (yaş sorusu); tuş yalnızca yutulur.</summary>
+        internal static void PushModal(GameObject go, Action close) => _modals.Add(new Modal { go = go, close = close });
+        internal static void PopModal(GameObject go) => _modals.RemoveAll(m => m.go == go);
+
+        /// <summary>Geri tuşu: açık pencere varsa en üsttekini kapatır (kapatılamıyorsa tuşu yutar) ve true döner.</summary>
+        public static bool BackModal()
+        {
+            _modals.RemoveAll(m => m.go == null);
+            if (_modals.Count == 0) return false;
+            _modals[_modals.Count - 1].close?.Invoke();
+            return true;
+        }
+
         /// <summary>Ekranın üstünde 1.6 sn görünen yumuşak bilgi balonu.</summary>
         public static void Toast(string text)
         {
@@ -50,14 +71,19 @@ namespace LofiBoya
             var dimBtn = overlay.gameObject.AddComponent<Button>();
             dimBtn.transition = Selectable.Transition.None;
 
+            bool closed = false;
             void Close()
             {
-                if (overlay == null) return;
+                // çift dokunuş / geri tuşu + dokunuş: ikinci kapatma hiçbir şey yapmaz (onYes de bir kez çalışır)
+                if (closed || overlay == null) return;
+                closed = true;
+                PopModal(overlay.gameObject);
                 var cg = overlay.gameObject.AddComponent<CanvasGroup>();
                 cg.blocksRaycasts = false;
                 Tween.Fade(cg, 1f, 0f, 0.2f, () => { if (overlay != null) UnityEngine.Object.Destroy(overlay.gameObject); });
             }
             dimBtn.onClick.AddListener(Close);
+            PushModal(overlay.gameObject, Close);
 
             var holder = UIKit.Node("Holder", overlay);
             holder.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820, 560));
@@ -83,8 +109,8 @@ namespace LofiBoya
             nrt.anchoredPosition = new Vector2(-180, 110);
 
             var yesBtn = destructive
-                ? UIKit.Button(card.transform, yes, Theme.Paper, Theme.TextSoft, 40, () => { Close(); onYes?.Invoke(); })
-                : UIKit.Button(card.transform, yes, Theme.AccentButton, Color.white, 46, () => { Close(); onYes?.Invoke(); });
+                ? UIKit.Button(card.transform, yes, Theme.Paper, Theme.TextSoft, 40, () => { if (closed) return; Close(); onYes?.Invoke(); })
+                : UIKit.Button(card.transform, yes, Theme.AccentButton, Color.white, 46, () => { if (closed) return; Close(); onYes?.Invoke(); });
             var yrt = (RectTransform)yesBtn.transform;
             yrt.anchorMin = yrt.anchorMax = new Vector2(0.5f, 0);
             yrt.sizeDelta = new Vector2(320, 130);
