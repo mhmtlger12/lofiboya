@@ -17,28 +17,72 @@ namespace LofiBoya
     {
         // ======================= dışarıya açık =======================
 
-        /// <summary>Sahneyi arka planda boyar, bitince ana iş parçacığında doku verir. owner yok olduysa sessizce bırakır.</summary>
+        class Job { public string Scene; public int W, H; public UnityEngine.Object Owner; public Action<Texture2D> Done; }
+        static readonly System.Collections.Generic.List<Job> _queue = new();
+        static int _running;
+        const int MaxParallel = 2;   // aynı anda en çok iki resim: düşük RAM'li telefonda bellek sıçramasın
+
+        /// <summary>
+        /// Sahneyi arka planda boyar, bitince ana iş parçacığında doku verir. İstekler sırayla (en çok ikisi aynı anda)
+        /// işlenir; sırası gelmeden sahibi (ekran) kapanan istekler hiç başlamaz, biten iş de sahibi yoksa doku üretmez.
+        /// </summary>
         public static void PaintAsync(string scene, int w, int h, UnityEngine.Object owner, Action<Texture2D> done)
         {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            var px = Paint(scene, w, h);
-            if (owner != null) done(ToTexture(px, w, h));
-#else
-            var task = Task.Run(() => Paint(scene, w, h));
-            Tween.Run(Wait(task, w, h, owner, done));
-#endif
+            _queue.Add(new Job { Scene = scene, W = w, H = h, Owner = owner, Done = done });
+            Pump();
         }
 
-        static IEnumerator Wait(Task<Color32[]> task, int w, int h, UnityEngine.Object owner, Action<Texture2D> done)
+        static void Pump()
+        {
+            while (_running < MaxParallel && _queue.Count > 0)
+            {
+                var job = _queue[0];
+                _queue.RemoveAt(0);
+                if (job.Owner == null) continue;   // ekran kapandı: boşuna boyama
+                _running++;
+#if UNITY_WEBGL && !UNITY_EDITOR
+                var px = Paint(job.Scene, job.W, job.H);
+                _running--;
+                if (job.Owner != null) job.Done(ToTexture(px, job.W, job.H));
+#else
+                var task = Task.Run(() => Paint(job.Scene, job.W, job.H));
+                Tween.Run(Wait(task, job));
+#endif
+            }
+        }
+
+        static IEnumerator Wait(Task<Color32[]> task, Job job)
         {
             while (!task.IsCompleted) yield return null;
-            if (owner == null) yield break;
-            if (task.IsFaulted)
+            _running--;
+            try
             {
-                Debug.LogException(task.Exception);
-                yield break;
+                if (job.Owner == null) yield break;
+                if (task.IsFaulted)
+                {
+                    Debug.LogException(task.Exception);
+                    yield break;
+                }
+                job.Done(ToTexture(task.Result, job.W, job.H));
             }
-            done(ToTexture(task.Result, w, h));
+            finally
+            {
+                Pump();
+            }
+        }
+
+        /// <summary>Sahnedeki öğeler (ad, x, y, boy): dokunulabilir resimler için. Zemin dahil değil.</summary>
+        public static System.Collections.Generic.List<(string name, float x, float y, float s)> Items(string scene)
+        {
+            var list = new System.Collections.Generic.List<(string, float, float, float)>();
+            var parts = scene.Split(';');
+            for (int i = 1; i < parts.Length; i++)
+            {
+                var t = parts[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                if (t.Length < 4) continue;
+                list.Add((t[0], F(t[1]), F(t[2]), F(t[3])));
+            }
+            return list;
         }
 
         static Texture2D ToTexture(Color32[] px, int w, int h)
@@ -487,7 +531,7 @@ namespace LofiBoya
                 case "lily": Lily(p); break;
                 case "honey": Honey(p); break;
                 case "hive": Hive(p); break;
-                case "cake": Cake(p, n < 0 ? 3 : n); break;
+                case "cake": Cake(p, n < 0 ? 3 : n, mood != Sleep); break;
                 case "gift": Gift(p, c ?? Col("FF8FAB")); break;
                 case "balloon": Balloon(p, c ?? Col("FF8FAB")); break;
                 case "ball": Ball(p); break;
@@ -811,7 +855,7 @@ namespace LofiBoya
                     p.Line(0.2f * sgn, 0.2f + k * 0.12f, 0.36f * sgn, 0.08f + k * 0.14f, 0.022f, Ink);
             p.C(0, 0.38f, 0.32f, Col("FF6B6E"), Col("D9363E"));
             p.Line(0, 0.07f, 0, 0.66f, 0.016f, Ink);
-            var pos = new[] { V(-0.15f, 0.5f), V(0.15f, 0.5f), V(-0.2f, 0.3f), V(0.2f, 0.3f), V(-0.1f, 0.16f), V(0.1f, 0.16f), V(0.13f, 0.36f) };
+            var pos = new[] { V(-0.15f, 0.5f), V(0.15f, 0.5f), V(-0.2f, 0.3f), V(0.2f, 0.3f), V(-0.1f, 0.16f), V(0.1f, 0.16f), V(0.085f, 0.385f) };
             for (int i = 0; i < Mathf.Min(spots, pos.Length); i++) p.C(pos[i].x, pos[i].y, 0.055f, Col("4A4060"), Col("332B45"), false);
             p.Gloss(-0.12f, 0.56f, 0.09f, 0.04f, 0.5f, 25);
             p.C(0, 0.69f, 0.17f, Col("5A5070"), Col("3D3550"));
@@ -1503,7 +1547,7 @@ namespace LofiBoya
             p.Gloss(-0.12f, 0.6f, 0.06f, 0.03f, 0.5f, 20);
         }
 
-        static void Cake(P p, int candles)
+        static void Cake(P p, int candles, bool lit)
         {
             p.E(0, 0.03f, 0.44f, 0.05f, Col("FFFFFF"), Col("E3E0EC"));
             p.Bx(0, 0.2f, 0.36f, 0.17f, 0.05f, Col("FFC8D6"), Col("FF9FB5"));
@@ -1522,8 +1566,18 @@ namespace LofiBoya
             {
                 float x = (i - (candles - 1) * 0.5f) * 0.11f;
                 p.Bx(x, 0.66f, 0.022f, 0.08f, 0.01f, Col("A9D6F5"), Col("7FB6E0"));
-                p.SoftE(x, 0.79f, 0.06f, 0.07f, A(Col("FFE9A0"), 0.6f), 0.04f);
-                p.Shape(R(x, 0.79f, 0.03f, 0.05f), q => Mathf.Min(Circ(q, x, 0.775f, 0.022f), Poly(q, new[] { V(x - 0.02f, 0.785f), V(x, 0.83f), V(x + 0.02f, 0.785f) })), Col("FFE27A"), Col("FF9F43"), false);
+                if (lit)
+                {
+                    p.SoftE(x, 0.79f, 0.06f, 0.07f, A(Col("FFE9A0"), 0.6f), 0.04f);
+                    p.Shape(R(x, 0.79f, 0.03f, 0.05f), q => Mathf.Min(Circ(q, x, 0.775f, 0.022f), Poly(q, new[] { V(x - 0.02f, 0.785f), V(x, 0.83f), V(x + 0.02f, 0.785f) })), Col("FFE27A"), Col("FF9F43"), false);
+                }
+                else
+                {
+                    // üflenmiş mum: fitil ve kıvrılan ince duman
+                    p.Line(x, 0.745f, x, 0.77f, 0.01f, Ink);
+                    p.Arc(x + 0.02f, 0.8f, 0.025f, 120, 260, 0.01f, A(Col("B8B2C8"), 0.8f));
+                    p.Arc(x - 0.005f, 0.85f, 0.022f, 280, 420, 0.009f, A(Col("B8B2C8"), 0.6f));
+                }
             }
             p.Gloss(-0.22f, 0.27f, 0.06f, 0.03f, 0.45f, 0);
         }
@@ -1807,7 +1861,7 @@ namespace LofiBoya
                     for (int i = 0; i < 5; i++)
                     {
                         float x0 = Rf(r, 0, p.A);
-                        p.Soft(new Rect(-10, -10, 20, 20), q => Mathf.Abs((q.x - x0) + (q.y - 1f) * 0.35f) - 0.03f, A(White, 0.07f), 0.04f);
+                        p.Soft(new Rect(x0 - 0.1f, 0, 0.56f, 1f), q => Mathf.Abs((q.x - x0) + (q.y - 1f) * 0.35f) - 0.03f, A(White, 0.07f), 0.04f);
                     }
                     Hill(p, 0.2f, 0.03f, 3f, 1f, Col("5FA3B8"), Col("4A8FA6"));
                     Hill(p, 0.13f, 0.015f, 2.5f, 0.3f, Col("F6E3B8"), Col("E0C48F"));
@@ -2056,7 +2110,7 @@ namespace LofiBoya
                     for (int i = 0; i < 4; i++)
                     {
                         float x0 = Rf(r, 0, p.A);
-                        p.Soft(new Rect(-10, -10, 20, 20), q => Mathf.Abs((q.x - x0) + (q.y - 1f) * 0.3f) - 0.015f, A(White, 0.06f), 0.03f);
+                        p.Soft(new Rect(x0 - 0.06f, 0, 0.42f, 1f), q => Mathf.Abs((q.x - x0) + (q.y - 1f) * 0.3f) - 0.015f, A(White, 0.06f), 0.03f);
                     }
                     break;
                 default:

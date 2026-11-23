@@ -114,15 +114,78 @@ namespace LofiBoya
             }
         }
 
-        static Text Words(RectTransform parent, string text, int size, Color c, TextAnchor align, FontStyle style = FontStyle.Normal)
+        /// <summary>
+        /// Kutuya sığan metin. Kutunun boyutu önceden ayarlanmış olmalı (yerleşim ondan hesaplanır).
+        /// Arapçada satırları kendimiz böleriz: tek parça ters çevrilen cümleyi Unity satırlara bölünce cümlenin sonu
+        /// ilk satıra düşüyordu. Her satır ayrı şekillendirilince (ArabicShaper satır satır çalışır) sıra doğru olur.
+        /// </summary>
+        static Text Words(RectTransform box, string text, int size, Color c, TextAnchor align, FontStyle style, float spacing,
+            float l = 0, float t = 0, float r = 0, float b = 0)
         {
-            var t = UIKit.Label(parent, text, size, c, align, style);
-            t.horizontalOverflow = HorizontalWrapMode.Wrap;
-            t.verticalOverflow = VerticalWrapMode.Truncate;
-            t.resizeTextForBestFit = true;
-            t.resizeTextMaxSize = size;
-            t.resizeTextMinSize = Mathf.Max(24, size / 2);
-            return t;
+            var lbl = UIKit.Label(box, "", size, c, align, style);
+            lbl.rectTransform.Stretch(l, t, r, b);
+            lbl.lineSpacing = spacing;
+            if (Loc.IsArabic) ArabicFit(lbl, text, size);
+            else
+            {
+                lbl.horizontalOverflow = HorizontalWrapMode.Wrap;
+                lbl.verticalOverflow = VerticalWrapMode.Truncate;
+                lbl.resizeTextForBestFit = true;
+                lbl.resizeTextMaxSize = size;
+                lbl.resizeTextMinSize = Mathf.Max(24, size / 2);
+                lbl.text = text;
+            }
+            return lbl;
+        }
+
+        static void ArabicFit(Text t, string text, int max)
+        {
+            var box = t.rectTransform.rect;
+            t.horizontalOverflow = HorizontalWrapMode.Overflow;
+            t.verticalOverflow = VerticalWrapMode.Overflow;
+            t.resizeTextForBestFit = false;
+            var font = t.font;
+            int min = Mathf.Max(24, max / 2);
+            string best = text;
+            int bestSize = min;
+            for (int s = max; s >= min; s -= 2)
+            {
+                best = Wrap(text, font, s, t.fontStyle, box.width);
+                bestSize = s;
+                int lines = 1;
+                foreach (char ch in best) if (ch == '\n') lines++;
+                float lineH = font != null && font.fontSize > 0 ? font.lineHeight * s / font.fontSize : s * 1.3f;
+                if (lines * lineH * t.lineSpacing <= box.height) break;
+            }
+            t.fontSize = bestSize;
+            t.text = best;
+        }
+
+        /// <summary>Kelimeleri genişliğe sığacak satırlara böler; genişlik şekillendirilmiş (bitişik) harflerle ölçülür.</summary>
+        static string Wrap(string text, Font font, int size, FontStyle style, float width)
+        {
+            if (font == null) return text;
+            var words = text.Split(' ');
+            var lines = new System.Collections.Generic.List<string>();
+            string cur = "";
+            foreach (var w in words)
+            {
+                string test = cur.Length == 0 ? w : cur + " " + w;
+                if (cur.Length > 0 && Measure(test, font, size, style) > width) { lines.Add(cur); cur = w; }
+                else cur = test;
+            }
+            if (cur.Length > 0) lines.Add(cur);
+            return string.Join("\n", lines);
+        }
+
+        static float Measure(string s, Font font, int size, FontStyle style)
+        {
+            var shaped = ArabicShaper.Shape(s);
+            font.RequestCharactersInTexture(shaped, size, style);
+            float w = 0;
+            foreach (char ch in shaped)
+                if (font.GetCharacterInfo(ch, out var ci, size, style)) w += ci.advance;
+            return w;
         }
 
         static void Deco(RectTransform parent, Sprite s, Color c, Vector2 anchor, Vector2 pos, float size, float rot)
@@ -143,9 +206,7 @@ namespace LofiBoya
 
             var text = UIKit.Node("TextBox", root);
             text.Stretch(100, 760, 70, 150);
-            var t = Words(text, book.Text(page), 60, Theme.Text, TextAnchor.MiddleCenter);
-            t.rectTransform.Stretch();
-            t.lineSpacing = 1.08f;
+            Words(text, book.Text(page), 60, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Normal, 1.08f);
 
             // sayfa numarası, iki yanında minik yıldız
             var num = UIKit.Label(root, page.ToString(), 38, Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -213,9 +274,7 @@ namespace LofiBoya
             var plateGrain = Raw(plate.transform, "Grain", Art.Grain, Theme.Text.WithAlpha(0.05f));
             plateGrain.rectTransform.Stretch(10, 10, 10, 10);
             plateGrain.uvRect = new Rect(0, 0, 4, 1.5f);
-            var title = Words((RectTransform)plate.transform, book.Title, 76, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-            title.rectTransform.Stretch(40, 22, 40, 26);
-            title.lineSpacing = 0.85f;
+            Words((RectTransform)plate.transform, book.Title, 76, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold, 0.85f, 40, 22, 40, 26);
 
             // paspartulu resim
             var mat = UIKit.Card(root, "Mat", Color.white, 1.4f, 10f);
@@ -258,10 +317,9 @@ namespace LofiBoya
 
             Picture(root, art, new Vector2(16, -40), new Vector2(600, 450), new Vector2(0.5f, 0.5f));
 
-            var title = Words(UIKit.Node("Box", root), "~ " + book.Title + " ~", 50, Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Italic);
-            var box = (RectTransform)title.transform.parent;
+            var box = UIKit.Node("Box", root);
             box.Place(new Vector2(0.5f, 0f), new Vector2(16, 300), new Vector2(760, 150));
-            title.rectTransform.Stretch();
+            Words(box, "~ " + book.Title + " ~", 50, Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Italic, 1f);
             Deco(root, Art.Star5, Theme.Butter, new Vector2(0.5f, 0f), new Vector2(-50, 150), 44, -12);
             Deco(root, Art.Star5, Theme.Accent, new Vector2(0.5f, 0f), new Vector2(16, 165), 56, 0);
             Deco(root, Art.Star5, Theme.Mint, new Vector2(0.5f, 0f), new Vector2(82, 150), 44, 12);

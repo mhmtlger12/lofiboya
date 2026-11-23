@@ -210,6 +210,7 @@ namespace LofiBoya
         {
             int pic = Stats.Week("pic"), min = Mathf.RoundToInt(Stats.Week("sec") / 60f), days = Stats.ActiveDays();
             int lastPic = Stats.Week("pic", 1), lastMin = Mathf.RoundToInt(Stats.Week("sec", 1) / 60f);
+            int books = Stats.Week("book"), lastBooks = Stats.Week("book", 1);
             bool hasLast = lastPic + lastMin > 0;
 
             string[] titles = { "colors", "pictures", "shapes", "counting", "feelings_game", "trace", "letters", "patterns", "memory", "opposites", "sequence", "shadows", "seasons" };
@@ -295,17 +296,18 @@ namespace LofiBoya
             }
 
             float y = 10;
-            // ---- üç özet kutusu ----
+            // ---- dört özet kutusu ----
             var tiles = new (string value, string label, int last, Color color)[]
             {
                 (pic.ToString(), Loc.T("rep_l_pic"), lastPic, Theme.Butter),
                 (min.ToString(), Loc.T("rep_l_min"), lastMin, Theme.Mint),
+                (books.ToString(), Loc.T("rep_l_books"), lastBooks, Theme.Lavender),
                 (days + "/7", Loc.T("rep_l_days"), -1, Theme.Sky),
             };
             for (int i = 0; i < tiles.Length; i++)
             {
                 var (value, label, last, color) = tiles[i];
-                var box = UIKit.Box(At(content, (i - 1) * 272, y, 252, tileH), "Tile", color, null, 0.6f);
+                var box = UIKit.Box(At(content, (i - 1.5f) * 204, y, 190, tileH), "Tile", color, null, 0.6f);
                 box.rectTransform.Stretch();
                 var num = Txt(box.transform, value, 84, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
                 num.rectTransform.Stretch(8, 14, 8, 92);

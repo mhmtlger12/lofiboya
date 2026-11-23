@@ -71,6 +71,9 @@ namespace LofiBoya
             // yıldızlarla açılan duygulu Pofuduklar
             for (int i = 0; i < PuffyStickers.StarMoods.Length; i++)
                 StarSticker(content, i);
+            // okunan hikayelerle açılan Pofuduklar
+            for (int i = 0; i < PuffyStickers.BookPuffies.Length; i++)
+                BookSticker(content, i);
 
             for (int i = 0; i < all.Count; i++)
             {
@@ -113,6 +116,63 @@ namespace LofiBoya
             l.rectTransform.Band(false, 44, 0);
             l.resizeTextForBestFit = true;
             l.resizeTextMinSize = 20;
+            l.resizeTextMaxSize = 30;
+        }
+
+        void BookSticker(Transform parent, int i)
+        {
+            var (mood, need, name) = PuffyStickers.BookPuffies[i];
+            int have = Books.ReadCount;
+            bool open = have >= need;
+            var cell = UIKit.Node("BookPuffy", parent);
+            var holder = UIKit.Node("Sticker", cell);
+            holder.Place(new Vector2(0.5f, 0.5f), new Vector2(0, 14), new Vector2(270, 270));
+            holder.localRotation = Quaternion.Euler(0, 0, (i % 2 == 0 ? -1 : 1) * 4f);
+            if (open)
+            {
+                var face = UIKit.Card(holder, "Paper", Theme.Lavender, 0.45f, 6f);
+                ((RectTransform)face.transform.parent).Stretch();
+            }
+            else
+            {
+                var face = UIKit.Box(holder, "Slot", Theme.Text.WithAlpha(0.06f), null, 0.45f);
+                face.rectTransform.Stretch();
+            }
+            var m = Mascot.Create(holder, 200, false);
+            m.SetMood(mood);
+            if (i == 2) m.SetHat(MascotHat.Crown);
+            var mrt = (RectTransform)m.transform;
+            mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0.38f);
+            mrt.anchoredPosition = Vector2.zero;
+            // kucağında açık kitap; rüya Pofuduğunun başında yıldızlar
+            if (i != 1)
+            {
+                var book = UIKit.Box(holder, "Book", Theme.Hex("8E7CC3"), BookPages.BookIcon);
+                book.type = Image.Type.Simple;
+                book.preserveAspect = true;
+                book.rectTransform.Place(new Vector2(0.5f, 0.38f), new Vector2(0, -52), new Vector2(110, 110));
+            }
+            else
+            {
+                foreach (var (x, y, sz) in new[] { (-70f, 92f, 44f), (62f, 104f, 34f), (8f, 124f, 26f) })
+                {
+                    var st = UIKit.Box(holder, "Star", Theme.Hex("FFC93C"), Art.Star5);
+                    st.type = Image.Type.Simple;
+                    st.rectTransform.Place(new Vector2(0.5f, 0.38f), new Vector2(x, y), new Vector2(sz, sz));
+                }
+            }
+            if (!open)
+            {
+                m.SetInteractive(false);
+                holder.gameObject.AddComponent<CanvasGroup>().alpha = 0.3f;
+            }
+            string label = open ? Loc.T(name) : Loc.T("books_more", need - have);
+            var l = UIKit.Label(cell, label, 30, open ? Theme.Text : Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            l.rectTransform.Band(false, 44, 0);
+            l.horizontalOverflow = HorizontalWrapMode.Wrap;
+            l.verticalOverflow = VerticalWrapMode.Truncate;
+            l.resizeTextForBestFit = true;
+            l.resizeTextMinSize = 18;
             l.resizeTextMaxSize = 30;
         }
 

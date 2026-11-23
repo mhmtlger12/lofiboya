@@ -17,6 +17,8 @@ namespace LofiBoya
         public float W = 1, H = 1;
         public Vector2 G0, G;
         public bool Active;
+        /// <summary>Her güncellemede artar: katmanlar aynı karede ızgarayı yeniden hesaplamasın.</summary>
+        public int Version;
 
         /// <summary>0: sayfa yerinde, 1: tamamen döndü.</summary>
         public float Progress => !Active || G0.x <= 0 ? 0f : Mathf.Clamp01((G0.x - G.x) / (2f * G0.x));
@@ -33,6 +35,7 @@ namespace LofiBoya
         public void Update()
         {
             if (!Active) return;
+            Version++;
             G.y = Mathf.Clamp(G.y, -0.35f * H, 1.35f * H);
             var sb = new Vector2(0, 0);
             var st = new Vector2(0, H);
@@ -57,8 +60,12 @@ namespace LofiBoya
             float p = Progress;
             float rmax = W * 0.12f * Mathf.Pow(1f - p, 0.8f);
             _r = Mathf.Min(rmax, len / Mathf.PI);
-            // silindirle sarılınca tutulan nokta tam parmağın altına gelsin diye çizgi πR/2 kadar kayar
-            _m = (G0 + G) * 0.5f - _n * (Mathf.PI * _r * 0.5f);
+            // silindirle sarılınca tutulan nokta tam parmağın altına gelsin diye çizgi πR/2 kadar kayar.
+            // Ama kayma sırtı geçmemeli: sırtın iki köşesi her zaman katın düz tarafında kalır (kâğıt ciltten kopmaz).
+            var mid = (G0 + G) * 0.5f;
+            float room = Mathf.Min(-Vector2.Dot(sb - mid, _n), -Vector2.Dot(st - mid, _n));
+            float shift = Mathf.Clamp(Mathf.PI * _r * 0.5f, 0f, Mathf.Max(0f, room));
+            _m = mid - _n * shift;
         }
 
         /// <summary>
@@ -115,6 +122,7 @@ namespace LofiBoya
         public override Texture mainTexture => _tex != null ? _tex : s_WhiteTexture;
 
         const int NX = 34, NY = 48;
+        static readonly Vector2 BackTiles = new Vector2(6f, 8.5f);
         static readonly Vector2[] _proj = new Vector2[(NX + 1) * (NY + 1)];
         static readonly float[] _theta = new float[(NX + 1) * (NY + 1)];
         static readonly Vector2[] _uv = new Vector2[(NX + 1) * (NY + 1)];
@@ -124,6 +132,9 @@ namespace LofiBoya
             base.Awake();
             raycastTarget = false;
         }
+
+        static PageCurl _cacheCurl;
+        static int _cacheVersion = -1;
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
@@ -146,7 +157,18 @@ namespace LofiBoya
                 return;
             }
 
-            // ızgarayı hesapla (her katman aynı sonucu bulur)
+            // ızgarayı karede bir kez hesapla: diğer katmanlar aynı sonucu kullanır
+            if (_cacheCurl != Curl || _cacheVersion != Curl.Version)
+            {
+                _cacheCurl = Curl;
+                _cacheVersion = Curl.Version;
+                Grid(w, h);
+            }
+            Populate(vh, w);
+        }
+
+        void Grid(float w, float h)
+        {
             for (int j = 0; j <= NY; j++)
             for (int i = 0; i <= NX; i++)
             {
@@ -157,7 +179,10 @@ namespace LofiBoya
                 _theta[k] = th;
                 _uv[k] = new Vector2((float)i / NX, (float)j / NY);
             }
+        }
 
+        void Populate(VertexHelper vh, float w)
+        {
             Vector2 shadowOff = Kind == Part.BackShadow ? -Curl.Normal * (w * 0.025f) + new Vector2(0, -w * 0.012f) : Vector2.zero;
             var baseCol = color;
             int vi = 0;
@@ -221,7 +246,9 @@ namespace LofiBoya
                     break;
             }
             var col = Kind == Part.BackShadow ? baseCol : new Color(baseCol.r * s, baseCol.g * s, baseCol.b * s, baseCol.a);
-            vh.AddVert(_proj[k] + off, col, _uv[k]);
+            // arka yüzün kâğıt dokusu küçük ve döşenir: büyütülüp bulanıklaşmasın
+            var uv = Kind == Part.Back ? _uv[k] * BackTiles : _uv[k];
+            vh.AddVert(_proj[k] + off, col, uv);
         }
     }
 

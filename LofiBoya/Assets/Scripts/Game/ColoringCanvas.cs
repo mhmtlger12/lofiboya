@@ -187,7 +187,13 @@ namespace LofiBoya
         }
 
 #if ENABLE_INPUT_SYSTEM
-        void OnDisable() => InputSystem.onEvent -= OnInputEvent;
+        // Enable sayaçlıdır: her Enable bir Disable ile eşleşmeli. Yoksa destek açık kalır ve (özellikle
+        // domain reload kapalı hızlı Play'de) Play'den çıkarken Input System'in dokunmatik listesi bozulur.
+        void OnDisable()
+        {
+            InputSystem.onEvent -= OnInputEvent;
+            EnhancedTouchSupport.Disable();
+        }
 
         // Fare kare başına tek konum verir; ama işletim sistemi kareler arasında çok daha sık (125–1000 Hz) bildirir.
         // Çizerken o ara konumlar toplanır: hızlı daireler köşeli/kesik değil, parmaktaki gibi düzgün çıkar.

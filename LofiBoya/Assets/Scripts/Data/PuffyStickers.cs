@@ -21,6 +21,14 @@ namespace LofiBoya
             (MascotMood.Shy, 120), (MascotMood.Scared, 170),
         };
 
+        /// <summary>
+        /// Okunan hikayelerle açılan Pofuduklar (kitap kurdu, tatlı rüyalar, masalcı). Ad anahtarı Strings tablosunda.
+        /// </summary>
+        public static readonly (MascotMood mood, int books, string name)[] BookPuffies =
+        {
+            (MascotMood.Happy, 1, "puffy_reader"), (MascotMood.Calm, 5, "puffy_dreamer"), (MascotMood.Proud, 21, "puffy_storyteller"),
+        };
+
         /// <summary>Bitirilen resim sayısı (tüm gruplar).</summary>
         public static int DoneCount()
         {

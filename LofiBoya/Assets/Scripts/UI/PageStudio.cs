@@ -78,13 +78,16 @@ namespace LofiBoya
         {
             int h = Mathf.Clamp(Mathf.RoundToInt(screenHeightPx), 480, 2048);
             int w = Mathf.RoundToInt(h * Aspect);
-            var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
+            // Sayfa ~1:1 ekran pikselinde basılır: mipmap gereksiz (bellek + bazı Android sürücülerinde bozuk mipmap riski).
+            // Derinlik ise şart: URP Render Graph, derinliği olmayan hedefe çizmeyi reddediyor ("Fake or uninitialized
+            // surface"). En küçüğü (16 bit) yeter; sayfada stencil maskesi yok.
+            var rt = new RenderTexture(w, h, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
             {
                 name = "BookPage",
-                useMipMap = true,
-                autoGenerateMips = true,
-                filterMode = FilterMode.Trilinear,
-                anisoLevel = 4,
+                useMipMap = false,
+                autoGenerateMips = false,
+                filterMode = FilterMode.Bilinear,
+                anisoLevel = 2,
                 wrapMode = TextureWrapMode.Clamp,
                 antiAliasing = 1,
             };

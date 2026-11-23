@@ -10,8 +10,15 @@ namespace LofiBoya
     /// </summary>
     public class LibraryScreen : MonoBehaviour, IScreen
     {
-        readonly List<Texture2D> _textures = new();
+        enum Filter { All, Little, Big, Bedtime }
+
+        readonly Dictionary<string, Texture2D> _covers = new();   // çizilen kapaklar: filtre değişince yeniden çizilmez
         static Texture2D _wood;
+        static Filter _filter;   // ekrana dönünce seçili raf hatırlansın
+        RectTransform _content;
+        GridLayoutGroup _grid;
+        readonly List<(Filter f, Image face, Text label)> _chips = new();
+        float _width;
 
         void Start()
         {
@@ -22,14 +29,26 @@ namespace LofiBoya
 
             var title = UIKit.Label(root, Loc.T("library_title"), 80, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Band(true, 110, 200, 150);
-            title.resizeTextForBestFit = true;
-            title.resizeTextMinSize = 40;
-            title.resizeTextMaxSize = 80;
+            Fit(title, 40, 80);
             var sub = UIKit.Label(root, Loc.T("library_sub", Books.ReadCount, Books.All.Count), 42, Theme.TextSoft);
-            sub.rectTransform.Band(true, 60, 305);
+            sub.rectTransform.Band(true, 60, 305, 60);
+            Fit(sub, 26, 42);
+
+            // raf filtresi: Tümü · 3+ · 5+ · Uyku vakti
+            var chips = UIKit.Node("Filters", root);
+            chips.Band(true, 84, 382, 40);
+            var hl = chips.gameObject.AddComponent<HorizontalLayoutGroup>();
+            hl.spacing = 16;
+            hl.childAlignment = TextAnchor.MiddleCenter;
+            hl.childControlWidth = hl.childControlHeight = true;
+            hl.childForceExpandWidth = hl.childForceExpandHeight = true;
+            Chip(chips, Filter.All, Loc.T("filter_all"));
+            Chip(chips, Filter.Little, Loc.T("age_tag", 3));
+            Chip(chips, Filter.Big, Loc.T("age_tag", 5));
+            Chip(chips, Filter.Bedtime, Loc.T("filter_sleep"));
 
             // kaydırılabilir raf
-            var scrollRt = UIKit.Node("Scroll", root).Stretch(20, 390, 20, 0);
+            var scrollRt = UIKit.Node("Scroll", root).Stretch(20, 486, 20, 0);
             var sr = scrollRt.gameObject.AddComponent<ScrollRect>();
             sr.horizontal = false;
             sr.movementType = ScrollRect.MovementType.Elastic;
@@ -38,26 +57,80 @@ namespace LofiBoya
             vp.gameObject.AddComponent<RectMask2D>().softness = new Vector2Int(0, 30);
             vp.gameObject.AddComponent<Image>().color = Color.clear;
             sr.viewport = vp;
-            var content = UIKit.Node("Content", vp);
-            content.anchorMin = new Vector2(0, 1);
-            content.anchorMax = new Vector2(1, 1);
-            content.pivot = new Vector2(0.5f, 1);
-            content.offsetMin = content.offsetMax = Vector2.zero;
-            int cols = App.I.CanvasWidth >= 1380f ? 3 : 2;
-            float cellW = Mathf.Floor((App.I.CanvasWidth - 40f) / cols);
-            var grid = content.gameObject.AddComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(cellW, cellW * 1.36f);
-            grid.spacing = Vector2.zero;
-            grid.padding = new RectOffset(0, 0, 10, 120);
-            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = cols;
-            grid.childAlignment = TextAnchor.UpperCenter;
-            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            sr.content = content;
+            _content = UIKit.Node("Content", vp);
+            _content.anchorMin = new Vector2(0, 1);
+            _content.anchorMax = new Vector2(1, 1);
+            _content.pivot = new Vector2(0.5f, 1);
+            _content.offsetMin = _content.offsetMax = Vector2.zero;
+            _grid = _content.gameObject.AddComponent<GridLayoutGroup>();
+            _grid.spacing = Vector2.zero;
+            _grid.padding = new RectOffset(0, 0, 10, 120);
+            _grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            _grid.childAlignment = TextAnchor.UpperCenter;
+            _content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            sr.content = _content;
+
+            Fill();
+        }
+
+        static void Fit(Text t, int min, int max)
+        {
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            t.verticalOverflow = VerticalWrapMode.Truncate;
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = min;
+            t.resizeTextMaxSize = max;
+        }
+
+        void Chip(Transform parent, Filter f, string label)
+        {
+            var b = UIKit.Button(parent, label, Theme.Card, Theme.Text, 36, () =>
+            {
+                if (_filter == f) return;
+                _filter = f;
+                Haptics.Light();
+                Fill();
+            }, 0.5f, false);
+            var face = b.transform.Find("Face").GetComponent<Image>();
+            var t = UIKit.ButtonText(b);
+            t.rectTransform.Stretch(10, 0, 10, 2);
+            Fit(t, 20, 36);
+            _chips.Add((f, face, t));
+        }
+
+        bool Shows(Books.Book b) => _filter switch
+        {
+            Filter.Little => b.Age == 0,
+            Filter.Big => b.Age >= 1,
+            Filter.Bedtime => b.Sleepy,
+            _ => true,
+        };
+
+        /// <summary>Rafı (yeniden) dizer: filtre değişince ve tablet döndürülünce.</summary>
+        void Fill()
+        {
+            _width = App.I.CanvasWidth;
+            foreach (var (f, face, label) in _chips)
+            {
+                bool on = f == _filter;
+                face.color = on ? Theme.AccentButton : Theme.Card.WithAlpha(0.9f);
+                label.color = on ? Color.white : Theme.Text;
+            }
+            for (int i = _content.childCount - 1; i >= 0; i--)
+            {
+                var child = _content.GetChild(i).gameObject;
+                child.SetActive(false);
+                Destroy(child);
+            }
+
+            int cols = _width >= 1380f ? 3 : 2;
+            float cellW = Mathf.Floor((_width - 40f) / cols);
+            _grid.cellSize = new Vector2(cellW, cellW * 1.36f);
+            _grid.constraintCount = cols;
 
             // çocuğun yaşına uygun kitaplar önce; aynı yaşta okunmamışlar önce
             int age = SaveSystem.AgeBand;
-            var list = new List<Books.Book>(Books.All);
+            var list = Books.All.FindAll(Shows);
             list.Sort((a, b) =>
             {
                 int fa = a.Age <= age ? 0 : 1, fb = b.Age <= age ? 0 : 1;
@@ -65,15 +138,19 @@ namespace LofiBoya
                 if (a.Read != b.Read) return a.Read.CompareTo(b.Read);
                 return Books.All.IndexOf(a).CompareTo(Books.All.IndexOf(b));
             });
-            for (int i = 0; i < list.Count; i++) Card(content, list[i], cellW, i, cols);
+            for (int i = 0; i < list.Count; i++) Card(_content, list[i], cellW, i, cols);
+            // rafın son gözünde Pofuduk oturur
+            Puffy(_content, cellW, list.Count, cols);
         }
 
-        void Card(Transform parent, Books.Book book, float cellW, int index, int cols)
+        void Update()
         {
-            var cell = UIKit.Node("Book " + book.Id, parent);
-            float cellH = cellW * 1.36f;
+            if (App.I != null && Mathf.Abs(App.I.CanvasWidth - _width) > 1f) Fill();
+        }
 
-            // raf tahtası: hücreler bitişik, tahtalar yan yana gelince tek uzun raf olur
+        /// <summary>Raf tahtası: hücreler bitişik, tahtalar yan yana gelince tek uzun raf olur.</summary>
+        static void Shelf(RectTransform cell, float cellW, int index, int cols)
+        {
             var shelf = UIKit.Node("Shelf", cell);
             shelf.anchorMin = new Vector2(0, 0); shelf.anchorMax = new Vector2(1, 0);
             shelf.pivot = new Vector2(0.5f, 0);
@@ -91,6 +168,40 @@ namespace LofiBoya
             var lipImg = lip.gameObject.AddComponent<Image>();
             lipImg.color = Color.white.WithAlpha(0.35f);
             lipImg.raycastTarget = false;
+        }
+
+        /// <summary>Rafın sonunda oturan Pofuduk: "Bugün hangi masalı okuyalım?"</summary>
+        void Puffy(Transform parent, float cellW, int index, int cols)
+        {
+            var cell = UIKit.Node("Puffy", parent);
+            Shelf(cell, cellW, index, cols);
+            var m = Mascot.Create(cell, Mathf.Min(300f, cellW * 0.6f));
+            var mrt = (RectTransform)m.transform;
+            mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0f);
+            mrt.pivot = new Vector2(0.5f, 0f);
+            mrt.anchoredPosition = new Vector2(0, 70);
+            var bub = UIKit.Card(cell, "Bubble", Color.white, 0.6f, 4f);
+            var brt = (RectTransform)bub.transform.parent;
+            brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0f);
+            brt.pivot = new Vector2(0.5f, 0f);
+            brt.sizeDelta = new Vector2(cellW * 0.82f, 150);
+            brt.anchoredPosition = new Vector2(0, 90 + mrt.sizeDelta.y);
+            var tail = UIKit.Box(bub.transform, "Tail", Color.white, UIKit.Circle);
+            tail.type = Image.Type.Simple;
+            tail.rectTransform.Place(new Vector2(0.5f, 0f), new Vector2(0, -12), new Vector2(40, 40));
+            var t = UIKit.Label(bub.transform, Loc.T("library_buddy"), 36, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            t.rectTransform.Stretch(18, 10, 18, 14);
+            Fit(t, 22, 36);
+            t.lineSpacing = 0.9f;
+            brt.gameObject.AddComponent<Floaty>().Init(6f, 0.7f);
+            Tween.Pop(brt, 0.4f + Mathf.Min(index, 8) * 0.04f);
+            Tween.Pop(mrt, 0.3f + Mathf.Min(index, 8) * 0.04f);
+        }
+
+        void Card(Transform parent, Books.Book book, float cellW, int index, int cols)
+        {
+            var cell = UIKit.Node("Book " + book.Id, parent);
+            Shelf(cell, cellW, index, cols);
 
             // kitap: sayfa yığını + sert kapak
             float bw = cellW * 0.74f, bh = bw / 0.72f;
@@ -130,17 +241,28 @@ namespace LofiBoya
             float pw = bw - 60, ph = pw * 0.75f;
             var mat = UIKit.Box(face.transform, "Mat", Color.white, UIKit.Rounded, 2.5f);
             mat.rectTransform.Place(new Vector2(0.5f, 1f), new Vector2(12, -20 - ph * 0.5f - 8), new Vector2(pw + 16, ph + 16));
-            var art = Raw(mat.transform, "Art", null, Color.white.WithAlpha(0f));
-            art.rectTransform.Stretch(8, 8, 8, 8);
-            var wait = UIKit.Box(mat.transform, "Wait", Theme.Lavender.WithAlpha(0.3f), UIKit.Rounded, 2f);
-            wait.rectTransform.Stretch(8, 8, 8, 8);
-            StoryArt.PaintAsync(book.CoverScene, 480, 360, this, tex =>
+            string id = book.Id;
+            if (_covers.TryGetValue(id, out var ready) && ready != null)
             {
-                _textures.Add(tex);
-                art.texture = tex;
-                if (wait != null) Destroy(wait.gameObject);
-                Tween.To(art, 0.35f, k => art.color = Color.white.WithAlpha(k));
-            });
+                var art = Raw(mat.transform, "Art", ready, Color.white);
+                art.rectTransform.Stretch(8, 8, 8, 8);
+            }
+            else
+            {
+                var art = Raw(mat.transform, "Art", null, Color.white.WithAlpha(0f));
+                art.rectTransform.Stretch(8, 8, 8, 8);
+                var wait = UIKit.Box(mat.transform, "Wait", Theme.Lavender.WithAlpha(0.3f), UIKit.Rounded, 2f);
+                wait.rectTransform.Stretch(8, 8, 8, 8);
+                StoryArt.PaintAsync(book.CoverScene, 480, 360, this, tex =>
+                {
+                    if (_covers.TryGetValue(id, out var old) && old != null) Destroy(old);
+                    _covers[id] = tex;
+                    if (art == null) return;   // filtre değişti, bu kart yok: kapak yine de saklandı
+                    art.texture = tex;
+                    if (wait != null) Destroy(wait.gameObject);
+                    Tween.To(art, 0.35f, k => art.color = Color.white.WithAlpha(k));
+                });
+            }
 
             // başlık
             var title = UIKit.Label(face.transform, book.Title, 40, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -173,18 +295,22 @@ namespace LofiBoya
             age.rectTransform.Place(new Vector2(0, 0), new Vector2(70, 8), new Vector2(116, 46));
             var al = UIKit.Label(age.transform, Loc.T("age_tag", 3 + book.Age * 2), 28, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             al.rectTransform.Stretch(4, 0, 4, 2);
-            al.resizeTextForBestFit = true;
-            al.resizeTextMinSize = 18;
-            al.resizeTextMaxSize = 28;
+            Fit(al, 16, 28);
 
             var btn = holder.gameObject.AddComponent<Button>();
             btn.targetGraphic = face;
             btn.transition = Selectable.Transition.None;
-            string id = book.Id;
             btn.onClick.AddListener(() =>
             {
                 Sfx.Tap();
                 Haptics.Light();
+                // çizilmiş kapak kitaba devredilir: kitap beklemeden açılır (artık kitaplık değil kitap sahibi)
+                if (_covers.TryGetValue(id, out var cover) && cover != null)
+                {
+                    BookScreen.PendingPreview = cover;
+                    BookScreen.PendingPreviewId = id;
+                    _covers.Remove(id);
+                }
                 App.I.ShowBook(id);
             });
             holder.gameObject.AddComponent<PressFeedback>();
@@ -249,7 +375,7 @@ namespace LofiBoya
 
         void OnDestroy()
         {
-            foreach (var t in _textures) if (t != null) Destroy(t);
+            foreach (var t in _covers.Values) if (t != null) Destroy(t);
         }
     }
 }

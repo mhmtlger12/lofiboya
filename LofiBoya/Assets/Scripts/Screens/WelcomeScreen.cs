@@ -99,6 +99,8 @@ namespace LofiBoya
             _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 400), new Vector2(1000, 160));
             Tween.Pop(_startBtn, 0.35f);
             var startTxt = UIKit.ButtonText(start);
+            startTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            startTxt.verticalOverflow = VerticalWrapMode.Truncate;
             startTxt.resizeTextForBestFit = true;
             startTxt.resizeTextMinSize = 36;
             startTxt.resizeTextMaxSize = 66;
@@ -174,8 +176,11 @@ namespace LofiBoya
             txt.rectTransform.pivot = new Vector2(0.5f, 0);
             txt.rectTransform.sizeDelta = new Vector2(-20, 64);
             txt.rectTransform.anchoredPosition = new Vector2(0, 16);
+            // Best Fit yalnızca taşma kapalıyken küçültür ("Os meus desenhos", "Geschichten" kutuya sığsın)
+            txt.horizontalOverflow = HorizontalWrapMode.Wrap;
+            txt.verticalOverflow = VerticalWrapMode.Truncate;
             txt.resizeTextForBestFit = true;
-            txt.resizeTextMinSize = 22;
+            txt.resizeTextMinSize = 20;
             txt.resizeTextMaxSize = 36;
             // ikonun arkasında hafif parlayan beyaz daire
             var bubble = UIKit.Box(face, "IconBg", Color.white.WithAlpha(0.75f), UIKit.Circle);
