@@ -128,34 +128,12 @@ namespace LofiBoya
 
         void MoreMenuCards()
         {
-            // Harfler: alfabenin ilk iki harfi
-            var letters = MenuCard(Cell(5), Loc.T("letters"), Loc.T("letters_sub"), Theme.Hex("F5C6E0"), 0.58f, () => StartGame(Mode.Letters));
-            string ab = Alphabet;
-            for (int i = 0; i < 2 && i < ab.Length; i++)
-            {
-                var l = UIKit.Label(letters, ab[i].ToString(), 92, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-                l.raycastTarget = false;
-                var lr = l.rectTransform;
-                lr.anchorMin = lr.anchorMax = new Vector2(0.5f, 0.80f);
-                lr.sizeDelta = new Vector2(100, 130);
-                lr.anchoredPosition = new Vector2((i == 0 ? -1 : 1) * 42, i == 0 ? 6 : -6);
-                lr.localRotation = Quaternion.Euler(0, 0, i == 0 ? 8 : -8);
-            }
-
-            // Örüntü: kırmızı-mavi-kırmızı-mavi
-            var pat = MenuCard(Cell(7), Loc.T("patterns"), Loc.T("patterns_sub"), Theme.Hex("CDEBB5"), 0.66f, () => StartGame(Mode.Patterns));
-            for (int i = 0; i < 4; i++)
-            {
-                var d = UIKit.Box(pat, "Dot", i % 2 == 0 ? Names.Basic[0].color : Names.Basic[4].color, i % 2 == 0 ? Art.Shape("circle") : Art.Shape("square"));
-                d.type = Image.Type.Simple;
-                d.raycastTarget = false;
-                d.rectTransform.anchorMin = d.rectTransform.anchorMax = new Vector2(0.5f, 0.80f);
-                d.rectTransform.sizeDelta = new Vector2(48, 48);
-                d.rectTransform.anchoredPosition = new Vector2((i - 1.5f) * 56, 0);
-            }
+            // Harfler ve Örüntü: süsleri tasarımdan kesilen kart resminde
+            MenuCard(5, Loc.T("letters"), Loc.T("letters_sub"), 0.5f, () => StartGame(Mode.Letters));
+            MenuCard(7, Loc.T("patterns"), Loc.T("patterns_sub"), 0.66f, () => StartGame(Mode.Patterns));
 
             // Hafıza: biri kapalı biri açık iki kart
-            var mem = MenuCard(Cell(8), Loc.T("memory"), Loc.T("memory_sub"), Theme.Hex("EBD9C4"), 0.74f, () => StartGame(Mode.Memory));
+            var mem = MenuCard(8, Loc.T("memory"), Loc.T("memory_sub"), 0.74f, () => StartGame(Mode.Memory));
             for (int i = 0; i < 2; i++)
             {
                 var c = UIKit.Box(mem, "Card", i == 0 ? Theme.Lavender : Color.white, null, 0.4f);

@@ -118,6 +118,8 @@ saved_local|your picture was saved!|resmin kaydedildi!|dein Bild wurde gespeiche
 save_failed|couldn't save|kaydedilemedi|Speichern fehlgeschlagen|impossible d'enregistrer|no se pudo guardar|impossibile salvare|não foi possível guardar|не удалось сохранить|تعذّر الحفظ|सेव नहीं हुआ
 # ---------------- Öğren ----------------
 learn_sub|which game shall we play?|hangi oyunu oynayalım?|Welches Spiel spielen wir?|À quel jeu on joue ?|¿A qué jugamos?|A che gioco giochiamo?|A que jogamos?|Во что поиграем?|أي لعبة نلعب؟|कौन-सा खेल खेलें?
+learn_cheer|Let's learn!|Hadi öğrenelim!|Los, lernen wir!|Allez, on apprend !|¡Vamos a aprender!|Impariamo!|Vamos aprender!|Давай учиться!|هيا نتعلم!|चलो सीखें!
+learn_fun|Playtime!|Oyun zamanı!|Spielzeit!|On joue !|¡A jugar!|Si gioca!|Hora de brincar!|Играем!|وقت اللعب!|खेल का समय!
 colors|Colors|Renkler|Farben|Couleurs|Colores|Colori|Cores|Цвета|الألوان|रंग
 colors_sub|find the color|rengi bul|finde die Farbe|trouve la couleur|encuentra el color|trova il colore|encontra a cor|найди цвет|ابحث عن اللون|रंग ढूँढो
 pictures|Pictures|Resimler|Bilder|Dessins|Dibujos|Disegni|Desenhos|Картинки|صور|चित्र

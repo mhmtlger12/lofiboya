@@ -19,11 +19,11 @@ namespace LofiBoya
         void EmojiMenuCards()
         {
             if (!Emoji.Available) return;
-            var sort = MenuCard(Cell(13), Loc.T("sorting"), Loc.T("sorting_sub"), Theme.Hex("FFE7B8"), 1.14f, () => StartGame(Mode.Sort));
+            var sort = MenuCard(13, Loc.T("sorting"), Loc.T("sorting_sub"), 1.14f, () => StartGame(Mode.Sort));
             MenuEmoji(sort, "fruit/red_apple", new Vector2(-46, 6), 92, 8);
             MenuEmoji(sort, "veg/carrot", new Vector2(46, -4), 92, -10);
 
-            var world = MenuCard(Cell(14), Loc.T("world"), Loc.T("world_sub"), Theme.Hex("C9E6FF"), 1.22f, () => App.I.ShowStickerWorld());
+            var world = MenuCard(14, Loc.T("world"), Loc.T("world_sub"), 1.22f, () => App.I.ShowStickerWorld());
             MenuEmoji(world, "animal/rabbit", new Vector2(-50, -6), 84, 6);
             MenuEmoji(world, "nature/sun_with_face", new Vector2(44, 22), 70, -8);
             MenuEmoji(world, "vehicle/automobile", new Vector2(36, -30), 74, 0);

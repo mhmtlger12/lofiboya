@@ -19,14 +19,14 @@ namespace LofiBoya
 
         void ConceptMenuCards()
         {
-            var opp = MenuCard(Cell(9), Loc.T("opposites"), Loc.T("opposites_sub"), Theme.Hex("FFD6C9"), 0.82f, () => StartGame(Mode.Opposites));
+            var opp = MenuCard(9, Loc.T("opposites"), Loc.T("opposites_sub"), 0.82f, () => StartGame(Mode.Opposites));
             MenuPic(opp, LearnArt.HotCup, new Vector2(-46, 0), 104, 6);
             MenuPic(opp, LearnArt.ColdGlass, new Vector2(46, 0), 104, -6);
 
-            var seq = MenuCard(Cell(10), Loc.T("sequence"), Loc.T("sequence_sub"), Theme.Hex("D8F0C8"), 0.9f, () => StartGame(Mode.Sequence));
+            var seq = MenuCard(10, Loc.T("sequence"), Loc.T("sequence_sub"), 0.9f, () => StartGame(Mode.Sequence));
             for (int i = 0; i < 3; i++) MenuPic(seq, LearnArt.Plant(i), new Vector2((i - 1) * 74, 0), 84, 0);
 
-            var sh = MenuCard(Cell(11), Loc.T("shadows"), Loc.T("shadows_sub"), Theme.Hex("DCD6F7"), 0.98f, () => StartGame(Mode.Shadows));
+            var sh = MenuCard(11, Loc.T("shadows"), Loc.T("shadows_sub"), 0.98f, () => StartGame(Mode.Shadows));
             // Pofuduk ve gölgesi
             var shadow = UIKit.Box(sh, "Shadow", Theme.Text.WithAlpha(0.85f), MascotArt.BodyPlain);
             shadow.type = Image.Type.Simple;
@@ -41,7 +41,7 @@ namespace LofiBoya
             mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0.80f);
             mrt.anchoredPosition = new Vector2(-40, 4);
 
-            var se = MenuCard(Cell(12), Loc.T("seasons"), Loc.T("seasons_sub"), Theme.Hex("CFE8F7"), 1.06f, () => StartGame(Mode.Seasons));
+            var se = MenuCard(12, Loc.T("seasons"), Loc.T("seasons_sub"), 1.06f, () => StartGame(Mode.Seasons));
             MenuPic(se, LearnArt.Tree(1), new Vector2(-48, 0), 104, 0);
             MenuPic(se, LearnArt.Tree(3), new Vector2(48, 0), 104, 0);
         }
