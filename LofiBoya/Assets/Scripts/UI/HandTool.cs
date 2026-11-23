@@ -16,7 +16,7 @@ namespace LofiBoya
         Image _body, _shadowImg;
         CanvasGroup _group;
         Vector2 _pos, _vel, _lastScreen;
-        float _alpha, _tilt, _press, _idle;
+        float _alpha, _tilt, _press;
         bool _placed;
 
         const float Len = 230f, Wid = 58f, BaseAngle = 150f;
@@ -96,17 +96,17 @@ namespace LofiBoya
         }
 
         /// <summary>
-        /// Farede kalem sağ-yukarı uzanır (uç imlecin yerinde). Dokunmatikte uç parmağın biraz önünde
-        /// (bkz. ColoringCanvas.TipOffset) ve gövde aşağı, parmağa doğru uzanır: parmak kalemi tutar, uç görünür.
+        /// Farede kalem sağ-yukarı uzanır (uç imlecin yerinde). Dokunmatikte uç parmağın tam altındadır; gövde
+        /// tutan elin tarafına, aşağı-yana yatık uzanır (solakta sola): parmağın yanında görünür, boya kalemin ucundan çıkar.
         /// </summary>
         float Angle
         {
             get
             {
-                var off = _canvas.TipOffset;
-                if (off == Vector2.zero) return BaseAngle;
-                // gövdenin yerel yönü aşağı (-90°); parmağa (uçtan -off yönüne) çevir
-                return Mathf.Atan2(-off.y, -off.x) * Mathf.Rad2Deg + 90f;
+                if (!_canvas.TouchInput) return BaseAngle;
+                // gövdenin yerel yönü aşağı (-90°); bu yöne çevir
+                var dir = new Vector2(SaveSystem.LeftHanded ? -0.6f : 0.6f, -1f);
+                return Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + 90f;
             }
         }
 
@@ -117,10 +117,10 @@ namespace LofiBoya
             bool drawTool = _canvas.Tool == Tool.Pencil || _canvas.Tool == Tool.Eraser;
             bool eraser = _canvas.Tool == Tool.Eraser;
 
-            // görünürlük: çizerken her zaman; farede tuvalin üstündeyken; dokunmatikte parmak kalkınca kısa süre kalır
+            // görünürlük: çizerken her zaman; farede tuvalin üstündeyken. Dokunmatikte parmak kalkınca kalem
+            // son yerinde durur (kaybolmaz): çocuk ucun nerede olduğunu görür, sıradaki noktayı ona göre koyar.
             bool active = drawTool && (_canvas.Stroking || (!_canvas.TouchInput && _canvas.PointerOver));
-            if (active) _idle = 0; else _idle += dt;
-            float target = drawTool && (active || (_canvas.TouchInput && _placed && _idle < 0.9f)) ? 1f : 0f;
+            float target = drawTool && (active || (_canvas.TouchInput && _placed)) ? (active ? 1f : 0.9f) : 0f;
             _alpha = Mathf.MoveTowards(_alpha, target, dt * (target > _alpha ? 8f : 3f));
             // Farede Windows/Mac imleci donanımla çizilir ve oyunun çizgisinden hep 1–3 kare öndedir:
             // çizgi geriden geliyor gibi görünür. Kalem tuvalin üstündeyken imleç gizlenir; imleç kalemin

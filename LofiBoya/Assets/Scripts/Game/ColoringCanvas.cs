@@ -333,20 +333,11 @@ namespace LofiBoya
         // ================= Girdi =================
 
         /// <summary>
-        /// Dokunmatikte kalem/silgi parmağın tam altına değil, biraz önündeki kalem ucuna çizer:
-        /// parmak çizilen yeri kapatmaz (çizim uygulamalarındaki "ofsetli uç"). Fare ve kova/damga etkilenmez.
-        /// Mesafe ekranın inç başına noktasına göre: yaklaşık 8 mm yukarı, 2 mm sola.
+        /// Uç ile parmak arasındaki fark. Sıfır: boya parmağın tam altından çıkar. (Eskiden dokunmatikte uç parmağın
+        /// ~8 mm önündeydi; çocuk noktayı koymak istediği yere dokununca boya başka yerde çıkıyor, yer değiştirirken
+        /// kalemi sürükleyip yolu boyuyordu. Okul öncesi için doğrudan dokunma daha anlaşılır.)
         /// </summary>
-        public Vector2 TipOffset
-        {
-            get
-            {
-                if (!TouchInput || !(Tool == Tool.Pencil || Tool == Tool.Eraser)) return Vector2.zero;
-                float dpi = Screen.dpi > 0 ? Screen.dpi : 320f;
-                // solak çocukta uç parmağın sağ önünde olur (sağ elde sol önünde)
-                return new Vector2(SaveSystem.LeftHanded ? 0.08f : -0.08f, 0.32f) * dpi;
-            }
-        }
+        public Vector2 TipOffset => Vector2.zero;
 
         Vector2 DrawPoint(Vector2 finger) => finger + TipOffset;
 
