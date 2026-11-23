@@ -1,142 +1,131 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace LofiBoya
 {
-    /// <summary>Karşılama ekranı: bulutlu başlık, süzülen polaroid, nefes alan "Başla" butonu.</summary>
+    /// <summary>
+    /// Karşılama ekranı. Görseller Google Stitch tasarımından kesildi (tools/anaekran/anaekran_kes.py → Resources/MainMenu):
+    /// üstte kalem + gökkuşağı + "Lofi Boya" tabelası, ortada şövale (kâğıdında bugünün resmi) ve bulut, altta
+    /// "Boyamaya Başla" ile dört kart. Resimlerdeki yazılar silindi; oyun kendi yazısını seçili dilde yazar.
+    /// Yerleşim tasarımdaki ölçülerle (layout.json); uzun ekranda fazla boşluk gruplar arasına paylaştırılır.
+    /// </summary>
     public class WelcomeScreen : MonoBehaviour, IScreen
     {
-        RectTransform _polaroid, _title, _startBtn;
+        [Serializable] class CardInfo { public int[] text, box, badge; }
+        [Serializable] class Cards { public CardInfo read, learn, album, stickers; }
+        [Serializable]
+        class Layout
+        {
+            public int[] src, paper_col, sub, header, music, gear, paper, plaque, bubble_text, bubble, easel, start_text, start, bg;
+            public int btn_top;
+            public Cards cards;
+        }
+
+        static Layout _l;
+
+        static Layout L
+        {
+            get
+            {
+                if (_l != null) return _l;
+                var ta = Resources.Load<TextAsset>("MainMenu/layout");
+                _l = ta != null ? JsonUtility.FromJson<Layout>(ta.text) : new Layout();
+                if (ta != null) Resources.UnloadAsset(ta);
+                return _l;
+            }
+        }
+
+        static readonly Color Ink = Theme.Hex("5B2E8C");   // tasarımdaki mor yazı
+
+        RectTransform _root, _easel, _bubble, _startBtn;
         Texture2D _preview;
-        Mascot _mascot;
-        float _t0;
-        static bool _greeted;
+        float _t0, _s, _top, _gap1, _gap2, _easelY, _bubbleY;
+        static bool _greeted, _ageShown;
         string _dailyGroup, _dailyId;
-        const float PolX = 40f, PolY = 70f;
-        float _polScale = 1f;   // uzun ekranda polaroid büyür, başlıkla butonlar arasındaki boşluk dolar
 
         void Start()
         {
-            var root = (RectTransform)transform;
+            _root = (RectTransform)transform;
             _t0 = Time.unscaledTime;
+            if (L.src == null) { Debug.LogError("MainMenu/layout.json yok"); return; }
+            Measure();
+            _laidOut = _root.rect.size;
 
-            // ---- Başlık + bulutlar ----
-            var head = UIKit.Node("Head", root);
-            head.Place(new Vector2(0.5f, 1f), new Vector2(0, -300), new Vector2(900, 360));
-            Cloud(head, new Vector2(-330, 90), 0.9f);
-            Cloud(head, new Vector2(340, 120), 0.7f);
-            Cloud(head, new Vector2(300, -110), 0.55f);
+            Background();
 
-            var title = UIKit.Label(head, "Lofi Boya", 168, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-            title.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(0, 10), new Vector2(900, 220));
-            var sh = title.gameObject.AddComponent<Shadow>();
-            sh.effectColor = Theme.Accent.WithAlpha(0.55f);
-            sh.effectDistance = new Vector2(0, -8);
-            _title = title.rectTransform;
+            // ---- alt: Başla + dört kart (önce: şövalenin pastel boyası butonun üstüne biner) ----
+            var start = SpriteButton("start", L.start, Bottom, () => App.I.ShowGallery(), Loc.T("start"));
+            _startBtn = start;
+            var st = TextIn(start, L.start, Grow(L.start_text, 10, 4), Loc.T("start"), 64, 36, Color.white);
+            var sh = st.gameObject.AddComponent<Shadow>();
+            sh.effectColor = Theme.Hex("C2375E").WithAlpha(0.55f);
+            sh.effectDistance = new Vector2(0, -4);
+            Tween.Pop(start, 0.35f);
 
-            var sub = UIKit.Label(head, Loc.T("app_sub"), 46, Theme.TextSoft);
-            sub.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(0, -120), new Vector2(900, 70));
+            Card("read", L.cards.read, Loc.T("read_btn"), 0.42f, () => App.I.ShowLibrary());
+            Card("learn", L.cards.learn, Loc.T("learn"), 0.46f, () => App.I.ShowLearn());
+            Card("album", L.cards.album, Loc.T("album"), 0.5f, () => App.I.ShowAlbum());
+            var stickers = Card("stickers", L.cards.stickers, Loc.T("stickers_btn"), 0.54f, () => App.I.ShowStickers());
+            int stars = SaveSystem.Stars;
+            A11y.Label(stickers.GetComponent<Button>(), Loc.T("stickers_btn") + ", " + Loc.T("a11y_stars", stars));
+            var badge = TextIn(stickers, L.cards.stickers.box, Grow(L.cards.stickers.badge, -8, -6), stars.ToString(), 34, 20, Color.white);
+            badge.rectTransform.anchoredPosition += new Vector2(0, 2);
 
-            // ---- Polaroid (rastgele bir resim, pastel renklerle) ----
-            // başlık (üstten 480) ile Başla (alttan 495) arasındaki boşluğa göre büyür
-            float h = App.I != null && App.I.SafeRoot != null ? App.I.SafeRoot.rect.height : 1920f;
-            _polScale = Mathf.Clamp((h - 975f - 200f) / 745f, 1f, 1.3f);
-            _polaroid = UIKit.Node("Polaroid", root);
-            _polaroid.Place(new Vector2(0.5f, 0.5f), new Vector2(PolX, PolY) * _polScale, new Vector2(600, 700) * _polScale);
-            _polaroid.localRotation = Quaternion.Euler(0, 0, -5);
-            var card = UIKit.Card(_polaroid, "Card", Theme.Card);
-            ((RectTransform)card.transform.parent).Stretch();
-            var photoBg = UIKit.Box(card.transform, "PhotoBg", Theme.Paper, null, 2.2f);
-            photoBg.rectTransform.Stretch(34, 34, 34, 140);
-            var photo = UIKit.Node("Photo", photoBg.transform).Stretch(16, 16, 16, 16);
+            // ---- orta: şövale (dokununca bugünün resmi boyanmaya başlar) + balon ----
+            _easel = SpriteButton("easel", L.easel, Middle, () =>
+            {
+                if (_dailyId == null) return;
+                Haptics.Light();
+                App.I.ShowColoring(_dailyGroup, _dailyId);
+            }, Loc.T("a11y_daily"));
+            _easel.GetComponent<PressFeedback>().pressedScale = 0.97f;
+            _easelY = _easel.anchoredPosition.y;
+            var paper = UIKit.Node("Paper", _easel);
+            SetIn(paper, L.easel, Grow(L.paper, -22, -22));
+            var photo = UIKit.Node("Photo", paper).Stretch();
             var raw = photo.gameObject.AddComponent<RawImage>();
             raw.raycastTarget = false;
             var fitter = photo.gameObject.AddComponent<AspectRatioFitter>();
             fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-            var caption = UIKit.Label(card.transform, Loc.T("daily"), 42, Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Italic);
-            caption.rectTransform.Band(false, 112, 16);
             LoadPreview(raw, fitter);
-            Tween.Pop(_polaroid, 0.15f, 0.6f);
-            // bugünün resmine dokununca hemen boyamaya başla
-            var hit = _polaroid.gameObject.AddComponent<Image>();
-            hit.color = Color.clear;
-            var pb = _polaroid.gameObject.AddComponent<Button>();
-            A11y.Label(pb, Loc.T("a11y_daily"));
-            pb.transition = Selectable.Transition.None;
-            pb.onClick.AddListener(() =>
-            {
-                if (_dailyId == null) return;
-                Sfx.Tap();
-                Haptics.Light();
-                App.I.ShowColoring(_dailyGroup, _dailyId);
-            });
-            _polaroid.gameObject.AddComponent<PressFeedback>();
+            TextIn(_easel, L.easel, Grow(L.plaque, -4, 9), Loc.T("daily").Replace("~", "").Trim(), 38, 20, Ink);
+            Tween.Pop(_easel, 0.15f, 0.6f);
 
-            // ---- Pofuduk: polaroidin köşesinde oturur, dokununca kıkırdar ----
-            _mascot = Mascot.Create(root, 320);
-            var mrt = (RectTransform)_mascot.transform;
-            mrt.Place(new Vector2(0.5f, 0.5f), new Vector2(-300, -250 * _polScale), mrt.sizeDelta);   // yalnızca dikeyde: yana taşmasın
-            Tween.Pop(mrt, 0.45f, 0.6f);
-            // Boyama günleri koleksiyonu: Pofuduk'un konuşma balonunda (ara vermek kaybettirmez)
             int streak = SaveSystem.DaysColored;
-            if (streak >= 2) Bubble(mrt, Loc.T("bubble_streak", streak));
-            else if (!SaveSystem.PlayedToday) Bubble(mrt, Loc.T("bubble_daily"));
+            string say = streak >= 2 ? Loc.T("bubble_streak", streak) : !SaveSystem.PlayedToday ? Loc.T("bubble_daily") : null;
+            if (say != null)
+            {
+                var bubble = Piece("bubble", L.bubble, Middle);
+                var bt = TextIn(bubble, L.bubble, Grow(L.bubble_text, 6, 6), say, 40, 20, Ink);
+                bt.lineSpacing = 0.85f;
+                bt.rectTransform.localRotation = Quaternion.Euler(0, 0, 8f);   // tasarımdaki yazı balonla birlikte hafif eğik
+                bubble.localScale = Vector3.zero;
+                Tween.Pop(bubble, 1.1f, 0.5f);
+                _bubble = bubble;
+                _bubbleY = bubble.anchoredPosition.y;
+            }
             if (!_greeted)
             {
                 _greeted = true;
                 Tween.Delay(1.1f, () =>
                 {
-                    if (_mascot == null) return;
-                    _mascot.Wave(2f);
+                    if (this == null) return;
                     if (streak >= 2) Speech.Say(Loc.T("hello_streak", streak));
                     else Speech.Say(Loc.T("hello"), "merhaba");
                 });
             }
 
-            // ---- Başla: tam genişlikte, nefes alan ana buton ----
-            var start = UIKit.Button(root, Loc.T("start"), Theme.AccentButton, Color.white, 66, () => App.I.ShowGallery());
-            _startBtn = (RectTransform)start.transform;
-            _startBtn.Place(new Vector2(0.5f, 0f), new Vector2(0, 400), new Vector2(1000, 160));
-            Tween.Pop(_startBtn, 0.35f);
-            var startTxt = UIKit.ButtonText(start);
-            startTxt.horizontalOverflow = HorizontalWrapMode.Wrap;
-            startTxt.verticalOverflow = VerticalWrapMode.Truncate;
-            startTxt.resizeTextForBestFit = true;
-            startTxt.resizeTextMinSize = 36;
-            startTxt.resizeTextMaxSize = 66;
-            startTxt.rectTransform.Stretch(40, 0, 40, 4);
+            // ---- üst: tabela + köşe düğmeleri ----
+            var header = Piece("header", L.header, Top);
+            var sub = TextIn(header, L.header, Grow(L.sub, 20, 9), Loc.T("app_sub"), 46, 22, Ink);
+            sub.fontStyle = FontStyle.Bold;
+            Tween.Pop(header, 0.05f, 0.6f);
 
-            // ---- Dört eş kutucuk: üstte yuvarlak ikon, altta ad ----
-            const float tileW = 235, gap = 20;
-            float x0 = -(tileW * 1.5f + gap * 1.5f);
-            Tile(root, Loc.T("read_btn"), BookPages.BookIcon, Theme.Hex("8E7CC3"), Theme.Lavender, x0, 0.42f, () => App.I.ShowLibrary());
-            Tile(root, Loc.T("learn"), MascotArt.Puzzle, Theme.Hex("54C29A"), Theme.Mint, x0 + (tileW + gap), 0.46f, () => App.I.ShowLearn());
-            Tile(root, Loc.T("album"), Art.Pencil, Theme.AccentDark, Theme.Sky, x0 + 2 * (tileW + gap), 0.5f, () => App.I.ShowAlbum());
-            var stickers = Tile(root, Loc.T("stickers_btn"), MascotArt.Star, Color.white, Theme.Butter, x0 + 3 * (tileW + gap), 0.54f, () => App.I.ShowStickers());
-            // yıldız sayısı: ikonun köşesinde küçük rozet
-            int stars = SaveSystem.Stars;
-            A11y.Label(stickers, Loc.T("stickers_btn") + ", " + Loc.T("a11y_stars", stars));
-            if (stars > 0)
-            {
-                var icon = stickers.transform.Find("Face/IconBg");
-                var badge = UIKit.Box(icon, "Badge", Theme.AccentButton, null, 0.5f);
-                badge.rectTransform.anchorMin = badge.rectTransform.anchorMax = new Vector2(1, 1);
-                badge.rectTransform.sizeDelta = new Vector2(30 + stars.ToString().Length * 20, 46);
-                badge.rectTransform.anchoredPosition = new Vector2(4, -6);
-                var bl = UIKit.Label(badge.transform, stars.ToString(), 28, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-                bl.rectTransform.Stretch(0, 0, 0, 3);
-            }
-
-            // ---- Üst köşeler: müzik (sol), ebeveyn ayarları (sağ) ----
-            var music = UIKit.IconButton(root, Art.Note, Theme.Card.WithAlpha(0.9f), Theme.Text, 110, () =>
-            {
-                Popup.Toast(Sfx.MusicButton());
-            }, 0.46f);
-            ((RectTransform)music.transform).Place(new Vector2(0, 1), new Vector2(100, -100), new Vector2(110, 110));
-            A11y.Label(music, Loc.T("a11y_music"));
-            var gear = UIKit.IconButton(root, Art.Gear, Theme.Card.WithAlpha(0.9f), Theme.TextSoft, 110, () => ParentGate.Show(ParentGate.Settings), 0.5f);
-            ((RectTransform)gear.transform).Place(new Vector2(1, 1), new Vector2(-100, -100), new Vector2(110, 110));
-            A11y.Label(gear, Loc.T("a11y_settings"));
+            var music = SpriteButton("music", L.music, Top, () => Popup.Toast(Sfx.MusicButton()), Loc.T("a11y_music"));
+            var gear = SpriteButton("gear", L.gear, Top, () => ParentGate.Show(ParentGate.Settings), Loc.T("a11y_settings"));
+            Tween.Pop(music, 0.46f);
+            Tween.Pop(gear, 0.5f);
 
             // ilk açılış: oyunlar çocuğun yaşına göre ayarlansın (bir kez sorulur; sonra Ayarlar'dan değişir)
             if (!SaveSystem.AgeAsked && !_ageShown)
@@ -146,69 +135,134 @@ namespace LofiBoya
             }
         }
 
-        void Bubble(RectTransform mascot, string text)
+        // ---------------- yerleşim ----------------
+
+        const int Top = 0, Middle = 1, Bottom = 2;
+
+        /// <summary>
+        /// Ölçek: tasarımın düğmeden düğmeye genişliği ekrana, tüm yüksekliği güvenli alana sığar. Fazla dikey boşluk
+        /// tabela–şövale ve şövale–buton arasına bölünür (şövale ortada kalır).
+        /// </summary>
+        void Measure()
         {
-            var root = (RectTransform)transform;
-            var b = UIKit.Card(root, "Bubble", Color.white, 0.6f, 4f);
-            var brt = (RectTransform)b.transform.parent;
-            brt.Place(new Vector2(0.5f, 0.5f), mascot.anchoredPosition + new Vector2(10, 230), new Vector2(330, 130));
-            var tail = UIKit.Box(b.transform, "Tail", Color.white, UIKit.Circle);
-            tail.type = Image.Type.Simple;
-            tail.rectTransform.Place(new Vector2(0.3f, 0f), new Vector2(0, -12), new Vector2(40, 40));
-            var t = UIKit.Label(b.transform, text, 36, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-            t.rectTransform.Stretch(10, 6, 10, 10);
-            t.lineSpacing = 0.85f;
-            brt.localScale = Vector3.zero;
-            Tween.Pop(brt, 1.3f, 0.5f);
-            brt.gameObject.AddComponent<Floaty>().Init(6f, 0.8f);
+            float w = _root.rect.width > 0 ? _root.rect.width : 1080f;
+            float h = _root.rect.height > 0 ? _root.rect.height : 1920f;
+            float spanW = L.gear[2] - L.music[0];
+            float spanH = L.cards.album.box[3] - L.header[1];
+            const float margin = 24f;
+            _s = Mathf.Min((w - 2 * margin) / spanW, (h - 2 * margin) / spanH);
+            float extra = Mathf.Max(0, h - spanH * _s - 2 * margin);
+            _top = margin + extra * 0.08f;
+            _gap1 = extra * 0.42f;
+            _gap2 = extra * 0.42f;
         }
 
-        /// <summary>Ana menü kutucuğu: pastel kart, üstte beyaz daire içinde renkli ikon, altta ad.</summary>
-        static Button Tile(Transform parent, string label, Sprite icon, Color iconColor, Color bg, float x, float delay, System.Action onClick)
+        float GroupDy(int g) => g == Top ? 0 : g == Middle ? _gap1 : _gap1 + _gap2;
+
+        // Ölçek ekran boyuna bağlı; ilk karede Canvas ölçekleyicisi henüz çalışmamış olabilir (kök, ekranın ham piksel
+        // boyunu gösterir). Bu yüzden her yerleştirme saklanır, boyut değişince hepsi yeniden uygulanır.
+        readonly System.Collections.Generic.List<Action> _relayout = new();
+        Vector2 _laidOut;
+
+        void Relayout()
         {
-            var b = UIKit.Button(parent, label, bg, Theme.Text, 36, onClick, 1.2f);
-            var rt = (RectTransform)b.transform;
-            rt.Place(new Vector2(0.5f, 0f), new Vector2(x, 185), new Vector2(235, 215));
-            var face = b.transform.Find("Face");
-            var txt = UIKit.ButtonText(b);
-            txt.rectTransform.anchorMin = new Vector2(0, 0);
-            txt.rectTransform.anchorMax = new Vector2(1, 0);
-            txt.rectTransform.pivot = new Vector2(0.5f, 0);
-            txt.rectTransform.sizeDelta = new Vector2(-20, 64);
-            txt.rectTransform.anchoredPosition = new Vector2(0, 16);
-            // Best Fit yalnızca taşma kapalıyken küçültür ("Os meus desenhos", "Geschichten" kutuya sığsın)
-            txt.horizontalOverflow = HorizontalWrapMode.Wrap;
-            txt.verticalOverflow = VerticalWrapMode.Truncate;
-            txt.resizeTextForBestFit = true;
-            txt.resizeTextMinSize = 20;
-            txt.resizeTextMaxSize = 36;
-            // ikonun arkasında hafif parlayan beyaz daire
-            var bubble = UIKit.Box(face, "IconBg", Color.white.WithAlpha(0.75f), UIKit.Circle);
-            bubble.type = Image.Type.Simple;
-            bubble.rectTransform.Place(new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(110, 110));
-            var img = UIKit.Box(bubble.transform, "Icon", iconColor, icon);
+            var size = _root.rect.size;
+            if (size == _laidOut || size.x <= 0 || size.y <= 0) return;
+            _laidOut = size;
+            Measure();
+            foreach (var a in _relayout) a();
+            if (_easel != null) _easelY = _easel.anchoredPosition.y;
+            if (_bubble != null) _bubbleY = _bubble.anchoredPosition.y;
+        }
+
+        void Place(RectTransform r, int[] b, int group)
+        {
+            _relayout.Add(() => PlaceNow(r, b, group));
+            PlaceNow(r, b, group);
+        }
+
+        void SetIn(RectTransform r, int[] parent, int[] b)
+        {
+            _relayout.Add(() => SetInNow(r, parent, b));
+            SetInNow(r, parent, b);
+        }
+
+        /// <summary>Tasarımdaki kutuyu ekrana yerleştirir (üst-orta çapa, ortasından ölçeklenir).</summary>
+        void PlaceNow(RectTransform r, int[] b, int group)
+        {
+            float cx = L.src[0] * 0.5f;
+            r.anchorMin = r.anchorMax = new Vector2(0.5f, 1f);
+            r.pivot = new Vector2(0.5f, 0.5f);
+            r.sizeDelta = new Vector2(b[2] - b[0], b[3] - b[1]) * _s;
+            r.anchoredPosition = new Vector2(((b[0] + b[2]) * 0.5f - cx) * _s,
+                -(_top + ((b[1] + b[3]) * 0.5f - L.header[1]) * _s + GroupDy(group)));
+        }
+
+        /// <summary>Parçanın içinde, tasarım koordinatıyla verilen alt kutu.</summary>
+        void SetInNow(RectTransform r, int[] parent, int[] b)
+        {
+            r.anchorMin = r.anchorMax = new Vector2(0, 1);
+            r.pivot = new Vector2(0.5f, 0.5f);
+            r.sizeDelta = new Vector2(b[2] - b[0], b[3] - b[1]) * _s;
+            r.anchoredPosition = new Vector2((b[0] + b[2]) * 0.5f - parent[0], -((b[1] + b[3]) * 0.5f - parent[1])) * _s;
+        }
+
+        static int[] Grow(int[] b, int dx, int dy) => new[] { b[0] - dx, b[1] - dy, b[2] + dx, b[3] + dy };
+
+        RectTransform Piece(string file, int[] b, int group)
+        {
+            var img = UIKit.Box(_root, file, Color.white, Resources.Load<Sprite>("MainMenu/" + file));
             img.type = Image.Type.Simple;
-            img.preserveAspect = true;
-            img.rectTransform.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(76, 76));
-            Tween.Pop(rt, delay);
-            return b;
+            Place(img.rectTransform, b, group);
+            return img.rectTransform;
         }
 
-        static void Cloud(Transform parent, Vector2 pos, float scale)
+        RectTransform SpriteButton(string file, int[] b, int group, Action onClick, string label)
         {
-            var c = UIKit.Node("Cloud", parent);
-            c.Place(new Vector2(0.5f, 0.5f), pos, new Vector2(260, 120));
-            c.localScale = Vector3.one * scale;
-            void Puff(float x, float y, float s)
-            {
-                var img = UIKit.Box(c, "Puff", Color.white.WithAlpha(0.85f), UIKit.Circle);
-                img.type = Image.Type.Simple;
-                img.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(x, y), new Vector2(s, s));
-            }
-            Puff(-70, -10, 120); Puff(0, 20, 160); Puff(75, -8, 125);
-            var baseBar = UIKit.Box(c, "Base", Color.white.WithAlpha(0.85f), null, 1.4f);
-            baseBar.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(0, -38), new Vector2(250, 70));
-            c.gameObject.AddComponent<Floaty>().Init(6f + scale * 10f, 0.4f + scale * 0.2f);
+            var r = Piece(file, b, group);
+            var img = r.GetComponent<Image>();
+            img.raycastTarget = true;
+            var btn = r.gameObject.AddComponent<Button>();
+            btn.targetGraphic = img;
+            btn.transition = Selectable.Transition.None;
+            btn.onClick.AddListener(() => { Sfx.Tap(); onClick?.Invoke(); });
+            r.gameObject.AddComponent<PressFeedback>();
+            A11y.Label(btn, label);
+            return r;
+        }
+
+        RectTransform Card(string file, CardInfo c, string label, float delay, Action onClick)
+        {
+            var r = SpriteButton("card_" + file, c.box, Bottom, onClick, label);
+            // yazı alanı: tasarımdaki yazının satırı, kartın iki yanına kadar (uzun diller sığsın)
+            var t = c.text;
+            TextIn(r, c.box, new[] { c.box[0] + 30, t[1] - 14, c.box[2] - 30, t[3] + 12 }, label, 54, 24, Ink);
+            Tween.Pop(r, delay);
+            return r;
+        }
+
+        Text TextIn(RectTransform parent, int[] pb, int[] b, string text, int max, int min, Color col)
+        {
+            var t = UIKit.Label(parent, text, max, col, TextAnchor.MiddleCenter, FontStyle.Bold);
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = min;
+            t.resizeTextMaxSize = max;
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            t.verticalOverflow = VerticalWrapMode.Truncate;   // best fit ancak taşma kapalıyken küçültür
+            SetIn(t.rectTransform, pb, b);
+            return t;
+        }
+
+        void Background()
+        {
+            // güvenli alanın dışına da taşar (çentik, gezinme çubuğu); resim ekranı kaplar, fazlası kenarlardan kırpılır
+            var holder = UIKit.Node("Bg", _root).Stretch(0, -300, 0, -300);
+            var img = UIKit.Box(holder, "Img", Color.white, Resources.Load<Sprite>("MainMenu/bg"));
+            img.type = Image.Type.Simple;
+            img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            var fit = img.gameObject.AddComponent<AspectRatioFitter>();
+            fit.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            fit.aspectRatio = L.bg != null && L.bg[1] > 0 ? (float)L.bg[0] / L.bg[1] : 0.45f;
         }
 
         void LoadPreview(RawImage raw, AspectRatioFitter fitter)
@@ -224,34 +278,38 @@ namespace LofiBoya
                 _ => new[] { "orta", "zor" },
             };
             foreach (var g in groups)
-                if (System.Array.IndexOf(want, g.name) >= 0)
+                if (Array.IndexOf(want, g.name) >= 0)
                     foreach (var l in g.levels) all.Add((g.name, l.id));
             if (all.Count == 0) foreach (var g in groups) foreach (var l in g.levels) all.Add((g.name, l.id));
             if (all.Count == 0) return;
             // Bugünün resmi: her gün değişir, gün içinde aynı kalır; bitmemişler öncelikli
             var undone = all.FindAll(e => { var s = SaveSystem.Load(e.g + "_" + e.id); return s == null || !s.done; });
             var pool = undone.Count > 0 ? undone : all;
-            var now = System.DateTime.Now;
+            var now = DateTime.Now;
             var pick = pool[(now.Year * 372 + now.DayOfYear) % pool.Count];
             _dailyGroup = pick.g;
             _dailyId = pick.id;
 
-            // Kayıtlı renkli hâli varsa onu göster, yoksa pastel renklerle boya
+            // Kayıtlı renkli hâli varsa onu göster, yoksa boyanmamış çizgi hâli (şövalede boyanmayı bekler)
             _preview = SaveSystem.LoadThumb(pick.g + "_" + pick.id);
             if (_preview == null)
             {
                 var lv = Level.Load(pick.g, pick.id);
                 if (lv == null) return;
-                var pal = Theme.Palettes[0].Colors;
+                // bölgeler şövaledeki kâğıdın rengiyle: resim kâğıda basılmış gibi, kenarında ayrı bir beyaz kutu kalmaz
+                var pc = L.paper_col;
+                Color32 paperCol = pc != null && pc.Length == 3 ? new Color32((byte)pc[0], (byte)pc[1], (byte)pc[2], 255) : (Color32)Theme.Paper;
                 var cols = new Color32[lv.Count + 1];
-                var rnd = new System.Random(System.DateTime.Now.DayOfYear);
-                for (int i = 0; i < cols.Length; i++) cols[i] = pal[rnd.Next(pal.Length - 2)];
-                // en büyük bölge (genelde arka plan) kâğıt rengi kalsın
-                int big = 1;
-                for (int i = 1; i <= lv.Count; i++) if (lv.Meta.area[i - 1] > lv.Meta.area[big - 1]) big = i;
-                cols[big] = Theme.Paper;
+                for (int i = 0; i < cols.Length; i++) cols[i] = paperCol;
                 _preview = lv.RenderThumbnail(cols, 520);
                 lv.Unload();
+                // bölgelerin dışı (resmin zemini) Theme.Paper ile çizilir: o da kâğıt rengine
+                var px = _preview.GetPixels32();
+                Color32 tp = Theme.Paper;
+                for (int i = 0; i < px.Length; i++)
+                    if (px[i].r == tp.r && px[i].g == tp.g && px[i].b == tp.b) px[i] = paperCol;
+                _preview.SetPixels32(px);
+                _preview.Apply(false);
             }
             raw.texture = _preview;
             fitter.aspectRatio = (float)_preview.width / _preview.height;
@@ -259,22 +317,19 @@ namespace LofiBoya
 
         void Update()
         {
+            if (_root != null && L.src != null) Relayout();
             if (Motion.Reduced) return;   // sakin mod / sistem animasyonları kapalı: her şey yerinde dursun
             float t = Time.unscaledTime - _t0;
-            if (_polaroid != null && t > 0.8f)
-            {
-                _polaroid.anchoredPosition = new Vector2(PolX, PolY) * _polScale + new Vector2(0, Mathf.Sin(t * 1.1f) * 14f);
-                _polaroid.localRotation = Quaternion.Euler(0, 0, -5 + Mathf.Sin(t * 0.7f) * 2f);
-            }
-            if (_title != null) _title.anchoredPosition = new Vector2(0, 10 + Mathf.Sin(t * 1.6f) * 6f);
+            if (_easel != null && t > 0.8f)
+                _easel.anchoredPosition = new Vector2(_easel.anchoredPosition.x, _easelY + Mathf.Sin(t * 1.1f) * 5f);
+            if (_bubble != null)   // balon şövaleden ayrı, kendi temposunda süzülür
+                _bubble.anchoredPosition = new Vector2(_bubble.anchoredPosition.x, _bubbleY + Mathf.Sin(t * 1.6f + 1f) * 7f);
             if (_startBtn != null && t > 0.9f)
             {
-                float s = 1f + 0.035f * Mathf.Sin(t * 2.4f);
-                if (_startBtn.localScale.x > 0.5f) _startBtn.localScale = new Vector3(s, s, 1);
+                float s = 1f + 0.03f * Mathf.Sin(t * 2.4f);
+                if (_startBtn.localScale.x > 0.5f && _startBtn.localScale.x < 1.1f) _startBtn.localScale = new Vector3(s, s, 1);
             }
         }
-
-        static bool _ageShown;
 
         // Android geri tuşu: yanlışlıkla basılınca uygulama kapanmasın; 2 sn içinde ikinci basış çıkar
         float _backAt = -10f;

@@ -3,7 +3,8 @@ using UnityEditor;
 namespace LofiBoya.EditorTools
 {
     /// <summary>
-    /// Resources/LearnMenu: Öğren menüsünün resimleri (tools/ogren/ogren_kes.py, Stitch tasarımından kesildi).
+    /// Resources/LearnMenu ve Resources/MainMenu: Öğren menüsünün ve ana ekranın resimleri (tools/ogren/ogren_kes.py,
+    /// tools/anaekran/anaekran_kes.py; Stitch tasarımlarından kesildi).
     /// Sprite olarak gelir; telefonda ASTC 4x4 (büyük, boyalı resimlerde 6x6'dan belirgin daha temiz), mipmap yok
     /// (ekranda ~1:1 gösterilir), şeffaf kenarlar renkle doldurulur.
     /// </summary>
@@ -11,7 +12,8 @@ namespace LofiBoya.EditorTools
     {
         void OnPreprocessTexture()
         {
-            if (!assetPath.Replace('\\', '/').Contains("/Resources/LearnMenu/")) return;
+            var path = assetPath.Replace('\\', '/');
+            if (!path.Contains("/Resources/LearnMenu/") && !path.Contains("/Resources/MainMenu/")) return;
             var ti = (TextureImporter)assetImporter;
             ti.textureType = TextureImporterType.Sprite;
             ti.spriteImportMode = SpriteImportMode.Single;
