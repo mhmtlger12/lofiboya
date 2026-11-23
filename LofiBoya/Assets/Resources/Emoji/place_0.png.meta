@@ -1,0 +1,4669 @@
+fileFormatVersion: 2
+guid: 38a571e07f222ee478b8259290aa4851
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8773158256194198503
+    second: place_0_0
+  - first:
+      213: -370581864251329894
+    second: place_0_1
+  - first:
+      213: -6353176171502163767
+    second: place_0_2
+  - first:
+      213: 1206966473707943952
+    second: place_0_3
+  - first:
+      213: 2221871492483763563
+    second: place_0_4
+  - first:
+      213: -3224238154222084585
+    second: place_0_5
+  - first:
+      213: 4405735452028781929
+    second: place_0_6
+  - first:
+      213: -6618091150076718277
+    second: place_0_7
+  - first:
+      213: -5088885337884598772
+    second: place_0_8
+  - first:
+      213: -674624149632417890
+    second: place_0_9
+  - first:
+      213: -8854454572280707205
+    second: place_0_10
+  - first:
+      213: -4236399435755689068
+    second: place_0_11
+  - first:
+      213: 4159997746125114038
+    second: place_0_12
+  - first:
+      213: -7089684329320062369
+    second: place_0_13
+  - first:
+      213: -8699203622679443447
+    second: place_0_14
+  - first:
+      213: 8064353827877908227
+    second: place_0_15
+  - first:
+      213: -3110665322658646421
+    second: place_0_16
+  - first:
+      213: 465076180404555549
+    second: place_0_17
+  - first:
+      213: 8979181385004366094
+    second: place_0_18
+  - first:
+      213: 5503047474529238529
+    second: place_0_19
+  - first:
+      213: 1404061111223594101
+    second: place_0_20
+  - first:
+      213: 5640300799798735694
+    second: place_0_21
+  - first:
+      213: 4356310088191281350
+    second: place_0_22
+  - first:
+      213: -2833849273453876797
+    second: place_0_23
+  - first:
+      213: -971770107053253278
+    second: place_0_24
+  - first:
+      213: -8822769156890092793
+    second: place_0_25
+  - first:
+      213: 6230521664298653492
+    second: place_0_26
+  - first:
+      213: 6328767149318860462
+    second: place_0_27
+  - first:
+      213: -9179138564633178264
+    second: place_0_28
+  - first:
+      213: -6205855033041421017
+    second: place_0_29
+  - first:
+      213: -3742570366518828848
+    second: place_0_30
+  - first:
+      213: 3299457193111892939
+    second: place_0_31
+  - first:
+      213: -6203158215858495962
+    second: place_0_32
+  - first:
+      213: 4551703949282415013
+    second: place_0_33
+  - first:
+      213: -4744815717150646689
+    second: place_0_34
+  - first:
+      213: 7863061000559652670
+    second: place_0_35
+  - first:
+      213: 9101718435961169574
+    second: place_0_36
+  - first:
+      213: -2006217032086725025
+    second: place_0_37
+  - first:
+      213: 3251133057863494460
+    second: place_0_38
+  - first:
+      213: -5509693529255110991
+    second: place_0_39
+  - first:
+      213: -591723542788685743
+    second: place_0_40
+  - first:
+      213: -8268433260368715900
+    second: place_0_41
+  - first:
+      213: 519064762950650641
+    second: place_0_42
+  - first:
+      213: 1207358723277668016
+    second: place_0_43
+  - first:
+      213: -7773861853919271733
+    second: place_0_44
+  - first:
+      213: 1285142402884215485
+    second: place_0_45
+  - first:
+      213: 8031495243011864539
+    second: place_0_46
+  - first:
+      213: 8487865295109548707
+    second: place_0_47
+  - first:
+      213: 8174018156116514037
+    second: place_0_48
+  - first:
+      213: 3488511611516274066
+    second: place_0_49
+  - first:
+      213: 3860689946455162032
+    second: place_0_50
+  - first:
+      213: 2917478736924080852
+    second: place_0_51
+  - first:
+      213: -3613482173114851327
+    second: place_0_52
+  - first:
+      213: -5660719862504365435
+    second: place_0_53
+  - first:
+      213: 3165204709204522342
+    second: place_0_54
+  - first:
+      213: 9185751906101141556
+    second: place_0_55
+  - first:
+      213: -5382499618180063233
+    second: place_0_56
+  - first:
+      213: 7932513007726122646
+    second: place_0_57
+  - first:
+      213: -2594248367988615311
+    second: place_0_58
+  - first:
+      213: -4362356219256500867
+    second: place_0_59
+  - first:
+      213: -6667315753501028372
+    second: place_0_60
+  - first:
+      213: -5483110159966206676
+    second: place_0_61
+  - first:
+      213: -6292152951717671553
+    second: place_0_62
+  - first:
+      213: 7843423787464482719
+    second: place_0_63
+  - first:
+      213: -6581263498646562363
+    second: place_0_64
+  - first:
+      213: -3838843510384363954
+    second: place_0_65
+  - first:
+      213: -3156373980940952546
+    second: place_0_66
+  - first:
+      213: 3926620376127269191
+    second: place_0_67
+  - first:
+      213: -9003220971152758246
+    second: place_0_68
+  - first:
+      213: -3026317027175932789
+    second: place_0_69
+  - first:
+      213: 6981062145238148330
+    second: place_0_70
+  - first:
+      213: -2673763534422408510
+    second: place_0_71
+  - first:
+      213: -965135363593572591
+    second: place_0_72
+  - first:
+      213: 5857512978156816881
+    second: place_0_73
+  - first:
+      213: 5239780746828336053
+    second: place_0_74
+  - first:
+      213: 5154011983140709699
+    second: place_0_75
+  - first:
+      213: 689432441696909830
+    second: place_0_76
+  - first:
+      213: -9193904438998125414
+    second: place_0_77
+  - first:
+      213: 7930309165779044783
+    second: place_0_78
+  - first:
+      213: -418193375258559543
+    second: place_0_79
+  - first:
+      213: -6233051332626075309
+    second: place_0_80
+  - first:
+      213: -8797919212424100343
+    second: place_0_81
+  - first:
+      213: -7544468919204170468
+    second: place_0_82
+  - first:
+      213: 896116360767992115
+    second: place_0_83
+  - first:
+      213: 1540450793586617863
+    second: place_0_84
+  - first:
+      213: 2184962429244603111
+    second: place_0_85
+  - first:
+      213: 8583888083867318346
+    second: place_0_86
+  - first:
+      213: 8289098031706004333
+    second: place_0_87
+  - first:
+      213: -3308198210912952032
+    second: place_0_88
+  - first:
+      213: 3203517376059964093
+    second: place_0_89
+  - first:
+      213: 3360409020950581914
+    second: place_0_90
+  - first:
+      213: -2579895281008331722
+    second: place_0_91
+  - first:
+      213: -3341408422237333887
+    second: place_0_92
+  - first:
+      213: 2142678275762396767
+    second: place_0_93
+  - first:
+      213: -523707657114650833
+    second: place_0_94
+  - first:
+      213: 5655119734276826977
+    second: place_0_95
+  - first:
+      213: -7435047013332953220
+    second: place_0_96
+  - first:
+      213: -2857719896788924427
+    second: place_0_97
+  - first:
+      213: -6672308075227131304
+    second: place_0_98
+  - first:
+      213: -1592936861801932768
+    second: place_0_99
+  - first:
+      213: 2133890948369839164
+    second: place_0_100
+  - first:
+      213: -2279729498354753458
+    second: place_0_101
+  - first:
+      213: 2853003980994043761
+    second: place_0_102
+  - first:
+      213: -8143097963370315127
+    second: place_0_103
+  - first:
+      213: 5197362911269393202
+    second: place_0_104
+  - first:
+      213: 6378588647290748545
+    second: place_0_105
+  - first:
+      213: -433322016543186661
+    second: place_0_106
+  - first:
+      213: -5568693445114771943
+    second: place_0_107
+  - first:
+      213: 693700970249086552
+    second: place_0_108
+  - first:
+      213: -5649315759238643411
+    second: place_0_109
+  - first:
+      213: -1306540019276263847
+    second: place_0_110
+  - first:
+      213: 781543807451087515
+    second: place_0_111
+  - first:
+      213: -4903003673038138302
+    second: place_0_112
+  - first:
+      213: -4277170873677899737
+    second: place_0_113
+  - first:
+      213: 1553079235886978268
+    second: place_0_114
+  - first:
+      213: 8975577945470884953
+    second: place_0_115
+  - first:
+      213: -5727760964115442996
+    second: place_0_116
+  - first:
+      213: 435738378171055610
+    second: place_0_117
+  - first:
+      213: 6133168689146021094
+    second: place_0_118
+  - first:
+      213: -8192308838231645924
+    second: place_0_119
+  - first:
+      213: 4230407992844338709
+    second: place_0_120
+  - first:
+      213: 4633981463187439791
+    second: place_0_121
+  - first:
+      213: -5954954693046590141
+    second: place_0_122
+  - first:
+      213: -3632327771623048205
+    second: place_0_123
+  - first:
+      213: 1775522126794743670
+    second: place_0_124
+  - first:
+      213: 2221562461070340570
+    second: place_0_125
+  - first:
+      213: 293553793492955237
+    second: place_0_126
+  - first:
+      213: -3755333829222020492
+    second: place_0_127
+  - first:
+      213: 8113191189463236398
+    second: place_0_128
+  - first:
+      213: 4394056956781195329
+    second: place_0_129
+  - first:
+      213: -2526069004060765627
+    second: place_0_130
+  - first:
+      213: 3374272433909120716
+    second: place_0_131
+  - first:
+      213: 8563718008246580903
+    second: place_0_132
+  - first:
+      213: -8893652454157047703
+    second: place_0_133
+  - first:
+      213: 1220083828260803496
+    second: place_0_134
+  - first:
+      213: 5223236583000789024
+    second: place_0_135
+  - first:
+      213: -6295377895113191150
+    second: place_0_136
+  - first:
+      213: 3087135397200734518
+    second: place_0_137
+  - first:
+      213: -5985782842566423430
+    second: place_0_138
+  - first:
+      213: 1189984190524994650
+    second: place_0_139
+  - first:
+      213: -2261550501981524933
+    second: place_0_140
+  - first:
+      213: -4528421619257442116
+    second: place_0_141
+  - first:
+      213: 5672822730037751217
+    second: place_0_142
+  - first:
+      213: 8394286739564978242
+    second: place_0_143
+  - first:
+      213: 6687550322888130478
+    second: place_0_144
+  - first:
+      213: -6710479791963736414
+    second: place_0_145
+  - first:
+      213: 6848383839288587441
+    second: place_0_146
+  - first:
+      213: -1655807083125794256
+    second: place_0_147
+  - first:
+      213: -8204856362748054624
+    second: place_0_148
+  - first:
+      213: 1168676280484318156
+    second: place_0_149
+  - first:
+      213: 5245764189292140543
+    second: place_0_150
+  - first:
+      213: 1521128339942316560
+    second: place_0_151
+  - first:
+      213: -3974365333371781652
+    second: place_0_152
+  - first:
+      213: -4029979987016297754
+    second: place_0_153
+  - first:
+      213: -7237666610242755439
+    second: place_0_154
+  - first:
+      213: -6400538713195607956
+    second: place_0_155
+  - first:
+      213: -1874625615055686215
+    second: place_0_156
+  - first:
+      213: -1956524049098180104
+    second: place_0_157
+  - first:
+      213: -3731177615201613669
+    second: place_0_158
+  - first:
+      213: -5396101136678013021
+    second: place_0_159
+  - first:
+      213: -5398274912176837419
+    second: place_0_160
+  - first:
+      213: 3551035770166409048
+    second: place_0_161
+  - first:
+      213: 4403309793345947266
+    second: place_0_162
+  - first:
+      213: 6541186464656725286
+    second: place_0_163
+  - first:
+      213: -1603782078237940911
+    second: place_0_164
+  - first:
+      213: 6122981171459771242
+    second: place_0_165
+  - first:
+      213: 6095864109109306036
+    second: place_0_166
+  - first:
+      213: 7612500824499422174
+    second: place_0_167
+  - first:
+      213: -4970050849991183304
+    second: place_0_168
+  - first:
+      213: -6327102670429641841
+    second: place_0_169
+  - first:
+      213: 6681036241350542916
+    second: place_0_170
+  - first:
+      213: 7763959120036539674
+    second: place_0_171
+  - first:
+      213: -8719181519160439482
+    second: place_0_172
+  - first:
+      213: -4991765095116219630
+    second: place_0_173
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 0
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 50
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 1
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: place_0_0
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 1587
+        width: 131
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91462455c0b7f3680800000000000000
+      internalID: -8773158256194198503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_1
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 1622
+        width: 138
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a92f81502cd6bdaf0800000000000000
+      internalID: -370581864251329894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_2
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 1624
+        width: 138
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c8232ebeebf4d7a0800000000000000
+      internalID: -6353176171502163767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_3
+      rect:
+        serializedVersion: 2
+        x: 443
+        y: 1682
+        width: 50
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 018fa21fc9100c010800000000000000
+      internalID: 1206966473707943952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_4
+      rect:
+        serializedVersion: 2
+        x: 452
+        y: 1587
+        width: 104
+        height: 116
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6dcf06b95ca5de10800000000000000
+      internalID: 2221871492483763563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_5
+      rect:
+        serializedVersion: 2
+        x: 515
+        y: 1682
+        width: 50
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71ed4524b743143d0800000000000000
+      internalID: -3224238154222084585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_6
+      rect:
+        serializedVersion: 2
+        x: 582
+        y: 1587
+        width: 131
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96545801d01542d30800000000000000
+      internalID: 4405735452028781929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_7
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 1597
+        width: 138
+        height: 119
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b335584c921d724a0800000000000000
+      internalID: -6618091150076718277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_8
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 1590
+        width: 138
+        height: 133
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0ed1bc4fb5a069b0800000000000000
+      internalID: -5088885337884598772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_9
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 1587
+        width: 71
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9f724409e043a6f0800000000000000
+      internalID: -674624149632417890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_10
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 1595
+        width: 138
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b77006bba78ae1580800000000000000
+      internalID: -8854454572280707205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_11
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 1595
+        width: 138
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49bed1998294535c0800000000000000
+      internalID: -4236399435755689068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_12
+      rect:
+        serializedVersion: 2
+        x: 1443
+        y: 1587
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ba8634d8e74bb930800000000000000
+      internalID: 4159997746125114038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_13
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 1587
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f52693d4aa16c9d90800000000000000
+      internalID: -7089684329320062369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_14
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 1590
+        width: 138
+        height: 133
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90886614568364780800000000000000
+      internalID: -8699203622679443447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_15
+      rect:
+        serializedVersion: 2
+        x: 1877
+        y: 1587
+        width: 134
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30f69b564175aef60800000000000000
+      internalID: 8064353827877908227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_16
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 1588
+        width: 137
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b663ecbbe52b4d4d0800000000000000
+      internalID: -3110665322658646421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_17
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 1587
+        width: 138
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1f428e6258447600800000000000000
+      internalID: 465076180404555549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_18
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 1444
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e093cfa55e57c9c70800000000000000
+      internalID: 8979181385004366094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_19
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 1443
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10efc6d8580ce5c40800000000000000
+      internalID: 5503047474529238529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_20
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 1443
+        width: 130
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57c2c61442a3c7310800000000000000
+      internalID: 1404061111223594101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_21
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 1443
+        width: 129
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e43fa5e91bf564e40800000000000000
+      internalID: 5640300799798735694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_22
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 1443
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c8871ac1f8b47c30800000000000000
+      internalID: 4356310088191281350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_23
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 1443
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c968c4a9152ca8d0800000000000000
+      internalID: -2833849273453876797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_24
+      rect:
+        serializedVersion: 2
+        x: 869
+        y: 1443
+        width: 134
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26d5fbd7c349382f0800000000000000
+      internalID: -971770107053253278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_25
+      rect:
+        serializedVersion: 2
+        x: 1014
+        y: 1443
+        width: 131
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70b1b44623a3f8580800000000000000
+      internalID: -8822769156890092793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_26
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 1454
+        width: 138
+        height: 127
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43795e56172477650800000000000000
+      internalID: 6230521664298653492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_27
+      rect:
+        serializedVersion: 2
+        x: 1177
+        y: 1443
+        width: 36
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eaeef49e03c44d750800000000000000
+      internalID: 6328767149318860462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_28
+      rect:
+        serializedVersion: 2
+        x: 1255
+        y: 1443
+        width: 36
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86f43fecb162d9080800000000000000
+      internalID: -9179138564633178264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_29
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 1443
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72dfefb3abf50e9a0800000000000000
+      internalID: -6205855033041421017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_30
+      rect:
+        serializedVersion: 2
+        x: 1443
+        y: 1443
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d0edb4a418bf0cc0800000000000000
+      internalID: -3742570366518828848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_31
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 1448
+        width: 138
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc3ba0bf5d60acd20800000000000000
+      internalID: 3299457193111892939
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_32
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 1451
+        width: 138
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62e553ae774f9e9a0800000000000000
+      internalID: -6203158215858495962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_33
+      rect:
+        serializedVersion: 2
+        x: 1875
+        y: 1444
+        width: 138
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a198bb30a6ea2f30800000000000000
+      internalID: 4551703949282415013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_34
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 1299
+        width: 128
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5e9b8e8e37072eb0800000000000000
+      internalID: -4744815717150646689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_35
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 1304
+        width: 138
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3fe599d1543f1d60800000000000000
+      internalID: 7863061000559652670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_36
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 1299
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a6e61dc1bccf4e70800000000000000
+      internalID: 9101718435961169574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_37
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 1304
+        width: 138
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5ed12c1d3c7824e0800000000000000
+      internalID: -2006217032086725025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_38
+      rect:
+        serializedVersion: 2
+        x: 598
+        y: 1299
+        width: 99
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3bab777a485e1d20800000000000000
+      internalID: 3251133057863494460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_39
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 1300
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b61b7f3de2a983b0800000000000000
+      internalID: -5509693529255110991
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_40
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 1299
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15048daa296c9c7f0800000000000000
+      internalID: -591723542788685743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_41
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 1300
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48f92baf1cf904d80800000000000000
+      internalID: -8268433260368715900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_42
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 1299
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11b881bd6a6143700800000000000000
+      internalID: 519064762950650641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_43
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 1299
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0be3f69ac5661c010800000000000000
+      internalID: 1207358723277668016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_44
+      rect:
+        serializedVersion: 2
+        x: 1452
+        y: 1299
+        width: 119
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc4ae20e4d1bd1490800000000000000
+      internalID: -7773861853919271733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_45
+      rect:
+        serializedVersion: 2
+        x: 1604
+        y: 1299
+        width: 104
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db2a4b9d43eb5d110800000000000000
+      internalID: 1285142402884215485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_46
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 1299
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd736feee5a957f60800000000000000
+      internalID: 8031495243011864539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_47
+      rect:
+        serializedVersion: 2
+        x: 1894
+        y: 1299
+        width: 99
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3aaee58e384fac570800000000000000
+      internalID: 8487865295109548707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_48
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f41be68432ff6170800000000000000
+      internalID: 8174018156116514037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_49
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 295c047e3dea96030800000000000000
+      internalID: 3488511611516274066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_50
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bcb16e2d0de39530800000000000000
+      internalID: 3860689946455162032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_51
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4da7d1a2477fc7820800000000000000
+      internalID: 2917478736924080852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_52
+      rect:
+        serializedVersion: 2
+        x: 581
+        y: 1155
+        width: 134
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 100684dcb155addc0800000000000000
+      internalID: -3613482173114851327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_53
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 582ed6ed6451171b0800000000000000
+      internalID: -5660719862504365435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_54
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 665778db9e01deb20800000000000000
+      internalID: 3165204709204522342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_55
+      rect:
+        serializedVersion: 2
+        x: 1027
+        y: 1155
+        width: 105
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 430a60eb0b85a7f70800000000000000
+      internalID: 9185751906101141556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_56
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 1155
+        width: 137
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fff93be6d158d45b0800000000000000
+      internalID: -5382499618180063233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_57
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6965ea16d82f51e60800000000000000
+      internalID: 7932513007726122646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_58
+      rect:
+        serializedVersion: 2
+        x: 1443
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 177d6eeaad06ffbd0800000000000000
+      internalID: -2594248367988615311
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_59
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 1155
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7d008f912cc573c0800000000000000
+      internalID: -4362356219256500867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_60
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 1156
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cef843ba5afe873a0800000000000000
+      internalID: -6667315753501028372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_61
+      rect:
+        serializedVersion: 2
+        x: 1903
+        y: 1155
+        width: 81
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2501ea3c5418e3b0800000000000000
+      internalID: -5483110159966206676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_62
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 1050
+        width: 138
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7d41784a38cda8a0800000000000000
+      internalID: -6292152951717671553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_63
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 1011
+        width: 114
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9f5ba2e06079dc60800000000000000
+      internalID: 7843423787464482719
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_64
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 1011
+        width: 128
+        height: 88
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c95ded87b7aaa4a0800000000000000
+      internalID: -6581263498646562363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_65
+      rect:
+        serializedVersion: 2
+        x: 316
+        y: 1057
+        width: 34
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e46f9379a20b9bac0800000000000000
+      internalID: -3838843510384363954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_66
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 1047
+        width: 40
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1c9ab7669e4234d0800000000000000
+      internalID: -3156373980940952546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_67
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 1057
+        width: 33
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74960ee8d682e7630800000000000000
+      internalID: 3926620376127269191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_68
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 1011
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1aa7145a322e0380800000000000000
+      internalID: -9003220971152758246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_69
+      rect:
+        serializedVersion: 2
+        x: 599
+        y: 1011
+        width: 98
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8c5679a2bc5006d0800000000000000
+      internalID: -3026317027175932789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_70
+      rect:
+        serializedVersion: 2
+        x: 743
+        y: 1011
+        width: 98
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae4a8d9a807b1e060800000000000000
+      internalID: 6981062145238148330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_71
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 1014
+        width: 138
+        height: 133
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c20c5d4b32e4ead0800000000000000
+      internalID: -2673763534422408510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_72
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 1021
+        width: 138
+        height: 119
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11f66d410862b92f0800000000000000
+      internalID: -965135363593572591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_73
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 1021
+        width: 138
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f9074ae4011a4150800000000000000
+      internalID: 5857512978156816881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_74
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 1013
+        width: 138
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bb42a3e3d077b840800000000000000
+      internalID: 5239780746828336053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_75
+      rect:
+        serializedVersion: 2
+        x: 1443
+        y: 1011
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 345653f679ab68740800000000000000
+      internalID: 5154011983140709699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_76
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 1011
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60a79f7272b519900800000000000000
+      internalID: 689432441696909830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_77
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 1011
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9431a6cf90b86080800000000000000
+      internalID: -9193904438998125414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_78
+      rect:
+        serializedVersion: 2
+        x: 1894
+        y: 1011
+        width: 99
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa9c8417b2e1e0e60800000000000000
+      internalID: 7930309165779044783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_79
+      rect:
+        serializedVersion: 2
+        x: 27
+        y: 867
+        width: 89
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cbba444757423af0800000000000000
+      internalID: -418193375258559543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_80
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 867
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3513c0c46d0cf79a0800000000000000
+      internalID: -6233051332626075309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_81
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 867
+        width: 136
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90680e4f61387e580800000000000000
+      internalID: -8797919212424100343
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_82
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 867
+        width: 121
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c153cd38d79ac4790800000000000000
+      internalID: -7544468919204170468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_83
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 966
+        width: 48
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 331fdf01515af6c00800000000000000
+      internalID: 896116360767992115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_84
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 867
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70ee2b9c5d7c06510800000000000000
+      internalID: 1540450793586617863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_85
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 882
+        width: 138
+        height: 109
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7eaf2b2c0cb825e10800000000000000
+      internalID: 2184962429244603111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_86
+      rect:
+        serializedVersion: 2
+        x: 875
+        y: 867
+        width: 122
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a48be9e9bb8102770800000000000000
+      internalID: 8583888083867318346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_87
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 867
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6bd9380ebac80370800000000000000
+      internalID: 8289098031706004333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_88
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 889
+        width: 138
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02163f7314be612d0800000000000000
+      internalID: -3308198210912952032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_89
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 872
+        width: 138
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dba78df941e257c20800000000000000
+      internalID: 3203517376059964093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_90
+      rect:
+        serializedVersion: 2
+        x: 1443
+        y: 868
+        width: 138
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9217c9433292ae20800000000000000
+      internalID: 3360409020950581914
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_91
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 867
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 634bac929ee523cd0800000000000000
+      internalID: -2579895281008331722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_92
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 867
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1869b075ebee0a1d0800000000000000
+      internalID: -3341408422237333887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_93
+      rect:
+        serializedVersion: 2
+        x: 1875
+        y: 867
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5e93c61a825cbd10800000000000000
+      internalID: 2142678275762396767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_94
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 723
+        width: 137
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f27778b19aa6bb8f0800000000000000
+      internalID: -523707657114650833
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_95
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 723
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1672fdbaf650b7e40800000000000000
+      internalID: 5655119734276826977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_96
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 724
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c77d5f9422861d890800000000000000
+      internalID: -7435047013332953220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_97
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 723
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f7845c05e65758d0800000000000000
+      internalID: -2857719896788924427
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_98
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 723
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 852dd1038233763a0800000000000000
+      internalID: -6672308075227131304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_99
+      rect:
+        serializedVersion: 2
+        x: 742
+        y: 723
+        width: 100
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0289baa2d50c4e9e0800000000000000
+      internalID: -1592936861801932768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_100
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 732
+        width: 138
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c34710ff28a1d9d10800000000000000
+      internalID: 2133890948369839164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_101
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 728
+        width: 138
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e40e59a8916cc50e0800000000000000
+      internalID: -2279729498354753458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_102
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 723
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17fdced3108e79720800000000000000
+      internalID: 2853003980994043761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_103
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 732
+        width: 138
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9820b1adb87edfe80800000000000000
+      internalID: -8143097963370315127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_104
+      rect:
+        serializedVersion: 2
+        x: 1443
+        y: 723
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 233900fe70eb02840800000000000000
+      internalID: 5197362911269393202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_105
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 723
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18eba1a549c458850800000000000000
+      internalID: 6378588647290748545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_106
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 724
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b11669afbe78cf9f0800000000000000
+      internalID: -433322016543186661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_107
+      rect:
+        serializedVersion: 2
+        x: 1875
+        y: 728
+        width: 138
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91643ecd0d608b2b0800000000000000
+      internalID: -5568693445114771943
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_108
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 674
+        width: 32
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8566a086b5580a900800000000000000
+      internalID: 693700970249086552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_109
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 683
+        width: 17
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2180929f399991b0800000000000000
+      internalID: -5649315759238643411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_110
+      rect:
+        serializedVersion: 2
+        x: 92
+        y: 674
+        width: 32
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95ec43a56cc3edde0800000000000000
+      internalID: -1306540019276263847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_111
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 579
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b92478bb3f998da00800000000000000
+      internalID: 781543807451087515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_112
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 579
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2445028f22805fbb0800000000000000
+      internalID: -4903003673038138302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_113
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 579
+        width: 128
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72818c670cf64a4c0800000000000000
+      internalID: -4277170873677899737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_114
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 579
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd414132655ad8510800000000000000
+      internalID: 1553079235886978268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_115
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 579
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95c5f953698af8c70800000000000000
+      internalID: 8975577945470884953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_116
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 583
+        width: 138
+        height: 131
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc2dc8700c7e280b0800000000000000
+      internalID: -5727760964115442996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_117
+      rect:
+        serializedVersion: 2
+        x: 1012
+        y: 579
+        width: 136
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afdf3ed0fbd0c0600800000000000000
+      internalID: 435738378171055610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_118
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 585
+        width: 138
+        height: 127
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e4c8188d646d1550800000000000000
+      internalID: 6133168689146021094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_119
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 579
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c11e8ee24821f4e80800000000000000
+      internalID: -8192308838231645924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_120
+      rect:
+        serializedVersion: 2
+        x: 1460
+        y: 579
+        width: 103
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 516c574e7ad65ba30800000000000000
+      internalID: 4230407992844338709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_121
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 580
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa04801c6953f4040800000000000000
+      internalID: 4633981463187439791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_122
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 579
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 345a963e140cb5da0800000000000000
+      internalID: -5954954693046590141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_123
+      rect:
+        serializedVersion: 2
+        x: 1875
+        y: 579
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fb3f98f221679dc0800000000000000
+      internalID: -3632327771623048205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_124
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 579
+        width: 109
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67f527a97fbe3a810800000000000000
+      internalID: 1775522126794743670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_125
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 436
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad1b07ab94394de10800000000000000
+      internalID: 2221562461070340570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_126
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 435
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 560bd9fae99e21400800000000000000
+      internalID: 293553793492955237
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_127
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 435
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47ac63867cf52ebc0800000000000000
+      internalID: -3755333829222020492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_128
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 440
+        width: 138
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2ff8cab668d79070800000000000000
+      internalID: 8113191189463236398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_129
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 440
+        width: 138
+        height: 126
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 140f6cf7583dafc30800000000000000
+      internalID: 4394056956781195329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_130
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 558
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54255dedf9991fcd0800000000000000
+      internalID: -2526069004060765627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_131
+      rect:
+        serializedVersion: 2
+        x: 606
+        y: 554
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccebb86a6e2d3de20800000000000000
+      internalID: 3374272433909120716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_132
+      rect:
+        serializedVersion: 2
+        x: 697
+        y: 558
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a6372ee72078d670800000000000000
+      internalID: 8563718008246580903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_133
+      rect:
+        serializedVersion: 2
+        x: 725
+        y: 444
+        width: 94
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 968203aa636639480800000000000000
+      internalID: -8893652454157047703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_134
+      rect:
+        serializedVersion: 2
+        x: 817
+        y: 435
+        width: 41
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a31fab07cb9ee010800000000000000
+      internalID: 1220083828260803496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_135
+      rect:
+        serializedVersion: 2
+        x: 885
+        y: 435
+        width: 101
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02056939ff9ac7840800000000000000
+      internalID: 5223236583000789024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_136
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 435
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2119ee2a82352a8a0800000000000000
+      internalID: -6295377895113191150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_137
+      rect:
+        serializedVersion: 2
+        x: 1169
+        y: 435
+        width: 109
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6392fa39945b7da20800000000000000
+      internalID: 3087135397200734518
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_138
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 440
+        width: 138
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7c433ef73a3eeca0800000000000000
+      internalID: -5985782842566423430
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_139
+      rect:
+        serializedVersion: 2
+        x: 1443
+        y: 445
+        width: 138
+        height: 119
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a54b294015ca38010800000000000000
+      internalID: 1189984190524994650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_140
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 437
+        width: 138
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3ce8c7fccb5d90e0800000000000000
+      internalID: -2261550501981524933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_141
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 440
+        width: 138
+        height: 129
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb006f6a780d721c0800000000000000
+      internalID: -4528421619257442116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_142
+      rect:
+        serializedVersion: 2
+        x: 1875
+        y: 435
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bd69a1973ae9be40800000000000000
+      internalID: 5672822730037751217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_143
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 291
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 240ea86905f7e7470800000000000000
+      internalID: 8394286739564978242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_144
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 291
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eafbb452693fecc50800000000000000
+      internalID: 6687550322888130478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_145
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 293
+        width: 138
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a6709fce269fd2a0800000000000000
+      internalID: -6710479791963736414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_146
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 292
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b4725a41d85a0f50800000000000000
+      internalID: 6848383839288587441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_147
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 291
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03a16b11b346509e0800000000000000
+      internalID: -1655807083125794256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_148
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 300
+        width: 138
+        height: 121
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a37c49fb9e722e80800000000000000
+      internalID: -8204856362748054624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_149
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 291
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccb41bb92e8f73010800000000000000
+      internalID: 1168676280484318156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_150
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 291
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff71936acb2bcc840800000000000000
+      internalID: 5245764189292140543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_151
+      rect:
+        serializedVersion: 2
+        x: 1155
+        y: 291
+        width: 137
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01a9a087a222c1510800000000000000
+      internalID: 1521128339942316560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_152
+      rect:
+        serializedVersion: 2
+        x: 1304
+        y: 291
+        width: 128
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ced7fb059c738d8c0800000000000000
+      internalID: -3974365333371781652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_153
+      rect:
+        serializedVersion: 2
+        x: 1462
+        y: 291
+        width: 99
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e2d5f5bd82a218c0800000000000000
+      internalID: -4029979987016297754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_154
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 294
+        width: 138
+        height: 133
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19466c59094ae8b90800000000000000
+      internalID: -7237666610242755439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_155
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 294
+        width: 138
+        height: 133
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6807dca3f7bc27a0800000000000000
+      internalID: -6400538713195607956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_156
+      rect:
+        serializedVersion: 2
+        x: 1875
+        y: 292
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b5f1cf6fedfbf5e0800000000000000
+      internalID: -1874625615055686215
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_157
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 147
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f97ef25eb709d4e0800000000000000
+      internalID: -1956524049098180104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_158
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 147
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b98c4044ab1383cc0800000000000000
+      internalID: -3731177615201613669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_159
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 147
+        width: 137
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a7b9302b923d15b0800000000000000
+      internalID: -5396101136678013021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_160
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 155
+        width: 138
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dcebc391997515b0800000000000000
+      internalID: -5398274912176837419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_161
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 147
+        width: 60
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85779710830d74130800000000000000
+      internalID: 3551035770166409048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_162
+      rect:
+        serializedVersion: 2
+        x: 732
+        y: 147
+        width: 119
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28642646de2bb1d30800000000000000
+      internalID: 4403309793345947266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_163
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 147
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6251573de66f6ca50800000000000000
+      internalID: 6541186464656725286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_164
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 147
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1536d7172b83eb9e0800000000000000
+      internalID: -1603782078237940911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_165
+      rect:
+        serializedVersion: 2
+        x: 1162
+        y: 147
+        width: 124
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6bc34b3fe239f450800000000000000
+      internalID: 6122981171459771242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_166
+      rect:
+        serializedVersion: 2
+        x: 1299
+        y: 149
+        width: 138
+        height: 135
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b263862c1cd89450800000000000000
+      internalID: 6095864109109306036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_167
+      rect:
+        serializedVersion: 2
+        x: 1443
+        y: 147
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed308a8ca2905a960800000000000000
+      internalID: 7612500824499422174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_168
+      rect:
+        serializedVersion: 2
+        x: 1587
+        y: 147
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 834b5aa9515d60bb0800000000000000
+      internalID: -4970050849991183304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_169
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 150
+        width: 138
+        height: 133
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f83ad97c4ad9138a0800000000000000
+      internalID: -6327102670429641841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_170
+      rect:
+        serializedVersion: 2
+        x: 1875
+        y: 147
+        width: 138
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 446c539501fc7bc50800000000000000
+      internalID: 6681036241350542916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_171
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 4
+        width: 138
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1dae683faf1fbb60800000000000000
+      internalID: 7763959120036539674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_172
+      rect:
+        serializedVersion: 2
+        x: 154
+        y: 3
+        width: 124
+        height: 138
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64d8a42ca9e3ff680800000000000000
+      internalID: -8719181519160439482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: place_0_173
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 11
+        width: 138
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21b576fe710b9bab0800000000000000
+      internalID: -4991765095116219630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      place_0_0: -8773158256194198503
+      place_0_1: -370581864251329894
+      place_0_10: -8854454572280707205
+      place_0_100: 2133890948369839164
+      place_0_101: -2279729498354753458
+      place_0_102: 2853003980994043761
+      place_0_103: -8143097963370315127
+      place_0_104: 5197362911269393202
+      place_0_105: 6378588647290748545
+      place_0_106: -433322016543186661
+      place_0_107: -5568693445114771943
+      place_0_108: 693700970249086552
+      place_0_109: -5649315759238643411
+      place_0_11: -4236399435755689068
+      place_0_110: -1306540019276263847
+      place_0_111: 781543807451087515
+      place_0_112: -4903003673038138302
+      place_0_113: -4277170873677899737
+      place_0_114: 1553079235886978268
+      place_0_115: 8975577945470884953
+      place_0_116: -5727760964115442996
+      place_0_117: 435738378171055610
+      place_0_118: 6133168689146021094
+      place_0_119: -8192308838231645924
+      place_0_12: 4159997746125114038
+      place_0_120: 4230407992844338709
+      place_0_121: 4633981463187439791
+      place_0_122: -5954954693046590141
+      place_0_123: -3632327771623048205
+      place_0_124: 1775522126794743670
+      place_0_125: 2221562461070340570
+      place_0_126: 293553793492955237
+      place_0_127: -3755333829222020492
+      place_0_128: 8113191189463236398
+      place_0_129: 4394056956781195329
+      place_0_13: -7089684329320062369
+      place_0_130: -2526069004060765627
+      place_0_131: 3374272433909120716
+      place_0_132: 8563718008246580903
+      place_0_133: -8893652454157047703
+      place_0_134: 1220083828260803496
+      place_0_135: 5223236583000789024
+      place_0_136: -6295377895113191150
+      place_0_137: 3087135397200734518
+      place_0_138: -5985782842566423430
+      place_0_139: 1189984190524994650
+      place_0_14: -8699203622679443447
+      place_0_140: -2261550501981524933
+      place_0_141: -4528421619257442116
+      place_0_142: 5672822730037751217
+      place_0_143: 8394286739564978242
+      place_0_144: 6687550322888130478
+      place_0_145: -6710479791963736414
+      place_0_146: 6848383839288587441
+      place_0_147: -1655807083125794256
+      place_0_148: -8204856362748054624
+      place_0_149: 1168676280484318156
+      place_0_15: 8064353827877908227
+      place_0_150: 5245764189292140543
+      place_0_151: 1521128339942316560
+      place_0_152: -3974365333371781652
+      place_0_153: -4029979987016297754
+      place_0_154: -7237666610242755439
+      place_0_155: -6400538713195607956
+      place_0_156: -1874625615055686215
+      place_0_157: -1956524049098180104
+      place_0_158: -3731177615201613669
+      place_0_159: -5396101136678013021
+      place_0_16: -3110665322658646421
+      place_0_160: -5398274912176837419
+      place_0_161: 3551035770166409048
+      place_0_162: 4403309793345947266
+      place_0_163: 6541186464656725286
+      place_0_164: -1603782078237940911
+      place_0_165: 6122981171459771242
+      place_0_166: 6095864109109306036
+      place_0_167: 7612500824499422174
+      place_0_168: -4970050849991183304
+      place_0_169: -6327102670429641841
+      place_0_17: 465076180404555549
+      place_0_170: 6681036241350542916
+      place_0_171: 7763959120036539674
+      place_0_172: -8719181519160439482
+      place_0_173: -4991765095116219630
+      place_0_18: 8979181385004366094
+      place_0_19: 5503047474529238529
+      place_0_2: -6353176171502163767
+      place_0_20: 1404061111223594101
+      place_0_21: 5640300799798735694
+      place_0_22: 4356310088191281350
+      place_0_23: -2833849273453876797
+      place_0_24: -971770107053253278
+      place_0_25: -8822769156890092793
+      place_0_26: 6230521664298653492
+      place_0_27: 6328767149318860462
+      place_0_28: -9179138564633178264
+      place_0_29: -6205855033041421017
+      place_0_3: 1206966473707943952
+      place_0_30: -3742570366518828848
+      place_0_31: 3299457193111892939
+      place_0_32: -6203158215858495962
+      place_0_33: 4551703949282415013
+      place_0_34: -4744815717150646689
+      place_0_35: 7863061000559652670
+      place_0_36: 9101718435961169574
+      place_0_37: -2006217032086725025
+      place_0_38: 3251133057863494460
+      place_0_39: -5509693529255110991
+      place_0_4: 2221871492483763563
+      place_0_40: -591723542788685743
+      place_0_41: -8268433260368715900
+      place_0_42: 519064762950650641
+      place_0_43: 1207358723277668016
+      place_0_44: -7773861853919271733
+      place_0_45: 1285142402884215485
+      place_0_46: 8031495243011864539
+      place_0_47: 8487865295109548707
+      place_0_48: 8174018156116514037
+      place_0_49: 3488511611516274066
+      place_0_5: -3224238154222084585
+      place_0_50: 3860689946455162032
+      place_0_51: 2917478736924080852
+      place_0_52: -3613482173114851327
+      place_0_53: -5660719862504365435
+      place_0_54: 3165204709204522342
+      place_0_55: 9185751906101141556
+      place_0_56: -5382499618180063233
+      place_0_57: 7932513007726122646
+      place_0_58: -2594248367988615311
+      place_0_59: -4362356219256500867
+      place_0_6: 4405735452028781929
+      place_0_60: -6667315753501028372
+      place_0_61: -5483110159966206676
+      place_0_62: -6292152951717671553
+      place_0_63: 7843423787464482719
+      place_0_64: -6581263498646562363
+      place_0_65: -3838843510384363954
+      place_0_66: -3156373980940952546
+      place_0_67: 3926620376127269191
+      place_0_68: -9003220971152758246
+      place_0_69: -3026317027175932789
+      place_0_7: -6618091150076718277
+      place_0_70: 6981062145238148330
+      place_0_71: -2673763534422408510
+      place_0_72: -965135363593572591
+      place_0_73: 5857512978156816881
+      place_0_74: 5239780746828336053
+      place_0_75: 5154011983140709699
+      place_0_76: 689432441696909830
+      place_0_77: -9193904438998125414
+      place_0_78: 7930309165779044783
+      place_0_79: -418193375258559543
+      place_0_8: -5088885337884598772
+      place_0_80: -6233051332626075309
+      place_0_81: -8797919212424100343
+      place_0_82: -7544468919204170468
+      place_0_83: 896116360767992115
+      place_0_84: 1540450793586617863
+      place_0_85: 2184962429244603111
+      place_0_86: 8583888083867318346
+      place_0_87: 8289098031706004333
+      place_0_88: -3308198210912952032
+      place_0_89: 3203517376059964093
+      place_0_9: -674624149632417890
+      place_0_90: 3360409020950581914
+      place_0_91: -2579895281008331722
+      place_0_92: -3341408422237333887
+      place_0_93: 2142678275762396767
+      place_0_94: -523707657114650833
+      place_0_95: 5655119734276826977
+      place_0_96: -7435047013332953220
+      place_0_97: -2857719896788924427
+      place_0_98: -6672308075227131304
+      place_0_99: -1592936861801932768
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

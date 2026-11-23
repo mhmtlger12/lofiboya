@@ -297,8 +297,8 @@ namespace LofiBoya
             string s = scene == 0 ? _book.CoverScene : _book.Scenes[scene - 1];
             StoryArt.PaintAsync(s, 1024, 768, this, tex =>
             {
-                // yerini aldığı önizleme (kitaplıktan gelen küçük kapak) bırakılır; basılı sayfa onu artık kullanmıyor
-                if (_art.TryGetValue(scene, out var old) && old != null && old != tex) Destroy(old);
+                // yerini aldığı önizleme (kitaplıktan gelen küçük kapak) geçiş solması bitince bırakılır
+                if (_art.TryGetValue(scene, out var old) && old != null && old != tex) Destroy(old, 0.3f);
                 _art[scene] = tex;
                 // bu resmi kullanan sayfalar yeniden basılsın (kapak sahnesi hem kapakta hem son sayfada)
                 if (scene == 0) { MarkStale(0); MarkStale(_count - 1); }
@@ -507,16 +507,24 @@ namespace LofiBoya
             if (_celebrated) return;
             _celebrated = true;
             bool first = !_book.Read;
+            Stats.Add("book");
             Confetti.Burst(_root, first ? 40 : 22);
             if (first)
             {
                 Sfx.Win();
                 _book.Read = true;
                 SaveSystem.Stars++;
-                Stats.Add("book");
                 Tween.Delay(0.6f, () => { Sfx.Star(); Popup.Toast(Loc.T("book_star")); });
+                int read = Books.ReadCount;
+                foreach (var (_, need, _) in PuffyStickers.BookPuffies)
+                    if (need == read)
+                        Tween.Delay(2.6f, () => { if (this == null) return; Sfx.Star(); Popup.Toast(Loc.T("puffy_new")); });
             }
-            else Sfx.Clap();
+            else
+            {
+                PlayerPrefs.Save();
+                Sfx.Clap();
+            }
             // Pofuduk sol alttan gelip sevinir
             Tween.Delay(0.9f, () =>
             {
@@ -599,8 +607,13 @@ namespace LofiBoya
         {
             if (e.dragging || _mode != Mode.Idle) return;
             var p = Local(e);
-            // önce resimdeki karakterler: dokunulan bir şey varsa sayfa çevrilmez
-            if (_cur >= 1 && _cur <= _book.Pages && Touch(p)) return;
+            // hikaye sayfasında resim kutusu içine dokunmak yalnızca resmi tetikler:
+            // küçük parmak balığı/karakteri biraz ıskalasa bile sayfa yanlışlıkla çevrilmez
+            if (_cur >= 1 && _cur <= _book.Pages)
+            {
+                var uv = ToArt(p);
+                if (uv.x >= 0 && uv.x <= 1 && uv.y >= 0 && uv.y <= 1) { Touch(p); return; }
+            }
             if (p.x > _pageW * 0.6f) AutoTurn(+1);
             else if (p.x < _pageW * 0.4f) AutoTurn(-1);
         }
@@ -874,7 +887,7 @@ namespace LofiBoya
             public void OnPointerDown(PointerEventData e) => Target.OnPointerDown(e);
 
             public string A11yText => Target.PageSpeech();
-            public bool A11yAvailable => Target != null && Target._mode == Mode.Idle;
+            public bool A11yAvailable => Target != null;
             public void A11yActivate() => Target.AutoTurn(+1);
         }
     }

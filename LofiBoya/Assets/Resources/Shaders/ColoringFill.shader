@@ -65,6 +65,7 @@ Shader "LofiBoya/ColoringFill"
 
             sampler2D _MainTex, _RegionTex, _ColorTex, _PaintTex, _StrokeTex;
             float _ColorRows, _FillRegion, _FillRadius, _HintRegion, _StrokeMode;
+            float _LofiCalm;   // genel değer (Motion): 1 = sakin mod, simli/gökkuşağı/ipucu kıpırdamaz
             float4 _TexSize, _FillCenter, _FillColor, _HintColor, _ClipRect, _StrokeColor;
 
             // ---- Sihirli boyalar (MagicPaint.cs ile aynı hesap) ----
@@ -76,7 +77,7 @@ Shader "LofiBoya/ColoringFill"
             }
             float3 Magic(float3 c, float style, float2 px)
             {
-                float t = _Time.y;
+                float t = _Time.y * (1.0 - _LofiCalm);
                 if (style < 1.5) // simli
                 {
                     float2 cell = floor(px / 6.0);
@@ -150,7 +151,7 @@ Shader "LofiBoya/ColoringFill"
                 // İpucu: boyanmamış bölge yumuşakça parlar
                 if (abs(id - _HintRegion) < 0.5)
                 {
-                    float p = 0.5 + 0.5 * sin(_Time.y * 6.0);
+                    float p = lerp(0.5 + 0.5 * sin(_Time.y * 6.0), 0.7, _LofiCalm);
                     c.rgb = lerp(c.rgb, _HintColor.rgb, 0.25 + 0.45 * p);
                 }
 

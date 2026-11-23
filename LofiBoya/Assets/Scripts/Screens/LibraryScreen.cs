@@ -13,8 +13,11 @@ namespace LofiBoya
         enum Filter { All, Little, Big, Bedtime }
 
         readonly Dictionary<string, Texture2D> _covers = new();   // çizilen kapaklar: filtre değişince yeniden çizilmez
+        readonly HashSet<string> _painting = new();               // kuyrukta/boyanmakta olanlar: çift istek gitmesin
+        readonly Dictionary<string, (RawImage art, GameObject wait)> _slots = new();
         static Texture2D _wood;
         static Filter _filter;   // ekrana dönünce seçili raf hatırlansın
+        ScrollRect _scroll;
         RectTransform _content;
         GridLayoutGroup _grid;
         readonly List<(Filter f, Image face, Text label)> _chips = new();
@@ -50,6 +53,7 @@ namespace LofiBoya
             // kaydırılabilir raf
             var scrollRt = UIKit.Node("Scroll", root).Stretch(20, 486, 20, 0);
             var sr = scrollRt.gameObject.AddComponent<ScrollRect>();
+            _scroll = sr;
             sr.horizontal = false;
             sr.movementType = ScrollRect.MovementType.Elastic;
             sr.scrollSensitivity = 40;
@@ -90,6 +94,11 @@ namespace LofiBoya
                 _filter = f;
                 Haptics.Light();
                 Fill();
+                if (_scroll != null)
+                {
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(_content);
+                    _scroll.verticalNormalizedPosition = 1f;
+                }
             }, 0.5f, false);
             var face = b.transform.Find("Face").GetComponent<Image>();
             var t = UIKit.ButtonText(b);
@@ -110,6 +119,7 @@ namespace LofiBoya
         void Fill()
         {
             _width = App.I.CanvasWidth;
+            _slots.Clear();
             foreach (var (f, face, label) in _chips)
             {
                 bool on = f == _filter;
@@ -139,8 +149,14 @@ namespace LofiBoya
                 return Books.All.IndexOf(a).CompareTo(Books.All.IndexOf(b));
             });
             for (int i = 0; i < list.Count; i++) Card(_content, list[i], cellW, i, cols);
-            // rafın son gözünde Pofuduk oturur
+            // rafın son gözünde Pofuduk oturur; satır yarım kalırsa boş raf tahtasıyla tamamlanır
             Puffy(_content, cellW, list.Count, cols);
+            int total = list.Count + 1;
+            while (total % cols != 0)
+            {
+                Shelf(UIKit.Node("Empty", _content), cellW, total, cols);
+                total++;
+            }
         }
 
         void Update()
@@ -189,10 +205,11 @@ namespace LofiBoya
             var tail = UIKit.Box(bub.transform, "Tail", Color.white, UIKit.Circle);
             tail.type = Image.Type.Simple;
             tail.rectTransform.Place(new Vector2(0.5f, 0f), new Vector2(0, -12), new Vector2(40, 40));
-            var t = UIKit.Label(bub.transform, Loc.T("library_buddy"), 36, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var t = UIKit.Label(bub.transform, "", 36, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             t.rectTransform.Stretch(18, 10, 18, 14);
-            Fit(t, 22, 36);
             t.lineSpacing = 0.9f;
+            if (Loc.IsArabic) BookPages.ArabicFit(t, Loc.T("library_buddy"), 36, 22);
+            else { Fit(t, 22, 36); t.text = Loc.T("library_buddy"); }
             brt.gameObject.AddComponent<Floaty>().Init(6f, 0.7f);
             Tween.Pop(brt, 0.4f + Mathf.Min(index, 8) * 0.04f);
             Tween.Pop(mrt, 0.3f + Mathf.Min(index, 8) * 0.04f);
@@ -253,26 +270,28 @@ namespace LofiBoya
                 art.rectTransform.Stretch(8, 8, 8, 8);
                 var wait = UIKit.Box(mat.transform, "Wait", Theme.Lavender.WithAlpha(0.3f), UIKit.Rounded, 2f);
                 wait.rectTransform.Stretch(8, 8, 8, 8);
-                StoryArt.PaintAsync(book.CoverScene, 480, 360, this, tex =>
+                _slots[id] = (art, wait.gameObject);
+                if (_painting.Add(id))
                 {
-                    if (_covers.TryGetValue(id, out var old) && old != null) Destroy(old);
-                    _covers[id] = tex;
-                    if (art == null) return;   // filtre değişti, bu kart yok: kapak yine de saklandı
-                    art.texture = tex;
-                    if (wait != null) Destroy(wait.gameObject);
-                    Tween.To(art, 0.35f, k => art.color = Color.white.WithAlpha(k));
-                });
+                    StoryArt.PaintAsync(book.CoverScene, 480, 360, this, tex =>
+                    {
+                        _painting.Remove(id);
+                        if (_covers.TryGetValue(id, out var old) && old != null) Destroy(old);
+                        _covers[id] = tex;
+                        if (!_slots.TryGetValue(id, out var slot) || slot.art == null) return;
+                        slot.art.texture = tex;
+                        if (slot.wait != null) Destroy(slot.wait);
+                        Tween.To(slot.art, 0.35f, k => slot.art.color = Color.white.WithAlpha(k));
+                    });
+                }
             }
 
             // başlık
-            var title = UIKit.Label(face.transform, book.Title, 40, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var title = UIKit.Label(face.transform, "", 40, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Stretch(30, ph + 44, 14, 16);
-            title.horizontalOverflow = HorizontalWrapMode.Wrap;
-            title.verticalOverflow = VerticalWrapMode.Truncate;
-            title.resizeTextForBestFit = true;
-            title.resizeTextMinSize = 22;
-            title.resizeTextMaxSize = 40;
             title.lineSpacing = 0.85f;
+            if (Loc.IsArabic) BookPages.ArabicFit(title, book.Title, 40, 22);
+            else { Fit(title, 22, 40); title.text = book.Title; }
             var tsh = title.gameObject.AddComponent<Shadow>();
             tsh.effectColor = Color.Lerp(c, Theme.Text, 0.5f).WithAlpha(0.6f);
             tsh.effectDistance = new Vector2(0, -3);

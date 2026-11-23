@@ -19,7 +19,7 @@ namespace LofiBoya
     /// </summary>
     public partial class LearnScreen : MonoBehaviour, IScreen
     {
-        enum Mode { Menu, Colors, Animals, Shapes, Count, Feelings, Trace, Letters, Patterns, Memory, Opposites, Sequence, Shadows, Seasons }
+        enum Mode { Menu, Colors, Animals, Shapes, Count, Feelings, Trace, Letters, Patterns, Memory, Opposites, Sequence, Shadows, Seasons, Sort }
 
         Mode _mode = Mode.Menu;
         RectTransform _root, _area;
@@ -172,12 +172,14 @@ namespace LofiBoya
 
             MoreMenuCards();
             ConceptMenuCards();
+            EmojiMenuCards();
         }
 
-        // Menü: 13 oyun, 3 sütun × 5 satır (son satırda tek kart ortada). Kartlar kaydırılan alanın içindedir;
+        // Menü: 13 oyun + Ayır + Çıkartma Dünyası = 15 kart, 3 sütun × 5 satır. Kartlar kaydırılan alanın içindedir;
         // boyları ekrana göre ayarlanır: uzun ekranda hepsi sığar, kısa ekranda biraz kayar.
         const float MenuTop = 390f, MenuPad = 24f;
-        const int MenuCards = 13, MenuRows = 5;
+        static int MenuCards => Emoji.Available ? 15 : 13;
+        const int MenuRows = 5;
         float _cardH = 316f, _rowStep = 344f;
         RectTransform _menuGrid;
 
@@ -278,7 +280,8 @@ namespace LofiBoya
             _recorded = false;
             _promptVoice = null;
             int r = _roundNo++;
-            if (_mode == Mode.Colors) ColorRound();
+            bool emoji = Emoji.Available;
+            if (_mode == Mode.Colors) { if (emoji && r % 2 == 1) ColorThingRound(); else ColorRound(); }
             else if (_mode == Mode.Shapes) { if (r % 2 == 0) ShapeRound(); else SizeRound(); }
             else if (_mode == Mode.Count) CountDispatch();
             else if (_mode == Mode.Feelings) { int k = r % (SaveSystem.AgeBand == 0 ? 2 : 3); if (k == 0) FeelingsRound(); else if (k == 1) SituationRound(); else ActionRound(); }
@@ -288,7 +291,8 @@ namespace LofiBoya
             else if (_mode == Mode.Memory) MemoryRound();
             else if (_mode == Mode.Opposites) OppositeRound();
             else if (_mode == Mode.Sequence) SequenceRound();
-            else if (_mode == Mode.Shadows) ShadowRound();
+            else if (_mode == Mode.Shadows) { if (emoji && r % 2 == 1) EmojiShadowRound(); else ShadowRound(); }
+            else if (_mode == Mode.Sort) SortRound();
             else if (_mode == Mode.Seasons) SeasonRound();
             else { if (r % 2 == 0 || !ClassifyRound()) AnimalRound(); }
             Tween.Pop(_prompt.rectTransform, 0.05f, 0.4f);
@@ -910,9 +914,11 @@ namespace LofiBoya
             do n = Random.Range(1, max + 1); while (n == _countAnswer && max > 1);
             _countAnswer = n;
             int kind = Random.Range(0, 4);
-            _promptVoice = Loc.T("count_q_" + kind);
+            // çoğu turda gerçek nesneler (meyveler, hayvanlar, taşıtlar…); bazen eski kalp/yıldız/çiçek/balon
+            string emo = CountEmoji();
+            _promptVoice = emo != null ? Loc.T("count_q_any") : Loc.T("count_q_" + kind);
             _prompt.text = _promptVoice;
-            var color = CountColor();
+            var color = emo != null ? Color.white : CountColor();
 
             // nesneleri 4x3 ızgaraya karışık yerleştir (üst üste binmesin)
             var board = UIKit.Card(_area, "Board", Theme.Card.WithAlpha(0.85f), 0.6f, 4f);
@@ -931,8 +937,9 @@ namespace LofiBoya
             spots.Sort((a, b) => Mathf.Abs(a.y - b.y) > 60 ? b.y.CompareTo(a.y) : a.x.CompareTo(b.x));
             for (int i = 0; i < n; i++)
             {
-                var item = UIKit.Box(board.transform, "Item", color, CountSprite(kind));
+                var item = UIKit.Box(board.transform, "Item", color, emo != null ? Emoji.Get(emo) : CountSprite(kind));
                 item.type = Image.Type.Simple;
+                item.preserveAspect = true;
                 item.raycastTarget = false;
                 var irt = item.rectTransform;
                 irt.anchorMin = irt.anchorMax = new Vector2(0.5f, 0.5f);
@@ -1004,6 +1011,7 @@ namespace LofiBoya
             Mode.Count => "counting", Mode.Feelings => "feelings", Mode.Letters => "letters",
             Mode.Patterns => "patterns", Mode.Memory => "memory",
             Mode.Opposites => "opposites", Mode.Sequence => "sequence", Mode.Shadows => "shadows", Mode.Seasons => "seasons",
+            Mode.Sort => "sorting",
             _ => "trace",
         };
 
@@ -1047,6 +1055,7 @@ namespace LofiBoya
         void OnDestroy()
         {
             foreach (var t in _textures) if (t) Destroy(t);
+            Emoji.Unload();   // atlasları bırak
         }
     }
 }

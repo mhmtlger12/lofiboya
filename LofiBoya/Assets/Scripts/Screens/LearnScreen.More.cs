@@ -697,6 +697,8 @@ namespace LofiBoya
             _prompt.text = Loc.T("memory_q");
 
             var sprites = new List<Sprite> { Art.Heart, Art.Star5, Art.Flower, Art.Balloon, Art.Shape("circle"), Art.Shape("triangle"), Art.Shape("square") };
+            // çoğu turda gerçek nesneler: aynı kategoriden (meyveler, hayvanlar, taşıtlar…) farklı resimler
+            var deck = MemoryDeck(pairs);
             var colors = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7 };
             var sOrder = new List<int> { 0, 1, 2, 3, 4, 5, 6 };
             Shuffle(sOrder);
@@ -715,12 +717,14 @@ namespace LofiBoya
                 holder.Place(new Vector2(0.5f, 0.5f), new Vector2(-w * 0.5f + cw * 0.5f + c * (cw + gx), -80 + h * 0.5f - ch * 0.5f - r * (ch + gy)), new Vector2(cw, ch));
                 var front = UIKit.Card(holder, "Front", Color.white, 0.5f, 4f);
                 ((RectTransform)front.transform.parent).Stretch();
-                var icon = UIKit.Box(front.transform, "Icon", Names.Basic[colors[kind]].color, sprites[sOrder[kind]]);
+                var icon = UIKit.Box(front.transform, "Icon", deck != null ? Color.white : Names.Basic[colors[kind]].color,
+                    deck != null ? Emoji.Get(deck[kind]) : sprites[sOrder[kind]]);
                 icon.type = Image.Type.Simple;
                 icon.preserveAspect = true;
                 icon.raycastTarget = false;
-                icon.rectTransform.Stretch(cw * 0.18f, ch * 0.2f, cw * 0.18f, ch * 0.2f);
-                ColorMarks.AddBasic(front.rectTransform, colors[kind], 54, 0.14f);
+                float pad = deck != null ? 0.12f : 0.18f;
+                icon.rectTransform.Stretch(cw * pad, ch * pad, cw * pad, ch * pad);
+                if (deck == null) ColorMarks.AddBasic(front.rectTransform, colors[kind], 54, 0.14f);
                 var back = UIKit.Card(holder, "Back", Theme.Lavender, 0.5f, 4f);
                 ((RectTransform)back.transform.parent).Stretch();
                 var star = UIKit.Box(back.transform, "Star", Color.white.WithAlpha(0.85f), Art.Star5);
@@ -736,8 +740,8 @@ namespace LofiBoya
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => MemoryTap(mc));
                 int cardNo = i + 1;
-                string colorName = Names.Basic[colors[kind]].name;
-                A11y.Label(b, () => mc.Open || mc.Done ? Loc.T("a11y_card", cardNo) + ", " + colorName : Loc.T("a11y_card", cardNo));
+                string colorName = deck != null ? null : Names.Basic[colors[kind]].name;
+                A11y.Label(b, () => (mc.Open || mc.Done) && colorName != null ? Loc.T("a11y_card", cardNo) + ", " + colorName : Loc.T("a11y_card", cardNo));
                 holder.localScale = Vector3.zero;
                 Tween.Pop(holder, 0.05f + i * 0.05f, 0.4f);
             }

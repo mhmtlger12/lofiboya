@@ -29,6 +29,45 @@ puffy_dreamer|Sweet dreams|Tatlı rüyalar|Süße Träume|Beaux rêves|Dulces su
 puffy_storyteller|Storyteller|Masalcı|Geschichtenerzähler|Conteur|Cuentacuentos|Cantastorie|Contador de histórias|Сказочник|راوي القصص|कहानीकार
 rep_l_books|stories read|hikaye okundu|Geschichten gelesen|histoires lues|cuentos leídos|storie lette|histórias lidas|сказок прочитано|قصص مقروءة|कहानियाँ पढ़ीं
 
+# ---------------- Emoji oyunları ----------------
+count_q_any|How many are there?|Kaç tane var?|Wie viele sind es?|Il y en a combien ?|¿Cuántos hay?|Quanti ce ne sono?|Quantos há?|Сколько их?|كم عددها؟|कितने हैं?
+find_thing|Find the {0} one!|{0} olanı bul!|Finde etwas in {0}!|Trouve l'objet {0} !|¡Encuentra el objeto {0}!|Trova l'oggetto {0}!|Encontra o objeto {0}!|Найди {0} предмет!|ابحث عن شيء {0}!|{0} रंग वाली चीज़ ढूँढो!
+sorting|Sorting|Ayır|Sortieren|Trier|Ordenar|Smistare|Separar|Сортировка|الفرز|छाँटो
+sorting_sub|put it in the right place|doğru yere koy|ab an den richtigen Ort|range au bon endroit|ponlo en su sitio|mettilo al posto giusto|põe no sítio certo|положи на место|ضعه في مكانه|सही जगह रखो
+sort_q|Where does it go?|Nereye gider?|Wohin gehört das?|Où va-t-il ?|¿Dónde va?|Dove va?|Para onde vai?|Куда это положить?|أين يذهب؟|यह कहाँ जाएगा?
+sort_fruit|Fruit|Meyve|Obst|Fruit|Fruta|Frutta|Fruta|Фрукт|فاكهة|फल
+sort_veg|Vegetable|Sebze|Gemüse|Légume|Verdura|Verdura|Legume|Овощ|خضار|सब्ज़ी
+sort_land|Land|Kara|Land|Terre|Tierra|Terra|Terra|Земля|البر|ज़मीन
+sort_water|Water|Su|Wasser|Eau|Agua|Acqua|Água|Вода|الماء|पानी
+sort_sky|Sky|Gökyüzü|Himmel|Ciel|Cielo|Cielo|Céu|Небо|السماء|आसमान
+tip_sorting|Sort the shopping together: fruit in one bowl, vegetables in another.|Alışverişi birlikte ayırın: meyveler bir kaba, sebzeler başka bir kaba.|Sortiert den Einkauf zusammen: Obst in eine Schale, Gemüse in eine andere.|Rangez les courses ensemble : les fruits dans un bol, les légumes dans un autre.|Ordenad la compra juntos: la fruta en un bol y la verdura en otro.|Sistemate la spesa insieme: la frutta in una ciotola, la verdura in un'altra.|Arrumem as compras juntos: a fruta numa taça, os legumes noutra.|Разберите покупки вместе: фрукты в одну миску, овощи в другую.|رتّبوا المشتريات معًا: الفاكهة في وعاء والخضار في آخر.|मिलकर सामान छाँटें: फल एक कटोरे में, सब्ज़ियाँ दूसरे में।
+world|Sticker World|Çıkartma Dünyası|Stickerwelt|Monde des autocollants|Mundo de pegatinas|Mondo di adesivi|Mundo de autocolantes|Мир наклеек|عالم الملصقات|स्टिकर की दुनिया
+world_sub|make your own scene|kendi sahneni yap|bau deine Szene|crée ta scène|crea tu escena|crea la tua scena|cria a tua cena|создай свою сцену|اصنع مشهدك|अपना दृश्य बनाओ
+world_hint|Tap a sticker to add it!|Eklemek için bir çıkartmaya dokun!|Tippe auf einen Sticker!|Touche un autocollant pour l'ajouter !|¡Toca una pegatina para añadirla!|Tocca un adesivo per aggiungerlo!|Toca num autocolante para o pôr!|Нажми на наклейку, чтобы добавить!|المس ملصقًا لإضافته!|जोड़ने के लिए स्टिकर छुओ!
+world_clear_q|Remove all stickers?|Bütün çıkartmalar kalksın mı?|Alle Sticker entfernen?|Enlever tous les autocollants ?|¿Quitar todas las pegatinas?|Togliere tutti gli adesivi?|Tirar todos os autocolantes?|Убрать все наклейки?|إزالة كل الملصقات؟|सारे स्टिकर हटाएँ?
+world_clear_msg|Your scene will be empty again.|Sahnen yeniden boş olacak.|Deine Szene ist dann wieder leer.|Ta scène sera de nouveau vide.|Tu escena quedará vacía.|La tua scena tornerà vuota.|A tua cena fica vazia outra vez.|Сцена снова станет пустой.|سيصبح مشهدك فارغًا من جديد.|तुम्हारा दृश्य फिर से खाली हो जाएगा।
+a11y_bigger|Bigger|Büyüt|Größer|Plus grand|Más grande|Più grande|Maior|Больше|أكبر|बड़ा करो
+a11y_smaller|Smaller|Küçült|Kleiner|Plus petit|Más pequeño|Più piccolo|Menor|Меньше|أصغر|छोटा करो
+a11y_delete|Remove|Kaldır|Entfernen|Enlever|Quitar|Togli|Tirar|Убрать|إزالة|हटाओ
+a11y_flip|Flip|Çevir|Spiegeln|Retourner|Voltear|Rifletti|Virar|Отразить|اقلب|पलटो
+a11y_scene|Change background|Arka planı değiştir|Hintergrund wechseln|Changer le décor|Cambiar el fondo|Cambia lo sfondo|Mudar o fundo|Сменить фон|غيّر الخلفية|पृष्ठभूमि बदलो
+a11y_world_clear|Start over|Baştan başla|Neu anfangen|Recommencer|Empezar de nuevo|Ricomincia|Recomeçar|Начать заново|ابدأ من جديد|फिर से शुरू करो
+a11y_save|Save to photos|Galeriye kaydet|In Fotos speichern|Enregistrer dans les photos|Guardar en fotos|Salva nelle foto|Guardar nas fotos|Сохранить в фото|احفظ في الصور|फ़ोटो में सहेजो
+cat_fruit|Fruit|Meyveler|Obst|Fruits|Frutas|Frutta|Frutas|Фрукты|فواكه|फल
+cat_veg|Vegetables|Sebzeler|Gemüse|Légumes|Verduras|Verdure|Legumes|Овощи|خضار|सब्ज़ियाँ
+cat_food|Food|Yiyecekler|Essen|Nourriture|Comida|Cibo|Comida|Еда|طعام|खाना
+cat_animal|Animals|Hayvanlar|Tiere|Animaux|Animales|Animali|Animais|Животные|حيوانات|जानवर
+cat_animalface|Animal faces|Hayvan yüzleri|Tiergesichter|Têtes d'animaux|Caras de animales|Musi di animali|Caras de animais|Мордочки|وجوه حيوانات|जानवरों के चेहरे
+cat_wild|Nature friends|Doğa dostları|Naturfreunde|Amis de la nature|Amigos de la naturaleza|Amici della natura|Amigos da natureza|Друзья природы|أصدقاء الطبيعة|प्रकृति के दोस्त
+cat_nature|Nature and seasons|Doğa ve mevsimler|Natur und Jahreszeiten|Nature et saisons|Naturaleza y estaciones|Natura e stagioni|Natureza e estações|Природа и времена года|الطبيعة والفصول|प्रकृति और मौसम
+cat_vehicle|Vehicles|Taşıtlar|Fahrzeuge|Véhicules|Vehículos|Veicoli|Veículos|Транспорт|مركبات|गाड़ियाँ
+cat_place|Places|Yerler|Orte|Lieux|Lugares|Luoghi|Lugares|Места|أماكن|जगहें
+cat_play|Toys and sports|Oyun ve spor|Spiel und Sport|Jeux et sports|Juegos y deportes|Giochi e sport|Jogos e desporto|Игры и спорт|ألعاب ورياضة|खेल
+cat_object|Things|Eşyalar|Dinge|Objets|Cosas|Oggetti|Objetos|Вещи|أشياء|चीज़ें
+cat_face|Faces|Yüzler|Gesichter|Visages|Caras|Facce|Caras|Лица|وجوه|चेहरे
+cat_people|People|İnsanlar|Menschen|Personnes|Personas|Persone|Pessoas|Люди|أشخاص|लोग
+cat_symbol|Shapes and signs|Şekiller ve işaretler|Formen und Zeichen|Formes et signes|Formas y señales|Forme e segni|Formas e sinais|Фигуры и знаки|أشكال وعلامات|आकार और चिह्न
+
 # ---------------- Tavşan ile Kaplumbağa (Ezop) ----------------
 bk_hare_t|The Hare and the Tortoise|Tavşan ile Kaplumbağa|Der Hase und die Schildkröte|Le Lièvre et la Tortue|La liebre y la tortuga|La lepre e la tartaruga|A Lebre e a Tartaruga|Заяц и Черепаха|الأرنب والسلحفاة|खरगोश और कछुआ
 bk_hare_1|Hare could run very fast. 'Who wants to race me?' he asked.|Tavşan çok hızlı koşardı. 'Benimle kim yarışır?' diye sordu.|Der Hase war sehr schnell. „Wer läuft mit mir um die Wette?“, fragte er.|Le lièvre courait très vite. « Qui veut faire la course avec moi ? » demanda-t-il.|La liebre corría muy rápido. —¿Quién quiere echar una carrera? —preguntó.|La lepre correva velocissima. «Chi vuole fare una gara con me?» chiese.|A lebre corria muito depressa. – Quem quer correr comigo? – perguntou.|Заяц бегал очень быстро. «Кто со мной наперегонки?» — спросил он.|كان الأرنب سريعًا جدًا. سأل: من يسابقني؟|खरगोश बहुत तेज़ दौड़ता था। उसने पूछा, मुझसे दौड़ कौन लगाएगा?

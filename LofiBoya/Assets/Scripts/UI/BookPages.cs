@@ -138,14 +138,16 @@ namespace LofiBoya
             return lbl;
         }
 
-        static void ArabicFit(Text t, string text, int max)
+        /// <summary>Arapçada satırları genişliğe göre kendimiz bölüp kutuya sığdırır (ters satır sırasını önler).</summary>
+        public static void ArabicFit(Text t, string text, int max, int min = -1)
         {
             var box = t.rectTransform.rect;
+            if (box.width <= 1f || box.height <= 1f) { t.text = text; return; }
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             t.verticalOverflow = VerticalWrapMode.Overflow;
             t.resizeTextForBestFit = false;
             var font = t.font;
-            int min = Mathf.Max(24, max / 2);
+            if (min < 0) min = Mathf.Max(24, max / 2);
             string best = text;
             int bestSize = min;
             for (int s = max; s >= min; s -= 2)
@@ -285,6 +287,17 @@ namespace LofiBoya
             {
                 var r = Raw(mat.transform, "Art", art, Color.white);
                 r.rectTransform.Stretch(22, 22, 22, 22);
+            }
+            else
+            {
+                var ph = UIKit.Box(mat.transform, "Wait", Theme.Lavender.WithAlpha(0.35f), UIKit.Rounded, 1.2f);
+                ph.rectTransform.Stretch(22, 22, 22, 22);
+                for (int i = 0; i < 3; i++)
+                {
+                    var d = UIKit.Box(ph.transform, "Dot", Theme.Lavender, UIKit.Circle);
+                    d.type = Image.Type.Simple;
+                    d.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2((i - 1) * 60, 0), new Vector2(34, 34));
+                }
             }
 
             // yaş etiketi

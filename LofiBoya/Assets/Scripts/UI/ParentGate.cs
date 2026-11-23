@@ -211,14 +211,14 @@ namespace LofiBoya
             int pic = Stats.Week("pic"), min = Mathf.RoundToInt(Stats.Week("sec") / 60f), days = Stats.ActiveDays();
             int lastPic = Stats.Week("pic", 1), lastMin = Mathf.RoundToInt(Stats.Week("sec", 1) / 60f);
             int books = Stats.Week("book"), lastBooks = Stats.Week("book", 1);
-            bool hasLast = lastPic + lastMin > 0;
+            bool hasLast = lastPic + lastMin + lastBooks > 0;
 
-            string[] titles = { "colors", "pictures", "shapes", "counting", "feelings_game", "trace", "letters", "patterns", "memory", "opposites", "sequence", "shadows", "seasons" };
+            string[] titles = { "colors", "pictures", "shapes", "counting", "feelings_game", "trace", "letters", "patterns", "memory", "opposites", "sequence", "shadows", "seasons", "sorting" };
             Color[] colors =
             {
                 Theme.Accent, Theme.Mint, Theme.Lavender, Theme.Butter, Theme.Sky, Theme.Hex("FFCBA4"),
                 Theme.Hex("F5C6E0"), Theme.Hex("CDEBB5"), Theme.Hex("EBD9C4"),
-                Theme.Hex("FFD6C9"), Theme.Hex("D8F0C8"), Theme.Hex("DCD6F7"), Theme.Hex("CFE8F7"),
+                Theme.Hex("FFD6C9"), Theme.Hex("D8F0C8"), Theme.Hex("DCD6F7"), Theme.Hex("CFE8F7"), Theme.Hex("FFE7B8"),
             };
             // ok/total: turun ilk cevabı (deneme-yanılma sayılmaz). Yazma ve hafızada oran yok: total = -1, ok = tamamlanan.
             var games = new System.Collections.Generic.List<(int i, int ok, int total)>();
@@ -289,6 +289,7 @@ namespace LofiBoya
             {
                 var l = UIKit.Label(parent, s, size, c, a, f);
                 l.horizontalOverflow = HorizontalWrapMode.Wrap;
+                l.verticalOverflow = VerticalWrapMode.Truncate;
                 l.resizeTextForBestFit = true;
                 l.resizeTextMinSize = Mathf.Min(20, size);
                 l.resizeTextMaxSize = size;
@@ -380,7 +381,7 @@ namespace LofiBoya
                 {
                     "counting" or "letters" => k,
                     "opposites" => Names.Cap(Loc.T("w_" + k.Replace("opp_", ""))),
-                    "seasons" => Names.Cap(Loc.T(k)),
+                    "seasons" or "sorting" => Names.Cap(Loc.T(k)),
                     _ => Names.Cap(Names.Word(k).name),
                 };
                 var box = UIKit.Box(At(content, 0, y, 820, 130), "Confused", Theme.Accent.WithAlpha(0.22f), null, 0.6f);

@@ -359,3 +359,75 @@ Bu düzen dağınık görünüyordu.
   - Book Dash (CC BY 4.0): https://bookdash.org/books/
   - Global Storybooks (karışık; bir kısmı CC BY-NC): https://global-asp.github.io/
 - Masallar: Ezop ve H. C. Andersen (kamu malı), Küçük Kırmızı Tavuk (halk masalı). Metinler yeniden yazıldı.
+
+---
+
+## 13. İnceleme sonrası yapılanlar (2. tur)
+
+Başka bir yapay zekânın incelemesindeki maddeler tek tek kodda doğrulandı ve uygulandı. Her madde Unity'de Play modunda test edildi; konsolda hata yok.
+
+**Sayfa çevirme hissi**
+- **Eşik:** Tek sayfada `Progress`, sağ kenardan sırta kadar 0.5 olur. İleri çevirme eşiği 0.40 → **0.22** yapıldı (sayfanın ~%44'ü), geri çevirme eşiği 0.60 → **0.72**.
+  - Fiske eşiği 0.9 sayfa/sn'ye indi ve yalnızca son 80 ms içinde hızlıysa sayılıyor.
+  - Test: sağ kenardan sayfanın yarısına sürükleyip bırakınca sayfa döndü.
+- **İpucu sırasında dokunma:** "Beni çevir" animasyonu sırasında parmak gelince animasyon hemen biter, sürükleme parmağa geçer.
+- **Yön kilidi:** Sayfanın sağ %30'undan tutmak her zaman ileri, sol %30'undan tutmak her zaman geri çevirir; ilk karedeki titreme yönü belirlemez. Yön imkânsızsa (kapakta geri gibi) ters yön denenir.
+- **Sırt:** Kat çizgisinin πR/2 kayması, sırtın iki köşesinin kata uzaklığıyla sınırlandı. Kâğıt hiçbir açıda ciltten kalkmaz.
+
+**Android / erişilebilirlik / metin**
+- **Arka plandan dönüş:** `OnApplicationPause(false)` ve `OnApplicationFocus(true)` tüm sayfaları yeniden basılacak işaretler. `Update` de `!IsCreated()` olan sayfayı yeniden basar.
+- **TalkBack:** Sayfa alanı artık `IA11yAction`.
+  - Odaklanınca kapakta başlığı, sayfada metni, sonda "Son"u söyler; çift dokunuş sonraki sayfaya geçer.
+  - Kapak ve "Son" sayfasında da `Announce` çağrılıyor.
+- **Best Fit taşması:** Best Fit kullanan tüm yeni yazılarda `Wrap` + `Truncate` açıldı: menü kutucukları, Başla, kitaplık başlık/alt yazı/yaş etiketi, okuma ekranı başlığı ve butonları.
+- **Arapça satır sırası:** Hikaye metni, kapak başlığı ve son sayfa başlığı Arapçada kelime kelime ölçülüp (bitişik harflerle) `\n` ile satırlara bölünüyor. `ArabicShaper` satır satır şekillendirdiği için sıra doğru.
+  - Test: Arapça uzun sayfada cümlenin başı ilk satırda.
+
+**İçerik**
+- **Kurbağa 4. sayfa:** Bir boş nilüfer kaldırıldı. Şimdi tam 4 nilüfer var (biri kurbağanın altında).
+- **Uğur böceği:** 7. benek (0.085, 0.385) konumuna taşındı, diğer beneklerle çakışmıyor.
+- **Ayıcık:** 3. sayfa artık odada geçiyor (baykuş pencerede, yıldızlar pencerede). 4. sayfadaki yıldızlar oda yerine pencerede; 5. sayfadaki fazladan ay kaldırıldı.
+- **Kedinin Hediyesi:** 3. sayfada kedinin yanında çiçekler var.
+- **Köpekçik:** 5. sayfada mumlar üflenmiş (fitil + duman). `cake` için `sleep` bayrağı söndürülmüş mum anlamına gelir.
+- **Hintçe:**
+  - `चूज़े/भूरा` → `बत्तख के बच्चे/स्लेटी`
+  - `बलूत` → `मेवे`
+- **Arapça:**
+  - Gri yavru baştan sona dişil (البطّة الرمادية).
+  - `برطمان` → `وعاء من العسل`
+- **Fransızca yaş etiketi:** "3 ans +" → "dès 3 ans".
+
+**Performans ve bellek**
+- **Izgara:** `PageCurl.Version` eklendi. Izgara karede bir kez hesaplanıyor, beş katman aynı sonucu kullanıyor.
+- **Alt Canvas:** Kitap `UIKit.SubCanvas` içinde; sayfa kıvrılırken ekranın geri kalanı yeniden kurulmuyor.
+- **RenderTexture:** Mipmap kapatıldı.
+  - **Derinlik tamponu tamamen kaldırılamadı:** URP Render Graph derinliği olmayan hedefe çizmeyi reddetti ("Fake or uninitialized surface"). Bu yüzden 24 → **16 bit** yapıldı.
+- **Resim kuyruğu:** `StoryArt.PaintAsync` artık sıraya alıyor, aynı anda en çok 2 resim boyuyor. Sırası gelmeden ekran kapanırsa resim hiç başlamıyor.
+- **Kâğıt arkası dokusu:** Döşeniyor (6×8.5), bulanıklık gitti.
+- **Deniz altı ışık huzmeleri:** Dar sınır kutusu kullanıyor.
+- **Kitaplık:** Tablet döndürülünce (genişlik değişince) yeniden diziliyor.
+
+**Tasarım dokunuşları**
+- **Kitaplık:**
+  - Rafın son gözünde oturan Pofuduk: "Bugün hangi masalı okuyalım?"
+  - Filtre şeridi: Tümü · 3+ · 5+ · Uyku vakti. Uyku kitapları: ayıcık, ay, salyangoz, kirpi.
+  - Kapaklar önbellekte tutuluyor, filtre değişince yeniden çizilmiyor.
+- **Anında açılış:** Kitaplıkta çizilmiş kapak kitaba devrediliyor. Kitap beklemeden açılıyor, büyük resim gelince netleşiyor.
+- **Kapak ve iç kapak:**
+  - Kapak sayfasında üstteki başlık gizli, içeride yavaşça beliriyor.
+  - Kapağın arkası "iç kapak": kapak renginin açık pastel tonu, baskı izi yok.
+- **Kitap detayları:** Alttan sarkan saten kurdele ayraç. İlerleme noktalarının sonuncusu yıldız.
+- **Dokunulabilir resimler:**
+  - Karaktere dokununca kalpler fışkırıyor ve kıkırdama sesi çıkıyor; nesnelere dokununca yıldızlar fışkırıyor ve "pop" sesi çıkıyor. Hareket azaltmada sade bir parıltı.
+  - Sayma kitabında (`Books.Book.Counts`) dokunulan her öğenin üstünde sıradaki sayı beliriyor; hepsi sayılınca konfeti ve alkış.
+  - Dokunulan bir şey varsa sayfa çevrilmez; boş yere dokunmak sayfayı çevirir.
+- **"Son" sayfası:**
+  - Pofuduk sol alttan gelip "Ne güzel bir hikayeydi!" diyor.
+  - Tekrar okuyunca da kutlama oluyor (küçük konfeti + alkış); yıldız yalnızca ilk okuyuşta.
+- **Çıkartma albümü:** Hikaye okudukça açılan 3 Pofuduk:
+  - Kitap kurdu (1 kitap)
+  - Tatlı rüyalar (5 kitap)
+  - Masalcı (21 kitap, taçlı)
+- **Ebeveyn raporu:** "Okunan hikaye" kutusu eklendi (`Stats.Add("book")`, yalnızca ilk okuyuşta).
+
+**Ayrıca düzeltilen eski hata:** `ColoringCanvas` her açılışta `EnhancedTouchSupport.Enable()` çağırıyor, hiç `Disable()` çağırmıyordu. Domain reload kapalı Play'den çıkarken bu `ArgumentOutOfRangeException` veriyordu. Artık `OnDisable` içinde eşleniyor.

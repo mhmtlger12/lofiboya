@@ -40,8 +40,35 @@ namespace LofiBoya
             var sub = UIKit.Label(root, done == 0 ? Loc.T("stickers_none") : Loc.T("stickers_count", done, all.Count), 42, Theme.TextSoft);
             sub.rectTransform.Band(true, 60, 305);
 
+            // Çıkartma Dünyası: bütün emojileri kendi sahnesine yapıştırma
+            float top = 390;
+            if (Emoji.Available)
+            {
+                var world = UIKit.Button(root, Loc.T("world"), Theme.Hex("C9E6FF"), Theme.Text, 50, () => App.I.ShowStickerWorld());
+                var wrt = (RectTransform)world.transform;
+                wrt.Band(true, 130, 385, 60);
+                var wt = UIKit.ButtonText(world);
+                wt.rectTransform.Stretch(160, 0, 160, 4);
+                wt.horizontalOverflow = HorizontalWrapMode.Wrap;
+                wt.verticalOverflow = VerticalWrapMode.Truncate;
+                wt.resizeTextForBestFit = true;
+                wt.resizeTextMinSize = 28;
+                wt.resizeTextMaxSize = 50;
+                var face = world.transform.Find("Face");
+                foreach (var (id, x, rot) in new[] { ("animal/rabbit", 80f, 8f), ("nature/sun_with_face", -80f, -8f) })
+                {
+                    var img = Emoji.Image(face, id, 100);
+                    img.raycastTarget = false;
+                    img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(x > 0 ? 0 : 1, 0.5f);
+                    img.rectTransform.anchoredPosition = new Vector2(x, 0);
+                    img.rectTransform.localRotation = Quaternion.Euler(0, 0, rot);
+                }
+                Tween.Pop(wrt, 0.1f);
+                top = 530;
+            }
+
             // Kaydırılabilir ızgara
-            var scrollRt = UIKit.Node("Scroll", root).Stretch(30, 390, 30, 30);
+            var scrollRt = UIKit.Node("Scroll", root).Stretch(30, top, 30, 30);
             var sr = scrollRt.gameObject.AddComponent<ScrollRect>();
             sr.horizontal = false;
             sr.movementType = ScrollRect.MovementType.Elastic;
@@ -138,7 +165,8 @@ namespace LofiBoya
                 var face = UIKit.Box(holder, "Slot", Theme.Text.WithAlpha(0.06f), null, 0.45f);
                 face.rectTransform.Stretch();
             }
-            var m = Mascot.Create(holder, 200, false);
+            var inner = UIKit.Node("Inner", holder).Stretch();
+            var m = Mascot.Create(inner, 200, false);
             m.SetMood(mood);
             if (i == 2) m.SetHat(MascotHat.Crown);
             var mrt = (RectTransform)m.transform;
@@ -147,7 +175,7 @@ namespace LofiBoya
             // kucağında açık kitap; rüya Pofuduğunun başında yıldızlar
             if (i != 1)
             {
-                var book = UIKit.Box(holder, "Book", Theme.Hex("8E7CC3"), BookPages.BookIcon);
+                var book = UIKit.Box(inner, "Book", Theme.Hex("8E7CC3"), BookPages.BookIcon);
                 book.type = Image.Type.Simple;
                 book.preserveAspect = true;
                 book.rectTransform.Place(new Vector2(0.5f, 0.38f), new Vector2(0, -52), new Vector2(110, 110));
@@ -156,7 +184,7 @@ namespace LofiBoya
             {
                 foreach (var (x, y, sz) in new[] { (-70f, 92f, 44f), (62f, 104f, 34f), (8f, 124f, 26f) })
                 {
-                    var st = UIKit.Box(holder, "Star", Theme.Hex("FFC93C"), Art.Star5);
+                    var st = UIKit.Box(inner, "Star", Theme.Hex("FFC93C"), Art.Star5);
                     st.type = Image.Type.Simple;
                     st.rectTransform.Place(new Vector2(0.5f, 0.38f), new Vector2(x, y), new Vector2(sz, sz));
                 }
@@ -164,7 +192,7 @@ namespace LofiBoya
             if (!open)
             {
                 m.SetInteractive(false);
-                holder.gameObject.AddComponent<CanvasGroup>().alpha = 0.3f;
+                inner.gameObject.AddComponent<CanvasGroup>().alpha = 0.25f;
             }
             string label = open ? Loc.T(name) : Loc.T("books_more", need - have);
             var l = UIKit.Label(cell, label, 30, open ? Theme.Text : Theme.TextSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -310,6 +338,7 @@ namespace LofiBoya
         void OnDestroy()
         {
             foreach (var t in _textures) if (t) Destroy(t);
+            Emoji.Unload();
         }
     }
 }

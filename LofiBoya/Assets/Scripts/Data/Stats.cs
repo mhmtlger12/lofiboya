@@ -11,7 +11,7 @@ namespace LofiBoya
     /// </summary>
     public static class Stats
     {
-        public static readonly string[] Games = { "colors", "pictures", "shapes", "counting", "feelings", "trace", "letters", "patterns", "memory", "opposites", "sequence", "shadows", "seasons" };
+        public static readonly string[] Games = { "colors", "pictures", "shapes", "counting", "feelings", "trace", "letters", "patterns", "memory", "opposites", "sequence", "shadows", "seasons", "sorting" };
 
         /// <summary>Doğruluk oranı anlamsız olan oyunlar: yalnızca kaç kez tamamlandığı raporlanır.</summary>
         public static bool IsDoneGame(string game) => game == "trace" || game == "memory";
@@ -85,7 +85,7 @@ namespace LofiBoya
             if (last > 0 && DateTime.TryParseExact(last.ToString(), "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var lastDay))
                 from = Mathf.Clamp((int)(today - lastDay).TotalDays + Keep, Keep, 120);
 
-            var fields = new System.Collections.Generic.List<string> { "pic", "sec" };
+            var fields = new System.Collections.Generic.List<string> { "pic", "sec", "book" };
             foreach (var g in Games) { fields.Add(g + "_ok"); fields.Add(g + "_no"); fields.Add(g + "_done"); }
             var cf = PlayerPrefs.GetString("cf_list", "").Split(',');
             foreach (var id in cf) if (id.Length > 0) fields.Add("cf_" + id);
