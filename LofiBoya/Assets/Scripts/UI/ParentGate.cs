@@ -185,7 +185,7 @@ namespace LofiBoya
             info.resizeTextForBestFit = true;
             info.resizeTextMinSize = 22;
             info.resizeTextMaxSize = 32;
-            var ok = UIKit.Button(card.transform, Loc.T("ok"), Theme.AccentButton, Color.white, 50, close);
+            var ok = UIKit.Button(card.transform, Loc.T("ok"), Theme.AccentButton, Color.white, 50, () => { close(); Settings(); });   // Tamam: Ayarlara dön (kapıyı yeniden geçmeden)
             var ort = (RectTransform)ok.transform;
             ort.anchorMin = ort.anchorMax = new Vector2(0.5f, 0);
             ort.sizeDelta = new Vector2(360, 130);
@@ -418,7 +418,7 @@ namespace LofiBoya
             var note = Txt(At(content, 0, y, 800, 90), Loc.T("rep_note"), 28, Theme.TextSoft, TextAnchor.MiddleCenter);
             note.rectTransform.Stretch();
 
-            var ok2 = UIKit.Button(card.transform, Loc.T("ok"), Theme.AccentButton, Color.white, 50, close);
+            var ok2 = UIKit.Button(card.transform, Loc.T("ok"), Theme.AccentButton, Color.white, 50, () => { close(); Settings(); });
             var ort = (RectTransform)ok2.transform;
             ort.anchorMin = ort.anchorMax = new Vector2(0.5f, 0);
             ort.sizeDelta = new Vector2(360, 130);

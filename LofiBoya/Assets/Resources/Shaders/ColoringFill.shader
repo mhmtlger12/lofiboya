@@ -75,18 +75,20 @@ Shader "LofiBoya/ColoringFill"
                 float3 k = saturate(abs(frac(h + float3(0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0);
                 return v * lerp(float3(1, 1, 1), k, s);
             }
-            // Sabit renkler sRGB yazıldı; proje Linear renk uzayında: renk dokusu okunurken doğrusala çevrilir,
-            // sabitler de çevrilmeli (yoksa gökkuşağı/yıldız tuvalde küçük resimdekinden soluk görünür).
-            float3 SrgbConst(float3 c)
+            // Proje Linear renk uzayında; MagicPaint.cs (küçük resim / fotoğraf) ise sRGB değerlerle hesaplar.
+            // Karışımlar (lerp 0.75, 0.65, simli parlama) iki tarafta aynı sonucu versin diye desen sRGB'de
+            // hesaplanır, sonuç doğrusala geri çevrilir: tuvaldeki renk ile kaydedilen resim birebir aynı olur.
+            float3 MagicSrgb(float3 c, float style, float2 px);
+            float3 Magic(float3 c, float style, float2 px)
             {
             #ifdef UNITY_COLORSPACE_GAMMA
-                return c;
+                return MagicSrgb(c, style, px);
             #else
-                return GammaToLinearSpace(c);
+                return GammaToLinearSpace(saturate(MagicSrgb(LinearToGammaSpace(c), style, px)));
             #endif
             }
 
-            float3 Magic(float3 c, float style, float2 px)
+            float3 MagicSrgb(float3 c, float style, float2 px)
             {
                 float t = _Time.y * (1.0 - _LofiCalm);
                 if (style < 1.5) // simli
@@ -104,7 +106,7 @@ Shader "LofiBoya/ColoringFill"
                     return col;
                 }
                 if (style < 2.5) // gökkuşağı (yavaşça akar)
-                    return lerp(c, SrgbConst(Hsv((px.x + px.y) / 900.0 + t * 0.03, 0.5, 1.0)), 0.75);
+                    return lerp(c, Hsv((px.x + px.y) / 900.0 + t * 0.03, 0.5, 1.0), 0.75);
                 if (style < 3.5) // puantiye
                 {
                     float gy = px.y / 40.0;
@@ -121,7 +123,7 @@ Shader "LofiBoya/ColoringFill"
                     float a = atan2(f.x, f.y + 1e-6);   // hücre ortasında atan2(0,0) tanımsız (bazı mobil GPU'larda NaN)
                     float rr = 0.30 * (0.45 + 0.55 * pow(abs(cos(a * 2.5)), 3.0));
                     float inside = 1.0 - smoothstep(rr - 0.02, rr + 0.02, length(f));
-                    return lerp(c, lerp(c, SrgbConst(float3(1, 0.95, 0.7)), 0.75), inside);
+                    return lerp(c, lerp(c, float3(1, 0.95, 0.7), 0.75), inside);
                 }
             }
 

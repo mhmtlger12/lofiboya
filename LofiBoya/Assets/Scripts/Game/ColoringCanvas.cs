@@ -64,6 +64,7 @@ namespace LofiBoya
             public Color32 Color;
             public bool WasFilled;
             public RenderTexture Paint;        // kalem/silgi çizgisi öncesi kopya
+            public bool WasStamped;            // Paint ile birlikte: geri alınınca boş resim "boyalı" sayılmasın
             public int BrushedRegion = -1;
             public bool WasBrushed;
             public List<int> Cells;                        // bu çizginin yeni kapladığı ızgara kareleri
@@ -981,6 +982,7 @@ namespace LofiBoya
             FlushStroke();   // bu karede toplanıp henüz basılmamış damgalar
             _stroking = false;
             _strokeUndo.Paint = Paint.Snapshot(); // işlenmeden önceki hâl
+            _strokeUndo.WasStamped = _stamped;
             Paint.Commit(CurrentColor, Tool == Tool.Eraser);
             MatF(IdStrokeMode, 0);
             if (Tool == Tool.Pencil) { ApplyCoverage(); _stamped = true; }
@@ -1035,7 +1037,7 @@ namespace LofiBoya
             var stamps = Art.Stamps;
             var sprite = stamps[Mathf.Clamp(StampIndex, 0, stamps.Length - 1)];
             float rot = UnityEngine.Random.Range(-15f, 15f);
-            var step = new UndoStep { Paint = Paint.Snapshot() };
+            var step = new UndoStep { Paint = Paint.Snapshot(), WasStamped = _stamped };
             Paint.StampShape(uv, StampRadiusPx(), sprite.texture, rot);
             Paint.Commit(CurrentColor, false);
             _stamped = true;
@@ -1081,7 +1083,7 @@ namespace LofiBoya
             CommitAnimation();
             var s = _undo[^1];
             _undo.RemoveAt(_undo.Count - 1);
-            if (s.Paint != null) Paint.Restore(s.Paint);
+            if (s.Paint != null) { Paint.Restore(s.Paint); _stamped = s.WasStamped; }
             if (s.Cleared != null) RestoreCleared(s.Cleared);
             if (s.BrushedRegion > 0 && s.BrushedBefore == null && s.Cells == null) Brushed[s.BrushedRegion] = s.WasBrushed;
             UncoverCells(s.Cells);

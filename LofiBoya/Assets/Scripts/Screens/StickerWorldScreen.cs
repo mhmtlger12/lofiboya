@@ -416,7 +416,12 @@ namespace LofiBoya
             _sceneIndex = w != null ? Mathf.Clamp(w.scene, 0, Scenes.Length - 1) : 0;
             PaintScene();
             if (w != null)
-                foreach (var it in w.items) Add(it.id, it.x, it.y, it.s, it.r, it.f, false);
+                foreach (var it in w.items ?? new List<SavedSticker>())
+                {
+                    // bozuk kayıt: sayı değilse ya da sınır dışıysa çıkartma görünmez/dev olmasın
+                    if (it == null || float.IsNaN(it.x) || float.IsNaN(it.y) || float.IsNaN(it.s)) continue;
+                    Add(it.id, it.x, it.y, Mathf.Clamp(it.s, 0.35f, 3.2f), it.r, it.f, false);
+                }
             UpdateHint();
         }
 

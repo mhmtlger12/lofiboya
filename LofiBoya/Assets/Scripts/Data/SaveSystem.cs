@@ -24,11 +24,13 @@ namespace LofiBoya
     /// <summary>İlerlemeyi cihazda saklar (Application.persistentDataPath/saves).</summary>
     public static class SaveSystem
     {
+        // Yol ana iş parçacığında bir kez alınır: arka plan yazımları Application API'sine dokunmasın.
+        static string _dir;
         static string Dir
         {
             get
             {
-                var d = Path.Combine(Application.persistentDataPath, "saves");
+                var d = _dir ??= Path.Combine(Application.persistentDataPath, "saves");
                 if (!Directory.Exists(d)) Directory.CreateDirectory(d);
                 return d;
             }
@@ -58,6 +60,7 @@ namespace LofiBoya
         /// (hasPaint false ise silinir). background false: hemen, bu iş parçacığında yazılır.</summary>
         public static void SaveAsync(string key, LevelSave save, Color32[] thumb, int tw, int th, Color32[] paint, int pw, int ph, bool background)
         {
+            _ = Dir;   // yolu burada (ana iş parçacığı) hazırla
             var job = new Job { json = JsonUtility.ToJson(save), hasPaint = save.hasPaint, thumb = thumb, tw = tw, th = th, paint = paint, pw = pw, ph = ph };
             if (!background)
             {
@@ -93,9 +96,9 @@ namespace LofiBoya
 
         static void Write(string key, Job j)
         {
-            string jp = JsonPath(key), tp = ThumbPath(key), pp = PaintPath(key);
             try
             {
+                string jp = JsonPath(key), tp = ThumbPath(key), pp = PaintPath(key);
                 if (j.thumb != null) WriteAtomic(tp, Png(j.thumb, j.tw, j.th));
                 if (j.paint != null && j.hasPaint) WriteAtomic(pp, Png(j.paint, j.pw, j.ph));
                 else if (!j.hasPaint && File.Exists(pp)) File.Delete(pp);

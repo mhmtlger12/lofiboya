@@ -71,6 +71,7 @@ namespace LofiBoya
         void ClearArea()
         {
             _areaGen++;
+            _shakeBase.Clear();
             if (_area != null) Destroy(_area.gameObject);
             _area = UIKit.Node("Area", _root).Stretch();
             _area.SetSiblingIndex(1);
@@ -720,11 +721,23 @@ namespace LofiBoya
         }
 
         /// <summary>Yanlış seçeneğin hafifçe sallanması (hareket azaltmada yok).</summary>
+        // Sarsılan kartın asıl yeri: sarsıntı sürerken tekrar dokunulursa kayık konum yeni merkez sayılmasın
+        // (eskiden kart her dokunuşta biraz daha kayıyordu, adı altında eski yerinde kalıyordu).
+        static readonly Dictionary<RectTransform, Vector2> _shakeBase = new();
+
         static void Shake(RectTransform option)
         {
-            if (Motion.Reduced) return;
-            var basePos = option.anchoredPosition;
-            Tween.To(option, 0.4f, k => option.anchoredPosition = basePos + new Vector2(Mathf.Sin(k * Mathf.PI * 6) * 18f * (1 - k), 0));
+            if (Motion.Reduced || option == null) return;
+            if (!_shakeBase.TryGetValue(option, out var basePos)) _shakeBase[option] = basePos = option.anchoredPosition;
+            Tween.To(option, 0.4f, k =>
+            {
+                if (option != null) option.anchoredPosition = basePos + new Vector2(Mathf.Sin(k * Mathf.PI * 6) * 18f * (1 - k), 0);
+            }, done: () =>
+            {
+                // en son başlayan sarsıntı bitince yerine oturur
+                if (option != null) option.anchoredPosition = basePos;
+                _shakeBase.Remove(option);
+            });
         }
 
         /// <summary>
@@ -864,6 +877,8 @@ namespace LofiBoya
         void Answer(bool right, RectTransform option, string name, string sayRight = null, float nextDelay = 2.0f, string key = null)
         {
             if (_locked) return;
+            // zaten yanlış diye işaretlenmiş (solmuş) seçeneğe tekrar dokunmak: istatistik ve ses tekrarlanmasın
+            if (!right && option != null && option.TryGetComponent<CanvasGroup>(out var was) && was.alpha < 0.5f) return;
             Record(right, key);
             _streak = right && !_missed ? _streak + 1 : 0;
             if (right)

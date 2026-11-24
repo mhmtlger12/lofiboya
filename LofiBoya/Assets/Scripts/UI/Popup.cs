@@ -33,6 +33,7 @@ namespace LofiBoya
         /// <summary>Ekranın üstünde 1.6 sn görünen yumuşak bilgi balonu.</summary>
         public static void Toast(string text)
         {
+            if (string.IsNullOrEmpty(text) || App.I == null) return;
             if (_toast != null) UnityEngine.Object.Destroy(_toast);
             var root = App.I.SafeRoot;
             var holder = UIKit.Node("Toast", root);

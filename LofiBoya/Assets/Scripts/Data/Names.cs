@@ -167,7 +167,10 @@ namespace LofiBoya
         /// <summary>Desen sayfaları: "Resimler" öğrenme oyununda birbirine benzediği için sorulmaz.</summary>
         static readonly HashSet<string> PatternKeys = new() { "startiles", "hexflowers", "kilim", "tuliptile", "zenfish", "mandala" };
 
-        public static bool IsScene(string id) { var k = Key(id); return k != null && SceneKeys.Contains(k); }
+        /// <summary>Çoğul adlar: tanıtım cümlesi "Bu bir çiçekler!" olmasın (sahne cümlesi kullanılır). Öğrenme oyunundan çıkarılmaz.</summary>
+        static readonly HashSet<string> PluralKeys = new() { "flowers", "balloons", "instruments" };
+
+        public static bool IsScene(string id) { var k = Key(id); return k != null && (SceneKeys.Contains(k) || PluralKeys.Contains(k)); }
 
         /// <summary>"Resimleri bul" oyununa uygun mu (sahne ve desen değil, tek bir şey).</summary>
         public static bool IsLearnable(string id)

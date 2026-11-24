@@ -69,7 +69,7 @@ namespace LofiBoya
             var tabs = UIKit.Card(root, "Tabs", Theme.Card.WithAlpha(0.9f), 0.5f, 4f);
             var tabsRt = (RectTransform)tabs.transform.parent;
             tabsRt.Band(true, 120, 400, 90);
-            _tabIndicator = UIKit.Box(tabs.transform, "Indicator", Theme.Accent, null, 0.55f).rectTransform;
+            _tabIndicator = UIKit.Box(tabs.transform, "Indicator", Theme.AccentButton, null, 0.55f).rectTransform;
             _tabIndicator.anchorMin = new Vector2(0, 0);
             _tabIndicator.anchorMax = new Vector2(1f / 3f, 1);
             _tabIndicator.offsetMin = new Vector2(10, 10);

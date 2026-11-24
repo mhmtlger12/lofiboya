@@ -40,7 +40,7 @@ namespace LofiBoya
         int _milestone;                 // 0..3: %25 / %50 / %75 söylendi mi
         float _lastActivity, _lastIdlePeek = -999f;
         float _openedAt;
-        static int _prevQueued, _prevVSync = -1, _live;                // boyamadan çıkınca eski kare kuyruğu ayarı                // resim açıldığından beri geçen süre (sürece övgü için)
+        static int _prevQueued = int.MinValue, _prevVSync = -1, _live;                // boyamadan çıkınca eski kare kuyruğu ayarı                // resim açıldığından beri geçen süre (sürece övgü için)
 
         // Sayılı mod (1-5): her bölgenin bir numarası, her numaranın bir rengi var
         bool _numbers;
@@ -585,7 +585,7 @@ namespace LofiBoya
             for (int i = 0; i < _toolButtons.Count; i++)
             {
                 bool on = i == (int)tool;
-                _toolButtons[i].bg.color = on ? Theme.Accent : Color.clear;
+                _toolButtons[i].bg.color = on ? Theme.AccentButton : Color.clear;   // beyaz ikon: en az 3:1 kontrast
                 _toolButtons[i].icon.color = on ? Color.white : Theme.Text;
             }
 
@@ -651,7 +651,7 @@ namespace LofiBoya
             for (int i = 0; i < _paletteButtons.Count; i++)
             {
                 bool on = i == index;
-                _paletteButtons[i].bg.color = on ? Theme.Accent : Theme.Paper;
+                _paletteButtons[i].bg.color = on ? Theme.AccentButton : Theme.Paper;
                 _paletteButtons[i].label.color = on ? Color.white : Theme.Text;
             }
             _boxLabel.text = _numbers ? Loc.T("numbered") : Loc.T("pal_" + index);
@@ -781,7 +781,7 @@ namespace LofiBoya
             if (on && _level.IsBlank) { Popup.Toast(Loc.T("no_numbers_blank")); return; }
             _numbers = on;
             SaveSystem.NumberMode = on;
-            _numBtnBg.color = on ? Theme.Accent : Color.clear;
+            _numBtnBg.color = on ? Theme.AccentButton : Color.clear;
             _numBtnText.color = on ? Color.white : Theme.Text;
             if (on)
             {
@@ -1342,7 +1342,7 @@ namespace LofiBoya
             if (_counted && --_live == 0)
             {
                 Application.targetFrameRate = 60;
-                if (_prevQueued > 0) QualitySettings.maxQueuedFrames = _prevQueued;
+                if (_prevQueued != int.MinValue) QualitySettings.maxQueuedFrames = _prevQueued;
                 if (_prevVSync >= 0) QualitySettings.vSyncCount = _prevVSync;
             }
             foreach (var sp in _previewSprites) if (sp != null) { Destroy(sp.texture); Destroy(sp); }
