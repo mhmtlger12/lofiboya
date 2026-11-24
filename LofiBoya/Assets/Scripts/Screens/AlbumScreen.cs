@@ -15,6 +15,37 @@ namespace LofiBoya
         ScrollRect _scroll;
         readonly List<Texture2D> _textures = new();
 
+        // Küçük resimler açılışta tek karede değil, görünür olanlardan başlayarak karede birkaç tane yüklenir
+        // (çok çizim birikince albüm açılırken takılma olmasın).
+        readonly List<(RectTransform cell, RawImage raw, AspectRatioFitter fit, string key)> _lazy = new();
+        static readonly Vector3[] _corners = new Vector3[4];
+        const int LoadsPerFrame = 3;
+
+        void Update()
+        {
+            if (_lazy.Count == 0 || _scroll == null || _scroll.viewport == null) return;
+            _scroll.viewport.GetWorldCorners(_corners);
+            float vMin = Mathf.Min(_corners[0].y, _corners[2].y), vMax = Mathf.Max(_corners[0].y, _corners[2].y);
+            float margin = (vMax - vMin) * 0.5f;
+            int budget = LoadsPerFrame;
+            for (int i = 0; i < _lazy.Count && budget > 0; i++)
+            {
+                var e = _lazy[i];
+                if (e.cell == null || e.raw == null) { _lazy.RemoveAt(i--); continue; }   // silinmiş kart
+                e.cell.GetWorldCorners(_corners);
+                float cMin = Mathf.Min(_corners[0].y, _corners[2].y), cMax = Mathf.Max(_corners[0].y, _corners[2].y);
+                if (cMax < vMin - margin || cMin > vMax + margin) continue;   // henüz uzakta
+                budget--;
+                _lazy.RemoveAt(i--);
+                var tex = SaveSystem.LoadThumb(e.key);
+                if (tex == null) continue;   // bozuk dosya: kart kâğıt zeminle kalır
+                _textures.Add(tex);
+                e.raw.texture = tex;
+                e.raw.enabled = true;
+                e.fit.aspectRatio = (float)tex.width / tex.height;
+            }
+        }
+
         void Start()
         {
             var root = (RectTransform)transform;
@@ -71,11 +102,9 @@ namespace LofiBoya
                 if (us <= 0) continue;
                 string group = key.Substring(0, us), id = key.Substring(us + 1);
                 if (group != Level.BlankGroup && !Level.GetGroup(group).levels.Exists(l => l.id == id)) continue;
-                var tex = SaveSystem.LoadThumb(key);
-                if (tex == null) continue;
-                _textures.Add(tex);
+                if (!SaveSystem.HasThumb(key)) continue;
                 var cell = UIKit.Node(key, _gridRoot);
-                BuildCard(cell, group, id, tex);
+                BuildCard(cell, group, id, key);
                 if (n < 8) Tween.Pop(cell.GetChild(0), 0.04f * (n + 1), 0.4f);
                 n++;
             }
@@ -131,7 +160,7 @@ namespace LofiBoya
             inner.gameObject.AddComponent<PressFeedback>().pressedScale = 0.95f;
         }
 
-        void BuildCard(RectTransform cell, string group, string id, Texture2D tex)
+        void BuildCard(RectTransform cell, string group, string id, string thumbKey)
         {
             var inner = UIKit.Node("Inner", cell).Stretch();
             // polaroid gibi hafif eğik: duvara asılmış resimler
@@ -144,10 +173,10 @@ namespace LofiBoya
             var photo = UIKit.Node("Photo", photoBg.transform).Stretch(14, 14, 14, 14);
             var raw = photo.gameObject.AddComponent<RawImage>();
             raw.raycastTarget = false;
-            raw.texture = tex;
+            raw.enabled = false;   // resim yüklenince açılır (Update)
             var fit = photo.gameObject.AddComponent<AspectRatioFitter>();
             fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-            fit.aspectRatio = (float)tex.width / tex.height;
+            _lazy.Add((cell, raw, fit, thumbKey));
 
             bool blank = group == Level.BlankGroup;
             var name = UIKit.Label(face.transform, blank ? Loc.T("blank_page") : Names.LevelTitle(id), 36, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);

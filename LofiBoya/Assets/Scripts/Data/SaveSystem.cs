@@ -186,6 +186,13 @@ namespace LofiBoya
             catch (Exception e) { Debug.LogWarning(e.Message); }
         }
 
+        /// <summary>Küçük resim dosyası var mı (çözmeden; liste ekranları resmi sonra tembel yükler).</summary>
+        public static bool HasThumb(string key)
+        {
+            WaitPending(key);
+            return File.Exists(ThumbPath(key));
+        }
+
         public static Texture2D LoadThumb(string key)
         {
             WaitPending(key);

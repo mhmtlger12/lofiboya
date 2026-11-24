@@ -313,6 +313,7 @@ namespace LofiBoya
         {
             if (Level == null) return;
             var vs = Viewport.rect.size;
+            if (vs.x <= 0f || vs.y <= 0f || Level.Width <= 0 || Level.Height <= 0) return;   // düzen henüz hazır değil: boyut gelince yeniden denenir
             _lastViewportSize = vs;
             float s = Mathf.Min(vs.x / Level.Width, vs.y / Level.Height);
             Content.sizeDelta = new Vector2(Level.Width * s, Level.Height * s);
