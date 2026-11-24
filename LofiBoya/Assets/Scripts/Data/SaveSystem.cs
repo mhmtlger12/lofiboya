@@ -43,32 +43,79 @@ namespace LofiBoya
 
         static readonly Dictionary<string, Task> _pending = new();
 
+        /// <summary>Bir resmin henüz yazılmamış en son kaydı. Arka arkaya gelen kayıtlar birleşir:
+        /// yalnızca en günceli yazılır, eski büyük piksel dizileri bellekte birikmez.</summary>
+        class Job
+        {
+            public string json; public bool hasPaint;
+            public Color32[] thumb; public int tw, th;
+            public Color32[] paint; public int pw, ph;
+        }
+        static readonly Dictionary<string, Job> _queued = new();
+        static readonly object _lock = new();
+
         /// <summary>Kayıt: pikseller hazır verilir (doku yok). paint null ise mevcut boya dosyasına dokunulmaz
         /// (hasPaint false ise silinir). background false: hemen, bu iş parçacığında yazılır.</summary>
         public static void SaveAsync(string key, LevelSave save, Color32[] thumb, int tw, int th, Color32[] paint, int pw, int ph, bool background)
         {
-            string json = JsonUtility.ToJson(save);
-            bool hasPaint = save.hasPaint;
-            string jp = JsonPath(key), tp = ThumbPath(key), pp = PaintPath(key);
-            void Work()
-            {
-                try
-                {
-                    File.WriteAllText(jp, json);
-                    if (thumb != null) File.WriteAllBytes(tp, Png(thumb, tw, th));
-                    if (paint != null && hasPaint) File.WriteAllBytes(pp, Png(paint, pw, ph));
-                    else if (!hasPaint && File.Exists(pp)) File.Delete(pp);
-                }
-                catch (Exception e) { Debug.LogWarning($"Kayıt yazılamadı {key}: {e.Message}"); }
-            }
+            var job = new Job { json = JsonUtility.ToJson(save), hasPaint = save.hasPaint, thumb = thumb, tw = tw, th = th, paint = paint, pw = pw, ph = ph };
             if (!background)
             {
                 WaitPending(key);
-                Work();
+                lock (_lock) _queued.Remove(key);
+                Write(key, job);
                 return;
             }
+            lock (_lock)
+            {
+                // henüz yazılmamış bir kayıt varsa yenisiyle birleştir (yenisinde olmayan küçük resim / boya korunur)
+                if (_queued.TryGetValue(key, out var old))
+                {
+                    if (job.thumb == null) { job.thumb = old.thumb; job.tw = old.tw; job.th = old.th; }
+                    if (job.paint == null && job.hasPaint) { job.paint = old.paint; job.pw = old.pw; job.ph = old.ph; }
+                }
+                _queued[key] = job;
+            }
             _pending.TryGetValue(key, out var prev);
-            _pending[key] = prev == null || prev.IsCompleted ? Task.Run(Work) : prev.ContinueWith(_ => Work());
+            _pending[key] = prev == null || prev.IsCompleted ? Task.Run(() => RunQueued(key)) : prev.ContinueWith(_ => RunQueued(key));
+        }
+
+        static void RunQueued(string key)
+        {
+            Job job;
+            lock (_lock)
+            {
+                if (!_queued.TryGetValue(key, out job)) return;   // daha yeni bir görev zaten yazdı
+                _queued.Remove(key);
+            }
+            Write(key, job);
+        }
+
+        static void Write(string key, Job j)
+        {
+            string jp = JsonPath(key), tp = ThumbPath(key), pp = PaintPath(key);
+            try
+            {
+                if (j.thumb != null) WriteAtomic(tp, Png(j.thumb, j.tw, j.th));
+                if (j.paint != null && j.hasPaint) WriteAtomic(pp, Png(j.paint, j.pw, j.ph));
+                else if (!j.hasPaint && File.Exists(pp)) File.Delete(pp);
+                // JSON en son: yarıda kalan bir yazımda eski kayıt + yeni resim olur, bozuk kayıt olmaz
+                WriteAtomic(jp, System.Text.Encoding.UTF8.GetBytes(j.json));
+            }
+            catch (Exception e) { Debug.LogWarning($"Kayıt yazılamadı {key}: {e.Message}"); }
+        }
+
+        /// <summary>Önce geçici dosyaya yazar, sonra yerine taşır: yazma ortasında uygulama kapanırsa eski dosya sağlam kalır.</summary>
+        static void WriteAtomic(string path, byte[] data)
+        {
+            string tmp = path + ".tmp";
+            File.WriteAllBytes(tmp, data);
+            if (File.Exists(path))
+            {
+                try { File.Replace(tmp, path, null); return; }
+                catch (Exception) { File.Delete(path); }   // Replace desteklenmiyorsa: sil + taşı
+            }
+            File.Move(tmp, path);
         }
 
         static byte[] Png(Color32[] px, int w, int h) =>
@@ -111,10 +158,11 @@ namespace LofiBoya
             WaitPending(key);
             try
             {
-                File.WriteAllText(JsonPath(key), JsonUtility.ToJson(save));
-                if (thumb != null) File.WriteAllBytes(ThumbPath(key), thumb.EncodeToPNG());
-                if (paint != null && save.hasPaint) File.WriteAllBytes(PaintPath(key), paint.EncodeToPNG());
+                lock (_lock) _queued.Remove(key);
+                if (thumb != null) WriteAtomic(ThumbPath(key), thumb.EncodeToPNG());
+                if (paint != null && save.hasPaint) WriteAtomic(PaintPath(key), paint.EncodeToPNG());
                 else if (!save.hasPaint && File.Exists(PaintPath(key))) File.Delete(PaintPath(key));
+                WriteAtomic(JsonPath(key), System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(save)));
             }
             catch (Exception e)
             {
@@ -125,6 +173,7 @@ namespace LofiBoya
         public static void Delete(string key)
         {
             WaitPending(key);
+            lock (_lock) _queued.Remove(key);
             try
             {
                 if (File.Exists(JsonPath(key))) File.Delete(JsonPath(key));
@@ -139,8 +188,11 @@ namespace LofiBoya
             WaitPending(key);
             var p = ThumbPath(key);
             if (!File.Exists(p)) return null;
+            byte[] bytes;
+            try { bytes = File.ReadAllBytes(p); }
+            catch (Exception e) { Debug.LogWarning($"Küçük resim okunamadı {key}: {e.Message}"); return null; }
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-            if (tex.LoadImage(File.ReadAllBytes(p), true)) return tex;
+            if (tex.LoadImage(bytes, true)) return tex;
             UnityEngine.Object.Destroy(tex);   // bozuk dosya: boş dokuyu bellekte bırakma
             return null;
         }
@@ -151,8 +203,11 @@ namespace LofiBoya
             WaitPending(key);
             var p = PaintPath(key);
             if (!File.Exists(p)) return null;
+            byte[] bytes;
+            try { bytes = File.ReadAllBytes(p); }
+            catch (Exception e) { Debug.LogWarning($"Boya katmanı okunamadı {key}: {e.Message}"); return null; }
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, false);
-            if (tex.LoadImage(File.ReadAllBytes(p), false)) return tex;
+            if (tex.LoadImage(bytes, false)) return tex;
             UnityEngine.Object.Destroy(tex);
             return null;
         }

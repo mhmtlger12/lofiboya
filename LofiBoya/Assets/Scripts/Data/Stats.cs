@@ -93,6 +93,8 @@ namespace LofiBoya
             for (int d = Keep; d <= from; d++)
             {
                 var day = today.AddDays(-d);
+                // uygulamanın açılmadığı günlerde kayıt yok: binlerce boş DeleteKey çağrısı yapma
+                if (!PlayerPrefs.HasKey(Key(day, "sec")) && !PlayerPrefs.HasKey(Key(day, "pic")) && !PlayerPrefs.HasKey(Key(day, "book"))) continue;
                 foreach (var f in fields) PlayerPrefs.DeleteKey(Key(day, f));
             }
             // son iki haftada hiç görülmeyen karışıklık çiftleri listeden çıkar

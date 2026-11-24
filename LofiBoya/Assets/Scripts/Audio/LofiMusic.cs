@@ -81,13 +81,15 @@ namespace LofiBoya
         readonly double[] _padPhase = new double[8], _padFreq = new double[8];
         double _lp1, _lp2, _hissLp, _crackle, _bassPhase, _kickPhase;
         double _pluckPhase, _pluckFreq, _pluckAmp, _pluckPan;
+        // çanın tam sayı olmayan kısmi sesleri kendi fazlarında sarılır (ortak faz sarılınca her periyotta "tık" oluyordu)
+        double _bellPhase2, _bellPhase3;
         double _rainLp, _rainLp2, _drop, _dropLp;
         double _birdT = 10, _birdPhase, _birdF0, _birdPan, _birdDur, _nextBird = 2;
         int _birdNotes;
         double _waveLp, _waveLp2;
         long _lastEighth = -1;
         double _kickT = 10, _snareT = 10, _hatT = 10, _hatSwing;
-        float _fade;
+        volatile float _fade;   // ana iş parçacığı (Restart) ve ses iş parçacığı birlikte kullanır
 
         public float Volume = 0.55f;
         public string Name => _p.Name;
@@ -161,7 +163,7 @@ namespace LofiBoya
                     _pluckAmp = 0.10 + 0.05 * Rand();
                     _pluckPan = Rand() * 0.6 - 0.3;
                 }
-                if (step == 0 || step == 4 || (step == 5 && Rand() < 0.35)) _kickT = 0;
+                if (step == 0 || step == 4 || (step == 5 && Rand() < 0.35)) { _kickT = 0; _kickPhase = 0; }
                 if (step == 2 || step == 6) _snareT = 0;
                 _hatT = 0;
                 _hatSwing = step % 2 == 1 ? 0.055 : 0;
@@ -173,7 +175,11 @@ namespace LofiBoya
             double pp = _pluckPhase * 2 * Math.PI;
             double ep = Math.Sin(pp) + 0.3 * Math.Sin(2 * pp) * _pluckAmp * 6;
             // müzik kutusu: uyumsuz yüksek kısmi sesler = çan/metal dil
-            double bell = Math.Sin(pp) + 0.4 * Math.Sin(pp * 2.76) + 0.2 * Math.Sin(pp * 5.4);
+            _bellPhase2 += _pluckFreq * 2.76 * dt;
+            if (_bellPhase2 > 1) _bellPhase2 -= 1;
+            _bellPhase3 += _pluckFreq * 5.4 * dt;
+            if (_bellPhase3 > 1) _bellPhase3 -= 1;
+            double bell = Math.Sin(pp) + 0.4 * Math.Sin(_bellPhase2 * 2 * Math.PI) + 0.2 * Math.Sin(_bellPhase3 * 2 * Math.PI);
             double pluck = (ep * (1 - _p.Bell) + bell * _p.Bell * 0.8) * _pluckAmp;
             _pluckAmp *= _p.Bell > 0.5f ? 0.99992 : 0.99988;
 

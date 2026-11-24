@@ -171,7 +171,7 @@ namespace LofiBoya
             {
                 var e = v[j] - v[i];
                 var w = p - v[i];
-                var b = w - e * Mathf.Clamp01(Vector2.Dot(w, e) / Vector2.Dot(e, e));
+                var b = w - e * Mathf.Clamp01(Vector2.Dot(w, e) / Mathf.Max(1e-8f, Vector2.Dot(e, e)));   // yinelenen köşe: 0/0 olmasın
                 d = Mathf.Min(d, Vector2.Dot(b, b));
                 bool c1 = p.y >= v[i].y, c2 = p.y < v[j].y, c3 = e.x * w.y > e.y * w.x;
                 if ((c1 && c2 && c3) || (!c1 && !c2 && !c3)) s = -s;
@@ -232,7 +232,8 @@ namespace LofiBoya
             c.Fill(p => Ellipse(p, 0.43f, 0.56f, 0.06f, 0.012f), new Color(1, 1, 1, 0.35f));
             // kalp süsü
             c.Fill(p => SmoothMin(Circle(p, 0.43f, 0.38f, 0.04f), Circle(p, 0.51f, 0.38f, 0.04f), 0.01f) , Color.white.WithAlpha(0.9f));
-            c.Fill(p => Polygon(p, V(0.395f, 0.37f, 0.545f, 0.37f, 0.47f, 0.29f)), Color.white.WithAlpha(0.9f));
+            var _poly1 = V(0.395f, 0.37f, 0.545f, 0.37f, 0.47f, 0.29f);
+            c.Fill(p => Polygon(p, _poly1), Color.white.WithAlpha(0.9f));
             c.Shine(0.32f, 0.47f, 0.025f, 0.07f, 0.55f);
         }
 
@@ -330,7 +331,8 @@ namespace LofiBoya
         static void Pot(Painter c)
         {
             c.Shadow(0.5f, 0.07f, 0.24f, 0.035f);
-            c.Part(p => Polygon(p, V(0.35f, 0.09f, 0.65f, 0.09f, 0.7f, 0.33f, 0.3f, 0.33f)), Theme.Hex("F4A98A"), Theme.Hex("D9805E"));
+            var _poly2 = V(0.35f, 0.09f, 0.65f, 0.09f, 0.7f, 0.33f, 0.3f, 0.33f);
+            c.Part(p => Polygon(p, _poly2), Theme.Hex("F4A98A"), Theme.Hex("D9805E"));
             c.Part(p => Box(p, 0.5f, 0.35f, 0.23f, 0.045f, 0.025f), Theme.Hex("F4A98A"), Theme.Hex("E08E6C"));
             c.Fill(p => Ellipse(p, 0.5f, 0.395f, 0.19f, 0.022f), Theme.Hex("6F4518"));
             c.Shine(0.39f, 0.22f, 0.018f, 0.06f, 0.45f);
@@ -343,8 +345,10 @@ namespace LofiBoya
                 Pot(c);
                 // toprağın üstünde tohum ve yağmur damlası
                 c.Part(p => EllipseRot(p, 0.5f, 0.43f, 0.035f, 0.024f, 20f), Theme.Hex("C68642"), Theme.Hex("8D5524"));
-                c.Part(p => SmoothMin(Circle(p, 0.62f, 0.62f, 0.035f), Polygon(p, V(0.59f, 0.64f, 0.65f, 0.64f, 0.62f, 0.72f)), 0.01f), Theme.Hex("B9E3FB"), Theme.Hex("7CC4F2"));
-                c.Part(p => SmoothMin(Circle(p, 0.4f, 0.7f, 0.03f), Polygon(p, V(0.375f, 0.72f, 0.425f, 0.72f, 0.4f, 0.79f)), 0.01f), Theme.Hex("B9E3FB"), Theme.Hex("7CC4F2"));
+                var _poly3 = V(0.59f, 0.64f, 0.65f, 0.64f, 0.62f, 0.72f);
+                c.Part(p => SmoothMin(Circle(p, 0.62f, 0.62f, 0.035f), Polygon(p, _poly3), 0.01f), Theme.Hex("B9E3FB"), Theme.Hex("7CC4F2"));
+                var _poly4 = V(0.375f, 0.72f, 0.425f, 0.72f, 0.4f, 0.79f);
+                c.Part(p => SmoothMin(Circle(p, 0.4f, 0.7f, 0.03f), Polygon(p, _poly4), 0.01f), Theme.Hex("B9E3FB"), Theme.Hex("7CC4F2"));
                 return;
             }
             float top = stage == 1 ? 0.56f : 0.66f;
@@ -412,7 +416,8 @@ namespace LofiBoya
             c.Part(p => EllipseRot(p, 0.31f, 0.47f, 0.06f, 0.035f, 30f), Theme.Hex("FFD166"), Theme.Hex("F4B740"));
             c.Part(p => EllipseRot(p, 0.69f, 0.47f, 0.06f, 0.035f, -30f), Theme.Hex("FFD166"), Theme.Hex("F4B740"));
             c.Face(0.5f, 0.56f, 1.1f);
-            c.Part(p => Polygon(p, V(0.47f, 0.5f, 0.53f, 0.5f, 0.5f, 0.465f)), Theme.Hex("FFB38A"), Theme.Hex("F48C5A"));
+            var _poly5 = V(0.47f, 0.5f, 0.53f, 0.5f, 0.5f, 0.465f);
+            c.Part(p => Polygon(p, _poly5), Theme.Hex("FFB38A"), Theme.Hex("F48C5A"));
             c.Part(p => Mathf.Max(EggSdf(p), Zigzag(p, 0.38f)), shellTop, shellBottom);
             c.Part(p => Mathf.Max(EggSdf(new Vector2(p.x, p.y - 0.06f)), -Zigzag(p, 0.69f)), shellTop, shellBottom);
             c.Shine(0.42f, 0.66f, 0.03f, 0.03f, 0.7f);
@@ -467,7 +472,8 @@ namespace LofiBoya
 
         static void Trunk(Painter c, bool branches)
         {
-            c.Part(p => Polygon(p, V(0.45f, 0.12f, 0.55f, 0.12f, 0.53f, 0.5f, 0.47f, 0.5f)), Theme.Hex("B5835A"), Theme.Hex("8D5E3C"));
+            var _poly6 = V(0.45f, 0.12f, 0.55f, 0.12f, 0.53f, 0.5f, 0.47f, 0.5f);
+            c.Part(p => Polygon(p, _poly6), Theme.Hex("B5835A"), Theme.Hex("8D5E3C"));
             if (!branches) return;
             c.Stroke(p => Seg(p, 0.5f, 0.42f, 0.3f, 0.66f, 0.018f), Theme.Hex("A7744E"));
             c.Stroke(p => Seg(p, 0.5f, 0.46f, 0.7f, 0.7f, 0.018f), Theme.Hex("A7744E"));

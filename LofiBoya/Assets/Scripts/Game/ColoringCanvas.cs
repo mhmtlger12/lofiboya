@@ -127,7 +127,7 @@ namespace LofiBoya
                 double part = 0;
                 for (int i = 1; i <= Level.Count; i++)
                 {
-                    if (Filled[i] || Brushed[i]) a += Level.Meta.area[i - 1];
+                    if (Filled[i] || Brushed[i] || IsSkipped(i)) a += Level.Meta.area[i - 1];
                     else if (_regionCells != null && _regionCells[i] > 0)
                         part += Level.Meta.area[i - 1] * Mathf.Clamp01(_coveredCells[i] / (_regionCells[i] * CoverNeeded)) * 0.95;
                 }
@@ -141,7 +141,7 @@ namespace LofiBoya
             get
             {
                 if (Level == null) return false;
-                for (int i = 1; i <= Level.Count; i++) if (!Filled[i]) return false;
+                for (int i = 1; i <= Level.Count; i++) if (!Filled[i] && !IsSkipped(i)) return false;
                 return true;
             }
         }
@@ -152,10 +152,24 @@ namespace LofiBoya
             get
             {
                 if (Level == null) return false;
-                for (int i = 1; i <= Level.Count; i++) if (!Filled[i] && !Brushed[i]) return false;
+                for (int i = 1; i <= Level.Count; i++) if (!Filled[i] && !Brushed[i] && !IsSkipped(i)) return false;
                 return true;
             }
         }
+
+        /// <summary>
+        /// Sayılı modda numara almayan minik bölgeler: bitmiş sayılır ama boyanmaz ve kaydedilmez.
+        /// (Eskiden beyaza boyanıp kalıcı kaydediliyordu; 123'e yanlışlıkla basmak resmin yarısını "boyanmış" yapıyordu.)
+        /// </summary>
+        bool[] _skipped;
+        public bool IsSkipped(int id) => _skipped != null && id < _skipped.Length && _skipped[id];
+        public void SetSkipped(int id, bool on)
+        {
+            if (Level == null) return;
+            if (_skipped == null || _skipped.Length != Level.Count + 1) _skipped = new bool[Level.Count + 1];
+            _skipped[id] = on;
+        }
+        public void ClearSkipped() => _skipped = null;
 
         /// <summary>Çocuk "Bitir"e bastı: minik bölgeler kalsa da resim bitmiş sayılır (galeri rozeti, çıkartma, şapka).</summary>
         public bool MarkedDone { get; set; }
@@ -936,7 +950,9 @@ namespace LofiBoya
             float dist = Vector2.Distance(a, b);
             float spacing = Mathf.Max(0.75f, radius * 0.3f);
             if (dist < spacing) { if (flush) FlushStroke(); return; }
-            int steps = Mathf.Min(400, Mathf.FloorToInt(dist / spacing));
+            int steps = Mathf.FloorToInt(dist / spacing);
+            // çok hızlı çizgide damga sayısı sınırlı: aralığı açarak sonuna kadar yay (eskiden çizgi yarıda kopuyordu)
+            if (steps > 400) { steps = 400; spacing = dist / steps; }
             for (int i = 1; i <= steps; i++)
             {
                 var p = Vector2.Lerp(a, b, i * spacing / dist);
@@ -1105,7 +1121,7 @@ namespace LofiBoya
             int best = -1;
             int bestArea = -1;
             for (int i = 1; i <= Level.Count; i++)
-                if (!Filled[i] && !Brushed[i] && Level.Meta.area[i - 1] > bestArea) { bestArea = Level.Meta.area[i - 1]; best = i; }
+                if (!Filled[i] && !Brushed[i] && !IsSkipped(i) && Level.Meta.area[i - 1] > bestArea) { bestArea = Level.Meta.area[i - 1]; best = i; }
             if (best < 0) return false;
             StopHint();
             _hintRegion = best;

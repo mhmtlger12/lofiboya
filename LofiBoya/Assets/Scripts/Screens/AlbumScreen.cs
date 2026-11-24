@@ -161,6 +161,24 @@ namespace LofiBoya
             btn.transition = Selectable.Transition.None;
             btn.onClick.AddListener(() => { Sfx.Tap(); App.I.ShowColoring(group, id); });
             inner.gameObject.AddComponent<PressFeedback>().pressedScale = 0.95f;
+
+            // serbest çizim silinebilir (onaylı; "vazgeç" renkli ve öne çıkan düğme). Boyama sayfaları kendi ekranında temizlenir.
+            if (blank)
+            {
+                string key = group + "_" + id;
+                var del = UIKit.CircleButton(inner, "×", Theme.Card, Theme.TextSoft, 84, 56, () =>
+                {
+                    Sfx.Tap();
+                    Popup.Confirm(Loc.T("album_del_q"), Loc.T("album_del_msg"), Loc.T("album_del"), Loc.T("clear_no"), true, () =>
+                    {
+                        SaveSystem.Delete(key);
+                        if (raw != null && raw.texture is Texture2D t) { _textures.Remove(t); Destroy(t); }
+                        if (cell != null) Destroy(cell.gameObject);
+                    });
+                });
+                ((RectTransform)del.transform).Place(new Vector2(1, 1), new Vector2(-30, -30), new Vector2(84, 84));
+                A11y.Label(del, Loc.T("album_del"));
+            }
         }
 
         public bool OnBack()

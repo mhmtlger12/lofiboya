@@ -165,6 +165,7 @@ namespace LofiBoya
             {
                 Vector2 a = pts[i - 1], b = pts[i];
                 float len = Vector2.Distance(a, b), t = step - carry;
+                if (len < 1e-5f) continue;   // yinelenen nokta: t / len = 0/0 olmasın
                 while (t <= len)
                 {
                     res.Add(Vector2.Lerp(a, b, t / len));

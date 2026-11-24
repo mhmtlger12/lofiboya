@@ -439,11 +439,19 @@ namespace LofiBoya
         static string Alphabet => Loc.Lang switch
         {
             "tr" => "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ",
-            "ru" => "АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ",
+            "ru" => "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ",
             "ar" => "ابتثجحخدذرزسشصضطظعغفقكلمنهوي",
             "hi" => "अआइईउएओकखगघचछजझटडतथदधनपफबभमयरलवशसह",
             _ => "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         };
+
+        /// <summary>Kelimenin ilk harfi; Arapçada hemzeli elifler (أ إ آ) elif (ا) sayılır.</summary>
+        static char FirstLetter(string word)
+        {
+            char c = word[0];
+            if (Loc.IsArabic && (c == 'أ' || c == 'إ' || c == 'آ')) return 'ا';
+            return c;
+        }
 
         // şekli birbirine benzeyen harfler: küçüklerde aynı turda gösterilmez
         static readonly string[] LetterPairs =
@@ -507,7 +515,7 @@ namespace LofiBoya
             for (int i = 0; i < _animals.Count; i++)
             {
                 var nm = Names.Cap(_animals[i].name);
-                if (!string.IsNullOrEmpty(nm) && ab.IndexOf(nm[0]) >= 0 && !nm.Contains(" ")) pool.Add(i);
+                if (!string.IsNullOrEmpty(nm) && ab.IndexOf(FirstLetter(nm)) >= 0 && !nm.Contains(" ")) pool.Add(i);
             }
             if (pool.Count == 0) { LetterMatchRound(); return; }
             int pi;
@@ -515,7 +523,7 @@ namespace LofiBoya
             _lastTarget = pi;
             var e = _animals[pi];
             string word = Names.Cap(e.name);
-            int target = ab.IndexOf(word[0]);
+            int target = ab.IndexOf(FirstLetter(word));
             _wantKey = ab[target].ToString();
             _prompt.text = Loc.T("letter_first");
 
@@ -537,7 +545,9 @@ namespace LofiBoya
             Tween.Pop(crt, 0.05f, 0.45f);
 
             // doğru bilince kelime ilk harfi renkli yazılır: "Aslan"
-            string reveal = Loc.IsArabic ? word : "<color=#E8697F>" + word.Substring(0, 1) + "</color>" + word.Substring(1);
+            // ilk "harf" tam bir yazı birimi olmalı: Hintçede ünsüz + işaret (हि) birlikte boyanır, yoksa işaret kopar
+            string head = System.Globalization.StringInfo.GetNextTextElement(word);
+            string reveal = Loc.IsArabic ? word : "<color=#E8697F>" + head + "</color>" + word.Substring(head.Length);
             var picks = PickOptions(target, ab.Length, SaveSystem.OptionCount, (a, b) => LetterConfusable(ab, a, b));
             int n = picks.Count;
             float gap = n >= 4 ? 236 : 270;
@@ -718,7 +728,8 @@ namespace LofiBoya
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => MemoryTap(mc));
                 int cardNo = i + 1;
-                string colorName = deck != null ? null : Names.Basic[colors[kind]].name;
+                // açık kartın adı: renk kartında renk; emoji kartında (adlarının çevirisi yok) eşi bulunabilsin diye harf (A, B, C...)
+                string colorName = deck != null ? ((char)('A' + kind)).ToString() : Names.Basic[colors[kind]].name;
                 A11y.Label(b, () => (mc.Open || mc.Done) && colorName != null ? Loc.T("a11y_card", cardNo) + ", " + colorName : Loc.T("a11y_card", cardNo));
                 holder.localScale = Vector3.zero;
                 Tween.Pop(holder, 0.05f + i * 0.05f, 0.4f);
@@ -747,7 +758,7 @@ namespace LofiBoya
             _memFirst = null;
             _memBusy = true;
             bool match = first.Kind == mc.Kind;   // eşleşmeyen çift keşiftir, yanlış sayılmaz
-            Tween.Delay(match ? 0.35f : 1.0f, () =>
+            Later(match ? 0.35f : 1.0f, () =>
             {
                 if (this == null || mc.Rt == null) return;
                 _memBusy = false;
@@ -762,7 +773,7 @@ namespace LofiBoya
                         Stats.Done("memory");
                         Celebrate(_prompt.rectTransform);
                         _prompt.text = Loc.T("memory_done");
-                        Tween.Delay(2.6f, () => { if (this != null && _mode == Mode.Memory) NextRound(); });
+                        Later(2.6f, () => { if (this != null && _mode == Mode.Memory) NextRound(); });
                     }
                 }
                 else

@@ -67,6 +67,9 @@ namespace LofiBoya
         const float CardBottom = 700f, StripY = 633f;
         ScrollRect _crayonScroll;
 
+        bool _counted;
+        Coroutine _progTween;
+
         void Start()
         {
             var root = (RectTransform)transform;
@@ -74,6 +77,7 @@ namespace LofiBoya
             int hz = Mathf.RoundToInt((float)Screen.currentResolution.refreshRateRatio.value);
             Application.targetFrameRate = Mathf.Clamp(hz, 60, 120);
             // ekran kartı en fazla 1 kare önden hazırlasın: parmak ile boya arasındaki gecikme kısalır
+            _counted = true;
             if (_live++ == 0)
             {
                 _prevQueued = QualitySettings.maxQueuedFrames;
@@ -784,7 +788,11 @@ namespace LofiBoya
                 if (_canvas.Tool != Tool.Fill) SelectTool(Tool.Fill, false);
                 BuildNumbers();
             }
-            else if (_numLayer != null) { Destroy(_numLayer.gameObject); _numLayer = null; _numLabels = null; }
+            else
+            {
+                if (_numLayer != null) { Destroy(_numLayer.gameObject); _numLayer = null; _numLabels = null; }
+                _canvas.ClearSkipped();
+            }
             _paletteScroll.gameObject.SetActive(!on);
             _selected = 0;
             SelectPalette(_palette, feedback);
@@ -815,6 +823,7 @@ namespace LofiBoya
             _numLabels = new Text[n + 1];
             int border = _canvas.BorderRegion;
             int count = NumberCount;
+            _canvas.ClearSkipped();
             // önce numarasız bölgeler (arka plan, minik bölgeler) ayrılır
             var numbered = new List<int>();
             for (int i = 1; i <= n; i++)
@@ -823,8 +832,8 @@ namespace LofiBoya
                 if (i == border) continue;
                 if (_canvas.RegionLocalRadius(i) < 14f)
                 {
-                    // parmağın sığmayacağı minik bölgeleri kendimiz boyarız
-                    if (!_canvas.Filled[i]) _canvas.FillSilently(i, Color.white);
+                    // parmağın sığmayacağı minik bölgeler bu modda bitmiş sayılır (boyanmaz; mod kapanınca geri gelir)
+                    if (!_canvas.Filled[i]) _canvas.SetSkipped(i, true);
                     continue;
                 }
                 numbered.Add(i);
@@ -926,7 +935,8 @@ namespace LofiBoya
             }
             RefreshNumberLabels();
             float from = _progressFill.anchorMax.x;
-            Tween.To(_progressFill, 0.35f, k => _progressFill.anchorMax = new Vector2(Mathf.Lerp(from, p, k), 1));
+            Tween.Stop(_progTween);   // hızlı dokunuşta iki animasyon çubuğu çekiştirmesin
+            _progTween = Tween.To(_progressFill, 0.35f, k => _progressFill.anchorMax = new Vector2(Mathf.Lerp(from, p, k), 1));
             SetUndoVisible(_canvas.CanUndo);
 
             // Kartın rengi arka plan bölgesini takip eder: resim kâğıda kenarsız uzanır
@@ -1109,6 +1119,22 @@ namespace LofiBoya
 
         // ================= Kutlama =================
 
+        /// <summary>Bu bitirme yıldız kazandırır mı? Kazandırırsa işaretler.</summary>
+        bool TakeReward()
+        {
+            if (_level.IsBlank)
+            {
+                int day = (int)(System.DateTime.Now.Date - new System.DateTime(2024, 1, 1)).TotalDays;
+                if (PlayerPrefs.GetInt("star_blank_day", -1) == day) return false;
+                PlayerPrefs.SetInt("star_blank_day", day);
+                return true;
+            }
+            string k = "star_" + Id;
+            if (PlayerPrefs.GetInt(k, 0) == 1) return false;
+            PlayerPrefs.SetInt(k, 1);
+            return true;
+        }
+
         void ShowComplete()
         {
             if (_completedShown) return;
@@ -1219,9 +1245,13 @@ namespace LofiBoya
             Tween.Delay(1.4f, () => { if (mascot != null) { mascot.Jump(); mascot.Wave(); } });
             Tween.Delay(2.2f, () => { if (mascot != null) mascot.Jump(); });
 
-            if (first) { SaveSystem.Stars += 3; Stats.Add("pic"); }
+            // yıldız bir resim için yalnızca bir kez (temizleyip yeniden boyamak yıldız kasmasın);
+            // serbest çizimde günde bir kez (boş sayfaya bir nokta koyup "Bitir" sınırsız yıldız vermesin)
+            bool reward = first && TakeReward();
+            if (reward) SaveSystem.Stars += 3;
+            if (first) Stats.Add("pic");   // ebeveyn raporu: bitirilen resim (yıldızdan bağımsız)
             // yeni Pofuduk çıkartması açıldıysa kutlama kartında şapkasıyla haber ver
-            var newHat = first && !_level.IsBlank ? PuffyStickers.UnlockedAt(PuffyStickers.DoneCount()) : MascotHat.None;
+            var newHat = reward && !_level.IsBlank ? PuffyStickers.UnlockedAt(PuffyStickers.DoneCount()) : MascotHat.None;
             if (newHat != MascotHat.None)
             {
                 mascot.SetHat(newHat);
@@ -1308,7 +1338,8 @@ namespace LofiBoya
 
         void OnDestroy()
         {
-            if (--_live == 0)
+            // Start hiç çalışmadan yok edildiyse sayaç düşmesin (eksiye inip ayarları geri yüklemeyi bozardı)
+            if (_counted && --_live == 0)
             {
                 Application.targetFrameRate = 60;
                 if (_prevQueued > 0) QualitySettings.maxQueuedFrames = _prevQueued;

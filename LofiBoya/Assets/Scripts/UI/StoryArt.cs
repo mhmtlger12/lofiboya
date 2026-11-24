@@ -386,7 +386,7 @@ namespace LofiBoya
             {
                 var e = v[j] - v[i];
                 var w = p - v[i];
-                var b = w - e * Mathf.Clamp01(Vector2.Dot(w, e) / Vector2.Dot(e, e));
+                var b = w - e * Mathf.Clamp01(Vector2.Dot(w, e) / Mathf.Max(1e-8f, Vector2.Dot(e, e)));   // yinelenen köşe: 0/0 olmasın
                 d = Mathf.Min(d, Vector2.Dot(b, b));
                 bool c1 = p.y >= v[i].y, c2 = p.y < v[j].y, c3 = e.x * w.y > e.y * w.x;
                 if ((c1 && c2 && c3) || (!c1 && !c2 && !c3)) s = -s;
@@ -477,7 +477,8 @@ namespace LofiBoya
 
         static void Tear(P p, float x, float y, float r)
         {
-            p.Shape(R(x, y, r, r * 1.6f), q => Mathf.Min(Circ(q, x, y, r), Poly(q, new[] { V(x - r * 0.85f, y + r * 0.5f), V(x, y + r * 1.9f), V(x + r * 0.85f, y + r * 0.5f) })),
+            var tip = new[] { V(x - r * 0.85f, y + r * 0.5f), V(x, y + r * 1.9f), V(x + r * 0.85f, y + r * 0.5f) };   // lambda dışında: piksel başına dizi tahsisi olmasın
+            p.Shape(R(x, y, r, r * 1.6f), q => Mathf.Min(Circ(q, x, y, r), Poly(q, tip)),
                 Col("CDEBFF"), Col("8FCBF4"));
         }
 
@@ -1521,7 +1522,8 @@ namespace LofiBoya
 
         static void Lily(P p)
         {
-            Func<Vector2, float> pad = q => Mathf.Max(Ell(q, 0, 0, 0.42f, 0.13f), -Poly(q, new[] { V(0, 0), V(0.5f, 0.1f), V(0.5f, -0.02f) }));
+            var notch = new[] { V(0, 0), V(0.5f, 0.1f), V(0.5f, -0.02f) };
+            Func<Vector2, float> pad = q => Mathf.Max(Ell(q, 0, 0, 0.42f, 0.13f), -Poly(q, notch));
             p.Shape(R(0, 0, 0.44f, 0.15f), pad, Col("9BE38A"), Col("4FA35A"));
             p.Line(-0.3f, 0, 0.0f, 0, 0.01f, A(Col("D9F5C8"), 0.7f));
             p.Gloss(-0.15f, 0.05f, 0.12f, 0.025f, 0.35f);
@@ -1572,7 +1574,8 @@ namespace LofiBoya
                 if (lit)
                 {
                     p.SoftE(x, 0.79f, 0.06f, 0.07f, A(Col("FFE9A0"), 0.6f), 0.04f);
-                    p.Shape(R(x, 0.79f, 0.03f, 0.05f), q => Mathf.Min(Circ(q, x, 0.775f, 0.022f), Poly(q, new[] { V(x - 0.02f, 0.785f), V(x, 0.83f), V(x + 0.02f, 0.785f) })), Col("FFE27A"), Col("FF9F43"), false);
+                    var flame = new[] { V(x - 0.02f, 0.785f), V(x, 0.83f), V(x + 0.02f, 0.785f) };
+                    p.Shape(R(x, 0.79f, 0.03f, 0.05f), q => Mathf.Min(Circ(q, x, 0.775f, 0.022f), Poly(q, flame)), Col("FFE27A"), Col("FF9F43"), false);
                 }
                 else
                 {
@@ -1666,8 +1669,11 @@ namespace LofiBoya
         }
 
         static Func<Vector2, float> HeartSdf(float cx, float cy, float s)
-            => q => Mathf.Min(Mathf.Min(Circ(q, cx - 0.25f * s, cy + 0.12f * s, 0.27f * s), Circ(q, cx + 0.25f * s, cy + 0.12f * s, 0.27f * s)),
-                Poly(q, new[] { V(cx - 0.48f * s, cy + 0.04f * s), V(cx, cy - 0.5f * s), V(cx + 0.48f * s, cy + 0.04f * s), V(cx, cy + 0.15f * s) }));
+        {
+            var tipPoly = new[] { V(cx - 0.48f * s, cy + 0.04f * s), V(cx, cy - 0.5f * s), V(cx + 0.48f * s, cy + 0.04f * s), V(cx, cy + 0.15f * s) };
+            return q => Mathf.Min(Mathf.Min(Circ(q, cx - 0.25f * s, cy + 0.12f * s, 0.27f * s), Circ(q, cx + 0.25f * s, cy + 0.12f * s, 0.27f * s)),
+                Poly(q, tipPoly));
+        }
 
         static void Heart(P p)
         {

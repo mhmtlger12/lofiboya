@@ -7,7 +7,9 @@ namespace LofiBoya
     public class Sfx : MonoBehaviour
     {
         static Sfx _i;
-        AudioSource _music, _fx;
+        AudioSource _music;
+        readonly AudioSource[] _fx = new AudioSource[4];
+        int _fxNext;
         AudioClip _pop, _tap, _win, _undo;
 
         public static void Init()
@@ -41,8 +43,13 @@ namespace LofiBoya
             _track = Mathf.Clamp(PlayerPrefs.GetInt("track", 0), 0, _tracks.Count - 1);
             SetTrack(_track, false);
 
-            _fx = gameObject.AddComponent<AudioSource>();
-            _fx.playOnAwake = false;
+            // efekt kaynakları havuzu: her efekt kendi perdesiyle çalar (tek kaynağın perdesini değiştirmek
+            // çalmakta olan kutlama sesini de detone ediyordu)
+            for (int i = 0; i < _fx.Length; i++)
+            {
+                _fx[i] = gameObject.AddComponent<AudioSource>();
+                _fx[i].playOnAwake = false;
+            }
 
             // Kalemin kâğıtta hışırtısı: döngüdeki dokulu gürültü, sesi çizim hızına göre açılır
             _scribble = gameObject.AddComponent<AudioSource>();
@@ -51,9 +58,10 @@ namespace LofiBoya
             _scribble.volume = 0;
             _scribble.clip = MakeScribble();
 
-            _pop = Synth("pop", 0.16f, (t, k) => Mathf.Sin(2 * Mathf.PI * (520 + 380 * Mathf.Exp(-t * 40)) * t) * Mathf.Exp(-t * 26) * 0.55f);
+            // frekansı kayan seslerde faz = 2π ∫ f(τ) dτ (f(t)·t yazmak frekansı hedefin ötesine kaydırıyordu)
+            _pop = Synth("pop", 0.16f, (t, k) => Mathf.Sin(2 * Mathf.PI * (520 * t + 9.5f * (1 - Mathf.Exp(-t * 40)))) * Mathf.Exp(-t * 26) * 0.55f);
             _tap = Synth("tap", 0.06f, (t, k) => Mathf.Sin(2 * Mathf.PI * 1250 * t) * Mathf.Exp(-t * 70) * 0.3f);
-            _undo = Synth("undo", 0.14f, (t, k) => Mathf.Sin(2 * Mathf.PI * (700 - 1800 * t) * t) * Mathf.Exp(-t * 28) * 0.35f);
+            _undo = Synth("undo", 0.14f, (t, k) => Mathf.Sin(2 * Mathf.PI * (700 * t - 900 * t * t)) * Mathf.Exp(-t * 28) * 0.35f);
             _win = Synth("win", 1.6f, (t, k) =>
             {
                 float s = 0;
@@ -75,9 +83,10 @@ namespace LofiBoya
                 {
                     float st = t - i * 0.115f;
                     if (st < 0 || st > 0.09f) continue;
-                    float f0 = 640f - i * 45f + 30f * Mathf.Sin(st * 60f);
+                    // f = taban + 30·sin(60t)  ->  faz/2π = taban·t + 0.5·(1 − cos(60t))
+                    float cyc = (640f - i * 45f) * st + 0.5f * (1f - Mathf.Cos(st * 60f));
                     float env = Mathf.Sin(st / 0.09f * Mathf.PI);
-                    s += Mathf.Sin(2 * Mathf.PI * f0 * st) * (0.6f + 0.4f * Mathf.Sin(2 * Mathf.PI * f0 * 3f * st)) * env;
+                    s += Mathf.Sin(2 * Mathf.PI * cyc) * (0.6f + 0.4f * Mathf.Sin(2 * Mathf.PI * cyc * 3f)) * env;
                 }
                 return s * 0.32f;
             });
@@ -98,7 +107,7 @@ namespace LofiBoya
             _star = Synth("star", 0.9f, (t, k) =>
                 (Mathf.Sin(2 * Mathf.PI * 1568f * t) * 0.6f + Mathf.Sin(2 * Mathf.PI * 2093f * t) * 0.4f * Mathf.Sin(t * 40f)) * Mathf.Exp(-t * 5f) * 0.25f);
             // Yanlış: yumuşak, üzmeyen bir "bıp"
-            _wrong = Synth("wrong", 0.3f, (t, k) => Mathf.Sin(2 * Mathf.PI * (320f - 160f * t) * t) * Mathf.Exp(-t * 9f) * 0.4f);
+            _wrong = Synth("wrong", 0.3f, (t, k) => Mathf.Sin(2 * Mathf.PI * (320f * t - 80f * t * t)) * Mathf.Exp(-t * 9f) * 0.4f);
 
             // Sayfa çevirme: kâğıdın havayı süpürmesi (yükselen-sönen hışırtı) ve sonda yumuşak bir "fıp"
             var prnd = new System.Random(12);
@@ -255,8 +264,13 @@ namespace LofiBoya
         static void Play(AudioClip c, float pitchJitter = 0.08f, float vol = 1f)
         {
             if (_i == null || c == null || !SaveSystem.SoundOn) return;
-            _i._fx.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
-            _i._fx.PlayOneShot(c, vol);
+            // boştaki bir kaynak; yoksa sıradaki (en eski) kaynak
+            AudioSource src = null;
+            var fx = _i._fx;
+            for (int k = 0; k < fx.Length && src == null; k++) if (!fx[k].isPlaying) src = fx[k];
+            if (src == null) { src = fx[_i._fxNext]; _i._fxNext = (_i._fxNext + 1) % fx.Length; }
+            src.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
+            src.PlayOneShot(c, vol);
         }
 
         public static void Pop() => Play(_i ? _i._pop : null, 0.15f);

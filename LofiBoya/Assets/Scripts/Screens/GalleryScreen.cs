@@ -16,6 +16,35 @@ namespace LofiBoya
         RectTransform _gridRoot, _tabIndicator;
         ScrollRect _scroll;
         readonly List<Texture2D> _textures = new();
+
+        // Küçük resimler sekme açılınca tek karede değil, görünür olanlardan başlayarak karede birkaç tane yüklenir.
+        readonly List<(RectTransform cell, RawImage raw, AspectRatioFitter fit, System.Func<Texture2D> load)> _lazy = new();
+        static readonly Vector3[] _corners = new Vector3[4];
+
+        void Update()
+        {
+            if (_lazy.Count == 0 || _scroll == null || _scroll.viewport == null) return;
+            _scroll.viewport.GetWorldCorners(_corners);
+            float vMin = Mathf.Min(_corners[0].y, _corners[2].y), vMax = Mathf.Max(_corners[0].y, _corners[2].y);
+            float margin = (vMax - vMin) * 0.5f;
+            int budget = 3;
+            for (int i = 0; i < _lazy.Count && budget > 0; i++)
+            {
+                var e = _lazy[i];
+                if (e.cell == null) { _lazy.RemoveAt(i--); continue; }
+                e.cell.GetWorldCorners(_corners);
+                float cMin = Mathf.Min(_corners[0].y, _corners[2].y), cMax = Mathf.Max(_corners[0].y, _corners[2].y);
+                if (cMax < vMin - margin || cMin > vMax + margin) continue;   // henüz uzakta
+                budget--;
+                _lazy.RemoveAt(i--);
+                var tex = e.load();
+                if (tex == null) continue;
+                _textures.Add(tex);
+                e.raw.texture = tex;
+                e.raw.enabled = true;
+                e.fit.aspectRatio = (float)tex.width / tex.height;
+            }
+        }
         readonly List<(Text label, int index)> _tabLabels = new();
 
         void Start()
@@ -134,6 +163,7 @@ namespace LofiBoya
             foreach (Transform c in _gridRoot) Destroy(c.gameObject);
             foreach (var t in _textures) if (t) Destroy(t);
             _textures.Clear();
+            _lazy.Clear();
 
             var levels = Level.GetGroup(Group).levels;
             if (levels.Count == 0)
@@ -207,8 +237,7 @@ namespace LofiBoya
             raw.raycastTarget = false;
             var fit = photo.gameObject.AddComponent<AspectRatioFitter>();
             fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-            var tex = (save != null ? SaveSystem.LoadThumb(key) : null) ?? (blank ? null : Level.LoadThumb(grp, entry.id));
-            if (tex == null && blank)
+            if (blank)
             {
                 // boş sayfa: ortada büyük bir kalem ve "+"
                 var pen = UIKit.Box(photoBg.transform, "Pencil", Theme.Accent, Art.Pencil);
@@ -217,11 +246,11 @@ namespace LofiBoya
                 var plus = UIKit.Label(photoBg.transform, "+", 90, Theme.Lavender, TextAnchor.MiddleCenter, FontStyle.Bold);
                 plus.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(80, 70), new Vector2(100, 100));
             }
-            if (tex != null)
+            else
             {
-                _textures.Add(tex);
-                raw.texture = tex;
-                fit.aspectRatio = (float)tex.width / tex.height;
+                raw.enabled = false;   // resim yüklenince açılır (Update)
+                bool saved = save != null;
+                _lazy.Add((cell, raw, fit, () => (saved ? SaveSystem.LoadThumb(key) : null) ?? Level.LoadThumb(grp, entry.id)));
             }
 
             var name = UIKit.Label(face.transform, blank ? Loc.T("blank_page") : Names.LevelTitle(entry.id), 36, Theme.Text, TextAnchor.MiddleLeft, FontStyle.Bold);

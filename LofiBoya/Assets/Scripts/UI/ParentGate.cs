@@ -151,6 +151,12 @@ namespace LofiBoya
             info.rectTransform.anchorMin = info.rectTransform.anchorMax = new Vector2(0.5f, 1);
             info.rectTransform.sizeDelta = new Vector2(760, 120);
             info.rectTransform.anchoredPosition = new Vector2(0, y - 20);
+            // uzun çevirilerde (de, ru, ar) metin kutudan taşmasın: satıra böl, gerekirse küçült
+            info.horizontalOverflow = HorizontalWrapMode.Wrap;
+            info.verticalOverflow = VerticalWrapMode.Truncate;
+            info.resizeTextForBestFit = true;
+            info.resizeTextMinSize = 22;
+            info.resizeTextMaxSize = 34;
 
             var ok = UIKit.Button(card.transform, Loc.T("ok"), Theme.AccentButton, Color.white, 50, close);
             var ort = (RectTransform)ok.transform;
@@ -431,7 +437,12 @@ namespace LofiBoya
             for (int i = 0; i < n; i++)
             {
                 string code = i == 0 ? "auto" : Loc.Codes[i - 1];
-                string label = i == 0 ? Loc.T("lang_auto") + " (" + Loc.NativeNames[System.Array.IndexOf(Loc.Codes, Loc.DeviceLanguage()) is int k && k >= 0 ? k : 0] + ")" : Loc.NativeNames[i - 1];
+                int dev = System.Array.IndexOf(Loc.Codes, Loc.DeviceLanguage());
+                if (dev < 0) dev = 0;
+                // satırın yazısının dili: "otomatik" satırında cihaz dili adı, diğerlerinde dilin kendi adı
+                string script = i == 0 ? Loc.Codes[dev] : code;
+                string native = Loc.NativeNames[i == 0 ? dev : i - 1];
+                string label = i == 0 ? Loc.T("lang_auto") + " (" + native + ")" : native;
                 bool selected = Loc.Setting == code;
                 var b = UIKit.Button(card.transform, label, selected ? Theme.AccentButton : Theme.Paper, selected ? Color.white : Theme.Text, 40, () =>
                 {
@@ -443,12 +454,22 @@ namespace LofiBoya
                 rt.sizeDelta = new Vector2(600, rowH - 14);
                 rt.anchoredPosition = new Vector2(0, -60 - rowH * (i + 0.5f));
                 // her dil kendi yazı tipiyle görünsün
+                // (LocText arayüz dilinin kurallarını uygular; burada her satırı kendi diliyle bir kez şekillendiririz)
                 var t = UIKit.ButtonText(b);
-                if (code == "ar") t.font = Resources.Load<Font>("Fonts/Arabic");
-                else if (code == "ru") t.font = Resources.Load<Font>("Fonts/Cyrillic");
-                else t.font = Resources.Load<Font>("Fonts/Main");
-                if (code == "ar") t.text = ArabicShaper.Shape(label);
-                else if (code == "hi") t.text = Devanagari.Reorder(label);
+                string display;
+                if (i == 0 && Loc.Lang != script)
+                {
+                    // "Otomatik (العربية)": önek arayüz dilinde, parantez içi cihaz dilinde
+                    display = Loc.Shape(Loc.T("lang_auto")) + " (" + Loc.ShapeAs(script, native) + ")";
+                    if (Loc.Font == null) t.font = Loc.FontFor(script); // Latin arayüz: Latin harfleri her yazı tipinde var
+                }
+                else
+                {
+                    display = Loc.ShapeAs(script, label);
+                    t.font = Loc.FontFor(script);
+                }
+                if (t is LocText lt) lt.SetDisplay(display, label);
+                else t.text = display;
             }
         }
 
@@ -509,7 +530,7 @@ namespace LofiBoya
             // kısa ekranda (çentik + gezinme çubuğu) uzun kart kesilmesin: güvenli alana sığacak kadar küçülür
             var fit = UIKit.Node("Fit", overlay);
             fit.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(w, h));
-            float sc = Mathf.Min(1f, (root.rect.height - 60f) / h, (root.rect.width - 40f) / w);
+            float sc = Mathf.Max(0.4f, Mathf.Min(1f, (root.rect.height - 60f) / h, (root.rect.width - 40f) / w));   // kök henüz boyutlanmadıysa eksi/0 ölçek olmasın
             fit.localScale = new Vector3(sc, sc, 1f);
             var holder = UIKit.Node("Holder", fit);
             holder.Place(new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(w, h));

@@ -57,9 +57,34 @@ namespace LofiBoya.EditorTools
             PlayerSettings.runInBackground = false;
             EditorUserBuildSettings.buildAppBundle = true;
             ApplyIcons();
+            ApplyPrivacy();
             ApplySigning(true);
             AssetDatabase.SaveAssets();
             Debug.Log($"[LofiBoya] Android: {PackageName} v{PlayerSettings.bundleVersion} ({code}), IL2CPP ARM64+ARMv7, AAB");
+        }
+
+        /// <summary>
+        /// Çocuk uygulaması (Google Play Aileler politikası): oyuncu tarafında Unity'ye donanım istatistiği ve
+        /// motor tanılama verisi gönderilmez. Ayar adları ProjectSettings YAML anahtarlarıdır; bulunamazsa uyarı verilir.
+        /// </summary>
+        [MenuItem("Lofi Boya/Gizlilik Ayarlarını Uygula (veri toplama kapalı)")]
+        public static void ApplyPrivacy()
+        {
+            SetBool("ProjectSettings/ProjectSettings.asset", "submitAnalytics", false);
+            SetBool("ProjectSettings/UnityConnectSettings.asset", "InsightsSettings.m_EngineDiagnosticsEnabled", false);
+        }
+
+        static void SetBool(string assetPath, string property, bool value)
+        {
+            var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            if (assets == null || assets.Length == 0) { Debug.LogWarning($"[LofiBoya] Ayar dosyası yok: {assetPath}"); return; }
+            var so = new SerializedObject(assets[0]);
+            var p = so.FindProperty(property);
+            if (p == null) { Debug.LogWarning($"[LofiBoya] Ayar bulunamadı: {assetPath} / {property}"); return; }
+            if (p.boolValue == value) return;
+            p.boolValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Debug.Log($"[LofiBoya] {property} = {value}");
         }
 
         /// <summary>Uygulama ikonu: Assets/Art/AppIcon (magaza_gorselleri.py üretir).</summary>
@@ -122,13 +147,18 @@ namespace LofiBoya.EditorTools
             var path = Path.Combine(dir, $"LofiBoya-{VersionNameFor(code)}-{code}.aab");
             var scenes = new List<string>();
             foreach (var s in EditorBuildSettings.scenes) if (s.enabled) scenes.Add(s.path);
-            var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            UnityEditor.Build.Reporting.BuildReport report;
+            try
             {
-                scenes = scenes.ToArray(),
-                locationPathName = path,
-                target = BuildTarget.Android,
-                options = BuildOptions.None,
-            });
+                report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+                {
+                    scenes = scenes.ToArray(),
+                    locationPathName = path,
+                    target = BuildTarget.Android,
+                    options = BuildOptions.None,
+                });
+            }
+            finally { AndroidBuildFixes.SkipBumpOnce = false; }   // build erken düşerse sonraki build'in sürümü atlanmasın
             Debug.Log($"[LofiBoya] Build: {report.summary.result} -> {path} ({report.summary.totalSize / (1024 * 1024)} MB)");
         }
     }

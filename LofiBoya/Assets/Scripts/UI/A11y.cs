@@ -151,13 +151,18 @@ namespace LofiBoya
         }
 
         /// <summary>Ekran koordinatı (sol üst köşe başlangıç): Screen Space - Overlay kanvasta dünya köşeleri pikseldir.</summary>
+        static readonly Vector3[] _corners = new Vector3[4];
+
         static Rect ScreenRect(RectTransform rt)
         {
             if (rt == null) return Rect.zero;
-            var c = new Vector3[4];
+            var c = _corners;
             rt.GetWorldCorners(c);
-            float xMin = Mathf.Min(c[0].x, c[2].x), xMax = Mathf.Max(c[0].x, c[2].x);
-            float yMin = Mathf.Min(c[0].y, c[2].y), yMax = Mathf.Max(c[0].y, c[2].y);
+            // dört köşenin tamamı: döndürülmüş kartlarda da doğru kutu
+            float xMin = Mathf.Min(Mathf.Min(c[0].x, c[1].x), Mathf.Min(c[2].x, c[3].x));
+            float xMax = Mathf.Max(Mathf.Max(c[0].x, c[1].x), Mathf.Max(c[2].x, c[3].x));
+            float yMin = Mathf.Min(Mathf.Min(c[0].y, c[1].y), Mathf.Min(c[2].y, c[3].y));
+            float yMax = Mathf.Max(Mathf.Max(c[0].y, c[1].y), Mathf.Max(c[2].y, c[3].y));
             // ekranla kesişen kısım (tam ekran perdeler ekranın dışına taşar)
             xMin = Mathf.Max(0, xMin); yMin = Mathf.Max(0, yMin);
             xMax = Mathf.Min(Screen.width, xMax); yMax = Mathf.Min(Screen.height, yMax);
@@ -215,7 +220,7 @@ namespace LofiBoya
             foreach (var txt in scope.GetComponentsInChildren<Text>(false))
             {
                 if ((!modal && txt.fontSize < 56) || !txt.isActiveAndEnabled || InsideButton(txt.transform, scope)) continue;
-                string s = Plain(txt.text);
+                string s = Plain(Readable(txt));
                 if (s.Length == 0 || Alpha(txt) < 0.2f || !OnScreen(txt.rectTransform)) continue;
                 bool dup = false;
                 for (int i = 0; i < buttons && !dup; i++) dup = _items[i].label.Contains(s);
@@ -272,7 +277,7 @@ namespace LofiBoya
             var sb = new StringBuilder();
             foreach (var t in b.GetComponentsInChildren<Text>(false))
             {
-                string s = Plain(t.text);
+                string s = Plain(Readable(t));
                 if (s.Length == 0) continue;
                 if (sb.Length > 0) sb.Append(", ");
                 sb.Append(s);
@@ -296,6 +301,9 @@ namespace LofiBoya
         }
 
         /// <summary>Zengin metin etiketlerini (&lt;color&gt;) ve satır sonlarını temizler.</summary>
+        /// <summary>Okunuş sırasındaki metin: LocText'te ham metin (şekillendirilmiş Arapça ters, Hintçe ि yer değiştirmiş olur).</summary>
+        static string Readable(Text t) => t is LocText lt ? lt.RawText : t.text;
+
         static string Plain(string s)
         {
             if (string.IsNullOrEmpty(s)) return "";

@@ -25,15 +25,20 @@ namespace LofiBoya
         {
             get
             {
+                // dil başına bir kez hesaplanır (her erişimde yeni dizi + sözlük aramaları yapılıyordu)
+                if (_basic != null && _basicLang == Loc.Lang) return _basic;
                 var arr = new (string, string, Color)[BasicColors.Length];
                 for (int i = 0; i < arr.Length; i++)
                 {
                     var (n, f) = Word(BasicColors[i].key);
                     arr[i] = (n, f, BasicColors[i].color);
                 }
-                return arr;
+                _basicLang = Loc.Lang;
+                return _basic = arr;
             }
         }
+        static (string name, string acc, Color color)[] _basic;
+        static string _basicLang;
 
         /// <summary>Herhangi bir rengin çocukların bileceği adı (seçili dilde).</summary>
         public static string ColorName(Color c) => Word(ColorKey(c)).name;

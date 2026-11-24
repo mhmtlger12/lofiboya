@@ -256,8 +256,19 @@ namespace LofiBoya
             return s;
         }
 
+        /// <summary>Sahnedeki en fazla çıkartma (her biri ayrı UI nesnesi; sınırsız eklemek eski telefonları yavaşlatır).</summary>
+        const int MaxStickers = 80;
+
+        int LiveCount()
+        {
+            int live = 0;
+            for (int i = 0; i < _layer.childCount; i++) if (_layer.GetChild(i).TryGetComponent<Sticker>(out var s) && s.enabled) live++;
+            return live;
+        }
+
         void Add(string id)
         {
+            if (LiveCount() >= MaxStickers) { Sfx.Wrong(); Popup.Toast(Loc.T("world_full")); return; }
             var r = _scene.rect;
             float x = UnityEngine.Random.Range(-r.width * 0.25f, r.width * 0.25f);
             float y = UnityEngine.Random.Range(-r.height * 0.15f, r.height * 0.15f);
@@ -339,8 +350,16 @@ namespace LofiBoya
             Popup.Confirm(Loc.T("world_clear_q"), Loc.T("world_clear_msg"), Loc.T("clear_yes"), Loc.T("clear_no"), true, () =>
             {
                 Select(null);
-                for (int i = _layer.childCount - 1; i >= 0; i--) Destroy(_layer.GetChild(i).gameObject);
-                Tween.Delay(0.05f, () => { if (this != null) { UpdateHint(); Save(); } });
+                // hemen ayır ve kaydet: eskiden kayıt 0.05 sn sonraydı, arada geri tuşu silinenleri geri yazıyordu
+                for (int i = _layer.childCount - 1; i >= 0; i--)
+                {
+                    var c = _layer.GetChild(i);
+                    c.gameObject.SetActive(false);
+                    c.SetParent(null, false);
+                    Destroy(c.gameObject);
+                }
+                UpdateHint();
+                Save();
             });
         }
 

@@ -52,7 +52,7 @@ Shader "Hidden/LofiBoya/BrushStamp"
             float4 frag (v2f i) : SV_Target
             {
                 float d = length(i.local);
-                float a = 1.0 - smoothstep(_Hardness, 1.0, d);
+                float a = 1.0 - smoothstep(min(_Hardness, 0.999), 1.0, d);   // kenar0 == kenar1 tanımsız (0/0)
                 // kâğıdın pürüzü: iki ölçekli doku + eşik. Kenarlarda daha çok boşluk kalır.
                 float g = tex2D(_Grain, i.uv * _GrainScale.xy).r;
                 float g2 = tex2D(_Grain, i.uv * _GrainScale.xy * 2.7 + 0.37).r;
@@ -101,6 +101,7 @@ Shader "Hidden/LofiBoya/BrushStamp"
         }
     
         // 3: damga şekli -> çizgi katmanı (kalp, yıldız...). Boya kalemi dokusu hafifçe kalır.
+        //    Bilerek _Region / _Opacity uygulanmaz: damga bir çıkartma gibi çizgilerin üstüne tam basılır.
         Pass
         {
             BlendOp Max

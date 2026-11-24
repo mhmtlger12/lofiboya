@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace LofiBoya
 {
@@ -97,7 +98,24 @@ namespace LofiBoya
                 return null;
             }
         }
-        static Font _arabic, _cyrillic;
+        static Font _arabic, _cyrillic, _main;
+
+        /// <summary>Belirli bir dilin yazısını gösterebilen yazı tipi (dil seçici gibi karışık listeler için).</summary>
+        public static Font FontFor(string code) => code switch
+        {
+            "ar" => _arabic ??= Resources.Load<Font>("Fonts/Arabic"),
+            "ru" => _cyrillic ??= Resources.Load<Font>("Fonts/Cyrillic"),
+            _ => _main ??= Resources.Load<Font>("Fonts/Main"),
+        };
+
+        /// <summary>Metni belirli bir dilin kurallarıyla şekillendir (arayüz dilinden bağımsız).</summary>
+        public static string ShapeAs(string code, string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            if (code == "ar") return ArabicShaper.Shape(s);
+            if (code == "hi") return Devanagari.Reorder(s);
+            return s;
+        }
 
         // ================= Gösterim düzeltmesi =================
 
@@ -111,13 +129,65 @@ namespace LofiBoya
         }
     }
 
-    /// <summary>uGUI Text: atanan metni dile göre şekillendirir.</summary>
+    /// <summary>
+    /// uGUI Text: atanan metni dile göre şekillendirir. Ham (mantıksal sıradaki) metin RawText'te durur:
+    /// ekran okuyucu onu okur (şekillendirilmiş Arapça ters sıradadır, Hintçede ि yeri değişmiştir).
+    /// Arapçada kelime sarması açıksa satırları kendimiz böleriz: tek parça ters çevrilen cümleyi
+    /// Unity satırlara bölünce cümlenin sonu ilk satıra düşüyordu.
+    /// </summary>
     public class LocText : UnityEngine.UI.Text
     {
+        string _raw;
+        float _wrapW = -1f;
+        int _wrapSize = -1;
+        bool _wrapped;
+
+        /// <summary>Şekillendirilmemiş, okunuş sırasındaki metin (seslendirme / TalkBack için).</summary>
+        public string RawText => _raw ?? base.text;
+
         public override string text
         {
             get => base.text;
-            set => base.text = Loc.Shape(value);
+            set
+            {
+                _raw = value;
+                _wrapped = false;
+                base.text = Render(value);
+            }
+        }
+
+        /// <summary>Metni şekillendirmeden olduğu gibi göster (çağıran zaten hazırladı). raw: okunuş metni.</summary>
+        public void SetDisplay(string display, string raw)
+        {
+            _raw = raw;
+            _wrapped = false;
+            base.text = display;
+        }
+
+        bool WantsArabicWrap(string v) =>
+            !string.IsNullOrEmpty(v) && Loc.IsArabic && horizontalOverflow == HorizontalWrapMode.Wrap && font != null && v.IndexOf('<') < 0;
+
+        string Render(string v)
+        {
+            if (!WantsArabicWrap(v)) return Loc.Shape(v);
+            float w = rectTransform.rect.width;
+            if (w <= 1f) return Loc.Shape(v);
+            int size = resizeTextForBestFit ? resizeTextMaxSize : fontSize;
+            _wrapW = w; _wrapSize = size; _wrapped = true;
+            return ArabicShaper.Shape(ArabicShaper.WrapLines(v, font, size, fontStyle, w * 0.97f));
+        }
+
+        protected override void OnPopulateMesh(VertexHelper toFill)
+        {
+            // kutu boyutu metin atandıktan sonra belli olabilir: genişlik değiştiyse Arapça satırları yeniden böl
+            if (_raw != null && WantsArabicWrap(_raw))
+            {
+                int size = resizeTextForBestFit ? resizeTextMaxSize : fontSize;
+                float w = rectTransform.rect.width;
+                if (w > 1f && (!_wrapped || Mathf.Abs(w - _wrapW) > 1f || size != _wrapSize))
+                    m_Text = Render(_raw);
+            }
+            base.OnPopulateMesh(toFill);
         }
     }
 
@@ -172,7 +242,8 @@ namespace LofiBoya
                 if (IsMark(c)) continue; // harekeler: yazı tipinde konumlanamaz, atla
                 if (!IsLetter(c)) { sb.Append(c); continue; }
                 char prev = PrevLetter(s, i), next = NextLetter(s, i);
-                bool joinPrev = prev != '\0' && JoinsLeft(prev);
+                // hemze (ء) hiçbir yana bağlanmaz: sonda biçimi yoktur (0xFE81 = آ olurdu)
+                bool joinPrev = c != 'ء' && prev != '\0' && JoinsLeft(prev);
                 // lam + elif bağı
                 if (c == 'ل' && next != '\0' && (next == 'آ' || next == 'أ' || next == 'إ' || next == 'ا'))
                 {
@@ -192,6 +263,39 @@ namespace LofiBoya
                 sb.Append((char)code);
             }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Mantıksal metni genişliğe sığacak satırlara böler (var olan satır sonları korunur).
+        /// Genişlik şekillendirilmiş (bitişik) harflerle ölçülür. Her satır sonra ayrı şekillendirilir.
+        /// </summary>
+        public static string WrapLines(string text, Font font, int size, FontStyle style, float width)
+        {
+            if (font == null || string.IsNullOrEmpty(text) || width <= 1f) return text;
+            var outLines = new List<string>();
+            foreach (var para in text.Split('\n'))
+            {
+                var words = para.Split(' ');
+                string cur = "";
+                foreach (var w in words)
+                {
+                    string test = cur.Length == 0 ? w : cur + " " + w;
+                    if (cur.Length > 0 && Measure(test, font, size, style) > width) { outLines.Add(cur); cur = w; }
+                    else cur = test;
+                }
+                outLines.Add(cur);
+            }
+            return string.Join("\n", outLines);
+        }
+
+        static float Measure(string s, Font font, int size, FontStyle style)
+        {
+            var shaped = Visual(Join(s));
+            font.RequestCharactersInTexture(shaped, size, style);
+            float w = 0;
+            foreach (char ch in shaped)
+                if (font.GetCharacterInfo(ch, out var ci, size, style)) w += ci.advance;
+            return w;
         }
 
         static char PrevLetter(string s, int i)

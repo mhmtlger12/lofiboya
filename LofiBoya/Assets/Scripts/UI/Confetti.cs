@@ -44,12 +44,12 @@ namespace LofiBoya
 
         void Update()
         {
-            float dt = Time.unscaledDeltaTime;
+            float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f);   // uzun takılmada parçalar fırlamasın
             _age += dt;
             foreach (var p in _pieces)
             {
                 p.vel.y -= 2600f * dt;
-                p.vel *= 1f - 1.6f * dt;
+                p.vel *= Mathf.Exp(-1.6f * dt);   // üstel sönüm: hiçbir adımda yön değiştirmez
                 p.vel.y = Mathf.Max(p.vel.y, -520f);
                 p.rt.anchoredPosition += (p.vel + new Vector2(Mathf.Sin(_age * 6f + p.wobble) * 90f, 0)) * dt;
                 p.rt.localRotation = Quaternion.Euler(0, 0, p.rt.localEulerAngles.z + p.spin * dt);

@@ -198,7 +198,7 @@ namespace LofiBoya
             {
                 var e = v[j] - v[i];
                 var w = p - v[i];
-                var b = w - e * Mathf.Clamp01(Vector2.Dot(w, e) / Vector2.Dot(e, e));
+                var b = w - e * Mathf.Clamp01(Vector2.Dot(w, e) / Mathf.Max(1e-8f, Vector2.Dot(e, e)));   // yinelenen köşe: 0/0 olmasın
                 d = Mathf.Min(d, Vector2.Dot(b, b));
                 bool c1 = p.y >= v[i].y, c2 = p.y < v[j].y, c3 = e.x * w.y > e.y * w.x;
                 if ((c1 && c2 && c3) || (!c1 && !c2 && !c3)) s = -s;
@@ -289,7 +289,8 @@ namespace LofiBoya
                         float x0 = 0.44f + k * 0.03f, y0 = k % 2 == 0 ? 0.325f : 0.305f, y1 = k % 2 == 0 ? 0.305f : 0.325f;
                         c.Fill(p => Seg(p, new Vector2(x0, y0), new Vector2(x0 + 0.03f, y1), 0.007f), Ink);
                     }
-                    c.Fill(p => Mathf.Min(Circle(p, 0.70f, 0.47f, 0.018f), Polygon(p, new[] { new Vector2(0.682f, 0.475f), new Vector2(0.718f, 0.475f), new Vector2(0.70f, 0.515f) })), Theme.Hex("7EC8F5"));
+                    var tear = new[] { new Vector2(0.682f, 0.475f), new Vector2(0.718f, 0.475f), new Vector2(0.70f, 0.515f) };
+                    c.Fill(p => Mathf.Min(Circle(p, 0.70f, 0.47f, 0.018f), Polygon(p, tear)), Theme.Hex("7EC8F5"));
                     break;
                 case MascotMood.Proud:
                     // kapalı gülen gözler, kocaman gülüş, pembe yanaklar, kalkık burun gibi kaşlar

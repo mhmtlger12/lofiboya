@@ -56,8 +56,21 @@ namespace LofiBoya
             ShowMenu();
         }
 
+        int _areaGen;   // her tur / menüde artar: önceki turun gecikmeli işleri yeni turu etkilemesin
+
+        /// <summary>
+        /// Gecikmeli iş; arada yeni tur başladıysa ya da menüye dönüldüyse çalışmaz
+        /// (eski turun "sıradaki" çağrısı yeni oyunun turunu atlıyordu, eski sayılar yeni nesnelerin üstüne yazılıyordu).
+        /// </summary>
+        void Later(float seconds, System.Action action)
+        {
+            int gen = _areaGen;
+            Tween.Delay(seconds, () => { if (this != null && gen == _areaGen) action(); });
+        }
+
         void ClearArea()
         {
+            _areaGen++;
             if (_area != null) Destroy(_area.gameObject);
             _area = UIKit.Node("Area", _root).Stretch();
             _area.SetSiblingIndex(1);
@@ -503,7 +516,7 @@ namespace LofiBoya
                 string cheer = Loc.T("cheer_" + Random.Range(0, 4));
                 Speech.Say(Loc.T("right_say", cheer, Loc.Lang == "tr" ? name : Names.Cap(name)));
                 _prompt.text = cheer;
-                Tween.Delay(2.8f, () => { if (this != null && _mode == Mode.Trace) NextRound(); });
+                Later(2.8f, () => { if (this != null && _mode == Mode.Trace) NextRound(); });
             };
         }
 
@@ -610,7 +623,7 @@ namespace LofiBoya
                 string cheer = Loc.T("cheer_" + Random.Range(0, 4));
                 Speech.Say(Loc.T(_cmpLess ? "cmp_right_less" : "cmp_right", cheer, more));
                 _prompt.text = cheer;
-                Tween.Delay(2.4f, () => { if (this != null && _mode == Mode.Count) NextRound(); });
+                Later(2.4f, () => { if (this != null && _mode == Mode.Count) NextRound(); });
                 return;
             }
             _missed = true;
@@ -801,7 +814,7 @@ namespace LofiBoya
                 Speech.Say(Loc.T("count_right", cheer, _countAnswer));
                 _prompt.text = cheer;
                 foreach (var it in _countItems) Tween.Punch(it, 0.2f, 0.4f);
-                Tween.Delay(2.2f, () => { if (this != null && _mode == Mode.Count) NextRound(); });
+                Later(2.2f, () => { if (this != null && _mode == Mode.Count) NextRound(); });
                 return;
             }
             // Yanlış: kızmayız, birlikte tek tek sayarız (her nesneye bir sayı)
@@ -818,7 +831,7 @@ namespace LofiBoya
             for (int i = 0; i < _countItems.Count; i++)
             {
                 int k = i;
-                Tween.Delay(t0 + i * 0.9f, () =>
+                Later(t0 + i * 0.9f, () =>
                 {
                     if (this == null || k >= _countItems.Count || _countItems[k] == null) return;
                     var it = _countItems[k];
@@ -835,7 +848,7 @@ namespace LofiBoya
                     Speech.Say((k + 1).ToString());
                 });
             }
-            Tween.Delay(t0 + _countItems.Count * 0.9f + 0.3f, () => { if (this != null) _countingTogether = false; });
+            Later(t0 + _countItems.Count * 0.9f + 0.3f, () => { if (this != null) _countingTogether = false; });
         }
 
         string GameKey => _mode switch
@@ -859,7 +872,7 @@ namespace LofiBoya
                 string cheer = Loc.T("cheer_" + Random.Range(0, 4));
                 if (sayRight != null) cheer = sayRight;   // ses yok: ipucunun tamamı ekranda
                 _prompt.text = cheer;
-                Tween.Delay(nextDelay, () => { if (this != null && _mode != Mode.Menu) NextRound(); });
+                Later(nextDelay, () => { if (this != null && _mode != Mode.Menu) NextRound(); });
             }
             else
             {

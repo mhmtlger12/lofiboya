@@ -259,7 +259,7 @@ namespace LofiBoya
             if (_seqNext < n) return;
             Celebrate(slot);
             _prompt.text = Loc.T("seq_done");
-            Tween.Delay(2.6f, () => { if (this != null && _mode == Mode.Sequence) NextRound(); });
+            Later(2.6f, () => { if (this != null && _mode == Mode.Sequence) NextRound(); });
         }
 
         /// <summary>Bir boyama resminin boyanma aşamaları: çizgi, yarı boyalı, tam boyalı.</summary>

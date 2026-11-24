@@ -9,6 +9,10 @@ namespace LofiBoya
         public float pressedScale = 0.92f;
         float _target = 1f;
         bool _down, _releasing;
+        float _releasedAt = -10f;
+
+        /// <summary>Basılı ya da bırakma zıplaması sürüyor: başka bir animasyon ölçeğe dokunmasın.</summary>
+        public bool Busy => _down || _releasing || Time.unscaledTime - _releasedAt < 0.35f;
 
         public void OnPointerDown(PointerEventData e) { _down = true; _releasing = false; _target = pressedScale; }
 
@@ -17,6 +21,7 @@ namespace LofiBoya
             if (!_down) return;
             _down = false;
             _target = 1f;
+            _releasedAt = Time.unscaledTime;
             // zıplama (Punch) ölçeği 1'e getirir; sakin modda zıplama olmadığından yumuşakça geri büyür
             if (Motion.Reduced) _releasing = true;
             else Tween.Punch(transform, 0.08f, 0.3f);

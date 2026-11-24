@@ -32,6 +32,8 @@ namespace LofiBoya
             set { PlayerPrefs.SetString("breakUntil", value.ToString()); PlayerPrefs.Save(); }
         }
 
+        long _shownLeft = long.MinValue;
+
         void Start()
         {
             _played = PlayerPrefs.GetFloat("playSec", 0);
@@ -45,7 +47,12 @@ namespace LofiBoya
             if (Active)
             {
                 long left = BreakUntil - Now;
-                if (_countdown != null) _countdown.text = Loc.T("break_wait", $"{Math.Max(0, left) / 60}:{Math.Max(0, left) % 60:00}");
+                // metin yalnızca saniye değişince yenilenir (her karede yeni metin + yazı ağı kurulmasın)
+                if (_countdown != null && left != _shownLeft)
+                {
+                    _shownLeft = left;
+                    _countdown.text = Loc.T("break_wait", $"{Math.Max(0, left) / 60}:{Math.Max(0, left) % 60:00}");
+                }
                 if (left <= 0) EndBreak(true);
                 return;
             }
@@ -117,6 +124,7 @@ namespace LofiBoya
             s.rectTransform.Band(true, 200, 550, 50);
             s.horizontalOverflow = HorizontalWrapMode.Wrap;
             _countdown = UIKit.Label(card.transform, "", 52, Theme.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _shownLeft = long.MinValue;
             _countdown.rectTransform.Band(true, 80, 780);
 
             var cont = UIKit.Button(card.transform, Loc.T("break_continue"), Theme.Paper, Theme.TextSoft, 36, () =>
@@ -153,7 +161,7 @@ namespace LofiBoya
         {
             PlayerPrefs.SetFloat("playSec", 0);
             var bt = FindAnyObjectByType<BreakTimer>();
-            if (bt != null) bt._played = 0;
+            if (bt != null) { bt._played = 0; bt._warned = false; }   // yeni sayaçta "bir dakika kaldı" uyarısı yine gelsin
         }
     }
 }

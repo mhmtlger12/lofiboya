@@ -39,6 +39,7 @@ namespace LofiBoya
         static readonly Color Ink = Theme.Hex("5B2E8C");   // tasarımdaki mor yazı
 
         RectTransform _root, _easel, _bubble, _startBtn;
+        PressFeedback _startPress;   // nefes animasyonu basma geri bildirimini ezmesin
         Texture2D _preview;
         float _t0, _s, _top, _gap1, _gap2, _easelY, _bubbleY;
         static bool _greeted, _ageShown;
@@ -57,6 +58,7 @@ namespace LofiBoya
             // ---- alt: Başla + dört kart (önce: şövalenin pastel boyası butonun üstüne biner) ----
             var start = SpriteButton("start", L.start, Bottom, () => App.I.ShowGallery(), Loc.T("start"));
             _startBtn = start;
+            _startPress = start.GetComponent<PressFeedback>();
             var st = TextIn(start, L.start, Grow(L.start_text, 10, 4), Loc.T("start"), 64, 36, Color.white);
             var sh = st.gameObject.AddComponent<Shadow>();
             sh.effectColor = Theme.Hex("C2375E").WithAlpha(0.55f);
@@ -324,7 +326,7 @@ namespace LofiBoya
                 _easel.anchoredPosition = new Vector2(_easel.anchoredPosition.x, _easelY + Mathf.Sin(t * 1.1f) * 5f);
             if (_bubble != null)   // balon şövaleden ayrı, kendi temposunda süzülür
                 _bubble.anchoredPosition = new Vector2(_bubble.anchoredPosition.x, _bubbleY + Mathf.Sin(t * 1.6f + 1f) * 7f);
-            if (_startBtn != null && t > 0.9f)
+            if (_startBtn != null && t > 0.9f && (_startPress == null || !_startPress.Busy))
             {
                 float s = 1f + 0.03f * Mathf.Sin(t * 2.4f);
                 if (_startBtn.localScale.x > 0.5f && _startBtn.localScale.x < 1.1f) _startBtn.localScale = new Vector3(s, s, 1);

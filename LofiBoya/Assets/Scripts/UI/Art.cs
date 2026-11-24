@@ -42,8 +42,8 @@ namespace LofiBoya
         // ---------------- Geometrik şekiller (Öğren: şekil oyunu) ----------------
         static Sprite _sqr, _tri, _rect, _circ;
         public static Sprite SquareShape => _sqr != null ? _sqr : (_sqr = Icon(p => RoundBox(p, Vector2.zero, new Vector2(0.78f, 0.78f), 0.06f), 256));
-        public static Sprite TriangleShape => _tri != null ? _tri : (_tri = Icon(p =>
-            Polygon(p, new[] { new Vector2(0, 0.86f), new Vector2(-0.9f, -0.72f), new Vector2(0.9f, -0.72f) }) - 0.05f, 256));
+        static readonly Vector2[] TriPoly = { new Vector2(0, 0.86f), new Vector2(-0.9f, -0.72f), new Vector2(0.9f, -0.72f) };
+        public static Sprite TriangleShape => _tri != null ? _tri : (_tri = Icon(p => Polygon(p, TriPoly) - 0.05f, 256));
         public static Sprite RectangleShape => _rect != null ? _rect : (_rect = Icon(p => RoundBox(p, Vector2.zero, new Vector2(0.92f, 0.5f), 0.06f), 256));
         public static Sprite CircleShape => _circ != null ? _circ : (_circ = Icon(p => p.magnitude - 0.88f, 256));
 
@@ -431,7 +431,7 @@ namespace LofiBoya
             {
                 var e = v[j] - v[i];
                 var w = p - v[i];
-                var b = w - e * Mathf.Clamp01(Vector2.Dot(w, e) / Vector2.Dot(e, e));
+                var b = w - e * Mathf.Clamp01(Vector2.Dot(w, e) / Mathf.Max(1e-8f, Vector2.Dot(e, e)));   // yinelenen köşe: 0/0 olmasın
                 d = Mathf.Min(d, Vector2.Dot(b, b));
                 bool c1 = p.y >= v[i].y, c2 = p.y < v[j].y, c3 = e.x * w.y > e.y * w.x;
                 if ((c1 && c2 && c3) || (!c1 && !c2 && !c3)) s = -s;

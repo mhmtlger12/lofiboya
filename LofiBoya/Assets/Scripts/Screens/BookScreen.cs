@@ -102,7 +102,8 @@ namespace LofiBoya
             _lastSize = _root.rect.size;
 
             float availW = _root.rect.width - 80f, availH = _root.rect.height - 250f - 300f;
-            _pageH = Mathf.Min(availH, (availW - 30f) / PageStudio.Aspect);
+            // ilk karede kök henüz boyutlanmamış olabilir: sayfa boyutu 0/eksi olmasın (doku boyutu ondan hesaplanır)
+            _pageH = Mathf.Max(100f, Mathf.Min(availH, (availW - 30f) / PageStudio.Aspect));
             _pageW = _pageH * PageStudio.Aspect;
 
             _bookHolder = UIKit.Node("Book", _root);
@@ -514,7 +515,7 @@ namespace LofiBoya
                 Sfx.Win();
                 _book.Read = true;
                 SaveSystem.Stars++;
-                Tween.Delay(0.6f, () => { Sfx.Star(); Popup.Toast(Loc.T("book_star")); });
+                Tween.Delay(0.6f, () => { if (this == null) return; Sfx.Star(); Popup.Toast(Loc.T("book_star")); });
                 int read = Books.ReadCount;
                 foreach (var (_, need, _) in PuffyStickers.BookPuffies)
                     if (need == read)

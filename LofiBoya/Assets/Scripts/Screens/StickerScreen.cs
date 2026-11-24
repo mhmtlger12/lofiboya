@@ -12,6 +12,23 @@ namespace LofiBoya
     {
         readonly List<Texture2D> _textures = new();
 
+        // Küçük resimler tembel yüklenir: yalnızca görünen (ve yakınındaki) hücreler, karede birkaç tane.
+        // Eskiden 143 resmin hepsi açılışta tek karede çözülüyordu (eski telefonlarda donma / bellek taşması).
+        class LazyThumb
+        {
+            public RectTransform cell;
+            public RawImage raw;
+            public AspectRatioFitter fit;
+            public System.Func<Texture2D> load;
+            public Texture2D tex;
+            public Color color;
+        }
+        readonly List<LazyThumb> _lazy = new();
+        readonly List<(RectTransform cell, Mascot m)> _mascots = new();
+        RectTransform _viewport;
+        static readonly Vector3[] _corners = new Vector3[4];
+        const int LoadsPerFrame = 3;
+
         void Start()
         {
             var root = (RectTransform)transform;
@@ -78,6 +95,7 @@ namespace LofiBoya
             vp.gameObject.AddComponent<RectMask2D>().softness = new Vector2Int(0, 30);
             vp.gameObject.AddComponent<Image>().color = Color.clear;
             sr.viewport = vp;
+            _viewport = vp;
             var content = UIKit.Node("Content", vp);
             content.anchorMin = new Vector2(0, 1);
             content.anchorMax = new Vector2(1, 1);
@@ -130,6 +148,7 @@ namespace LofiBoya
                 face.rectTransform.Stretch();
             }
             var m = Mascot.Create(holder, 200, false);
+            _mascots.Add((cell, m));
             m.SetMood(mood);
             var mrt = (RectTransform)m.transform;
             mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0.38f);
@@ -168,6 +187,7 @@ namespace LofiBoya
             }
             var inner = UIKit.Node("Inner", holder).Stretch();
             var m = Mascot.Create(inner, 200, false);
+            _mascots.Add((cell, m));
             m.SetMood(mood);
             if (i == 2) m.SetHat(MascotHat.Crown);
             var mrt = (RectTransform)m.transform;
@@ -224,6 +244,7 @@ namespace LofiBoya
                 face.rectTransform.Stretch();
             }
             var m = Mascot.Create(holder, 200, false);
+            _mascots.Add((cell, m));
             m.SetHat(hat);
             var mrt = (RectTransform)m.transform;
             mrt.anchorMin = mrt.anchorMax = new Vector2(0.5f, 0.38f);
@@ -247,31 +268,28 @@ namespace LofiBoya
             foreach (char ch in id) h = (h ^ ch) * 16777619u;
             holder.localRotation = Quaternion.Euler(0, 0, ((h % 1000) / 1000f - 0.5f) * 14f);
 
-            Texture2D tex;
+            System.Func<Texture2D> load;
             if (done)
             {
                 // beyaz "kesim" kenarı + gölge
                 var face = UIKit.Card(holder, "Paper", Color.white, 0.45f, 6f);
                 ((RectTransform)face.transform.parent).Stretch();
-                tex = SaveSystem.LoadThumb(group + "_" + id) ?? Level.LoadThumb(group, id);
+                load = () => SaveSystem.LoadThumb(group + "_" + id) ?? Level.LoadThumb(group, id);
             }
             else
             {
                 var face = UIKit.Box(holder, "Slot", Theme.Text.WithAlpha(0.06f), null, 0.45f);
                 face.rectTransform.Stretch();
-                tex = Level.LoadThumb(group, id);
+                load = () => Level.LoadThumb(group, id);
             }
-            if (tex != null)
             {
-                _textures.Add(tex);
                 var photo = UIKit.Node("Photo", holder).Stretch(18, 18, 18, 18);
                 var raw = photo.gameObject.AddComponent<RawImage>();
-                raw.texture = tex;
                 raw.raycastTarget = false;
-                raw.color = done ? Color.white : new Color(1, 1, 1, 0.28f);
+                raw.enabled = false;   // resim yüklenince açılır
                 var fit = photo.gameObject.AddComponent<AspectRatioFitter>();
                 fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-                fit.aspectRatio = (float)tex.width / tex.height;
+                _lazy.Add(new LazyThumb { cell = cell, raw = raw, fit = fit, load = load, color = done ? Color.white : new Color(1, 1, 1, 0.28f) });
             }
             if (!done)
             {
@@ -314,6 +332,54 @@ namespace LofiBoya
             A11y.Label(b, done ? Names.LevelTitle(id) : Loc.T("a11y_sticker_todo", Names.LevelTitle(id)));
             holder.localScale = Vector3.zero;
             Tween.Pop(holder, 0.05f + Mathf.Min(index, 15) * 0.03f, 0.45f);
+        }
+
+        /// <summary>Hücrenin görünür alana uzaklığı (görünür alan yüksekliği cinsinden): 0 = görünüyor.</summary>
+        float Distance(RectTransform cell, Rect view)
+        {
+            cell.GetWorldCorners(_corners);
+            float yMin = Mathf.Min(_corners[0].y, _corners[2].y), yMax = Mathf.Max(_corners[0].y, _corners[2].y);
+            if (yMax < view.yMin) return (view.yMin - yMax) / Mathf.Max(1f, view.height);
+            if (yMin > view.yMax) return (yMin - view.yMax) / Mathf.Max(1f, view.height);
+            return 0f;
+        }
+
+        void Update()
+        {
+            if (_viewport == null) return;
+            _viewport.GetWorldCorners(_corners);
+            var view = new Rect(_corners[0].x, Mathf.Min(_corners[0].y, _corners[2].y), _corners[2].x - _corners[0].x, Mathf.Abs(_corners[2].y - _corners[0].y));
+            if (view.height <= 1f) return;
+
+            int budget = LoadsPerFrame;
+            foreach (var t in _lazy)
+            {
+                if (t.cell == null) continue;
+                float d = Distance(t.cell, view);
+                if (t.tex == null && d <= 0.5f && budget > 0)
+                {
+                    budget--;
+                    t.tex = t.load();
+                    if (t.tex == null) { t.load = () => null; continue; }
+                    _textures.Add(t.tex);
+                    t.raw.texture = t.tex;
+                    t.raw.color = t.color;
+                    t.raw.enabled = true;
+                    t.fit.aspectRatio = (float)t.tex.width / t.tex.height;
+                }
+                else if (t.tex != null && d > 3f)
+                {
+                    // çok uzaklaştı: belleği bırak, yaklaşınca yeniden yüklenir
+                    t.raw.texture = null;
+                    t.raw.enabled = false;
+                    _textures.Remove(t.tex);
+                    Destroy(t.tex);
+                    t.tex = null;
+                }
+            }
+            // ekran dışındaki Pofuduklar nefes almasın (her biri kendi Update'i)
+            foreach (var (cell, m) in _mascots)
+                if (cell != null && m != null) m.enabled = Distance(cell, view) <= 0.25f;
         }
 
         /// <summary>Sağ üstte yıldız sayacı.</summary>

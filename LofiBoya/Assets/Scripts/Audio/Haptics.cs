@@ -32,7 +32,7 @@ namespace LofiBoya
                 {
                     _init = true;
                     using var up = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-                    var act = up.GetStatic<AndroidJavaObject>("currentActivity");
+                    using var act = up.GetStatic<AndroidJavaObject>("currentActivity");   // JNI referansı sızmasın
                     _vib = act.Call<AndroidJavaObject>("getSystemService", "vibrator");
                     using var ver = new AndroidJavaClass("android.os.Build$VERSION");
                     _sdk = ver.GetStatic<int>("SDK_INT");

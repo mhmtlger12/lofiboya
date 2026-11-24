@@ -75,10 +75,10 @@ namespace LofiBoya
             for (int i = 0; i < w * h; i++) { lv._linePix[i] = white; lv._regionPix[i] = one; }
             lv.Lines = new Texture2D(w, h, TextureFormat.RGBA32, false, false) { wrapMode = TextureWrapMode.Clamp, name = "blank_lines" };
             lv.Lines.SetPixels32(lv._linePix);
-            lv.Lines.Apply(false, false);
+            lv.Lines.Apply(false, true);
             lv.Regions = new Texture2D(w, h, TextureFormat.RGBA32, false, true) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Point, name = "blank_regions" };
             lv.Regions.SetPixels32(lv._regionPix);
-            lv.Regions.Apply(false, false);
+            lv.Regions.Apply(false, true);
             return lv;
         }
 
@@ -105,7 +105,7 @@ namespace LofiBoya
                 wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Trilinear, anisoLevel = 2, name = id + "_lines"
             };
             lv.Lines.SetPixels32(lv._linePix);
-            lv.Lines.Apply(true, false);
+            lv.Lines.Apply(true, true);   // CPU kopyası _linePix'te; dokunun okunabilir kopyası bellekte tutulmaz
 
             // Bölge haritası: veri dokusu (linear, point, mipmap yok)
             tmp.LoadImage(regions.bytes);
@@ -115,7 +115,7 @@ namespace LofiBoya
                 wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Point, name = id + "_regions"
             };
             lv.Regions.SetPixels32(lv._regionPix);
-            lv.Regions.Apply(false, false);
+            lv.Regions.Apply(false, true);
             UnityEngine.Object.Destroy(tmp);
 
             Resources.UnloadAsset(meta);
@@ -163,7 +163,7 @@ namespace LofiBoya
                 wrapMode = TextureWrapMode.Clamp, filterMode = oldLines.filterMode, anisoLevel = oldLines.anisoLevel, name = oldLines.name
             };
             Lines.SetPixels32(lines);
-            Lines.Apply(oldLines.mipmapCount > 1, false);
+            Lines.Apply(oldLines.mipmapCount > 1, true);
             UnityEngine.Object.Destroy(oldLines);
 
             var oldRegions = Regions;
@@ -172,7 +172,7 @@ namespace LofiBoya
                 wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Point, name = oldRegions.name
             };
             Regions.SetPixels32(regions);
-            Regions.Apply(false, false);
+            Regions.Apply(false, true);
             UnityEngine.Object.Destroy(oldRegions);
 
             Meta.width = nw;

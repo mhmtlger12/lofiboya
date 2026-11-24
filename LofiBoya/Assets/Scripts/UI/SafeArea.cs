@@ -16,7 +16,11 @@ namespace LofiBoya
         Rect _last;
         Vector2Int _lastScreen;
 
-        void Update()
+        // ilk karede de doğru yerleşim (yalnızca Update'te yapılınca açılış karesinde içerik sıçrıyordu)
+        void Awake() => Apply();
+        void Update() => Apply();
+
+        void Apply()
         {
             var sa = Screen.safeArea;
             var screen = new Vector2Int(Screen.width, Screen.height);

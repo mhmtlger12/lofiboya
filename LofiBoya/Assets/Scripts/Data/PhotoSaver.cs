@@ -31,7 +31,10 @@ namespace LofiBoya
                     using var media = new AndroidJavaClass("android.provider.MediaStore$Images$Media");
                     using var uriBase = media.GetStatic<AndroidJavaObject>("EXTERNAL_CONTENT_URI");
                     using var uri = resolver.Call<AndroidJavaObject>("insert", uriBase, values);
+                    // depolama doluysa / izin yoksa insert null döner: yerel kayda düş
+                    if (uri == null) throw new Exception("MediaStore insert null");
                     using var stream = resolver.Call<AndroidJavaObject>("openOutputStream", uri);
+                    if (stream == null) throw new Exception("openOutputStream null");
                     stream.Call("write", png);
                     stream.Call("flush");
                     stream.Call("close");
