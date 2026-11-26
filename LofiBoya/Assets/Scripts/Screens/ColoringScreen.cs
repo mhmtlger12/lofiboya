@@ -593,6 +593,7 @@ namespace LofiBoya
             ShowSide(_magicPicker, tool == Tool.Fill, feedback);
             ShowSide(_stampPicker, tool == Tool.Stamp, feedback);
             UpdateSizeDots();
+            if (tool == Tool.Pencil || tool == Tool.Eraser) _hand?.Equip(feedback);
 
             if (feedback)
             {
@@ -748,6 +749,7 @@ namespace LofiBoya
                 _crayons[index].LiftVel += 500f;
                 _crayons[index].Wobble = 1f;
                 if (_canvas.Tool == Tool.Eraser) SelectTool(Tool.Pencil, true);
+                else if (_canvas.Tool == Tool.Pencil) _hand?.Equip(true);
                 Haptics.Light();
                 // rengin adını söyle (sayılı modda numarasıyla)
                 string cname = _numbers ? _numColors[index].name : Names.ColorName(_crayons[index].Color);

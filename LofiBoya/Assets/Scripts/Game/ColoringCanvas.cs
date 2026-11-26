@@ -52,11 +52,19 @@ namespace LofiBoya
         /// <summary>Sayılı mod: false dönerse bölge boyanmaz (yanlış renk).</summary>
         public Func<int, Color, bool> CanFill;
 
-        /// <summary>Elde kalem imleci için: parmak/fare nerede, çiziliyor mu, tuval üstünde mi.</summary>
+        /// <summary>Elde kalem imleci için: parmak/fare nerede, çiziliyor mu, basılı mı, tuval üstünde mi.</summary>
         public Vector2 PointerScreen { get; private set; }
         public bool PointerOver { get; private set; }
         public bool Stroking => _stroking;
+        public bool Pressing => _gesture && !_multi && !_panOnly;
         public bool TouchInput { get; private set; }
+        /// <summary>Fare veya Editor Simulator imleci aktif mi (tıklamadan önce kalemin elde gezmesi için).</summary>
+        public bool HasHoverPointer { get; private set; }
+#if UNITY_EDITOR
+        /// <summary>Unity Editor Simulator penceresinde tıklamadan fare gezdirme (hover) köprüsü.</summary>
+        public static Func<(bool active, Vector2 screenPos)> EditorHoverProvider;
+        public static Action<bool> EditorHideCursor;
+#endif
 
         class UndoStep
         {
@@ -95,7 +103,10 @@ namespace LofiBoya
         Coroutine _hintCo;
 
         // Dokunma durumu
-        bool _gesture, _moved, _multi, _panOnly;
+        static bool _lastTouchMode;
+        bool _gesture, _moved, _multi, _panOnly, _wantStroke;
+        Vector2 _lastMousePos;
+        bool _hasMousePos;
         /// <summary>Hareket parmakla mı fareyle mi başladı: o kaynak bitince hareket her zaman biter.</summary>
         bool _touchGesture;
         Vector2 _startPos, _lastPos;
@@ -195,6 +206,9 @@ namespace LofiBoya
 
         void OnEnable()
         {
+            if (UnityEngine.Device.Application.isMobilePlatform && !Application.isEditor) _lastTouchMode = true;
+            TouchInput = _lastTouchMode;
+            HasHoverPointer = !UnityEngine.Device.Application.isMobilePlatform || Application.isEditor;
 #if ENABLE_INPUT_SYSTEM
             EnhancedTouchSupport.Enable();
             InputSystem.onEvent += OnInputEvent;
@@ -349,22 +363,25 @@ namespace LofiBoya
         // ================= Girdi =================
 
         /// <summary>
-        /// Uç ile parmak arasındaki fark. Sıfır: boya parmağın tam altından çıkar. (Eskiden dokunmatikte uç parmağın
-        /// ~8 mm önündeydi; çocuk noktayı koymak istediği yere dokununca boya başka yerde çıkıyor, yer değiştirirken
-        /// kalemi sürükleyip yolu boyuyordu. Okul öncesi için doğrudan dokunma daha anlaşılır.)
+        /// Windows Paint mantığı: boya her zaman doğrudan kalemin sivri ucundan (tıklanan/dokunulan tam noktadan) çıkar.
         /// </summary>
         public Vector2 TipOffset => Vector2.zero;
 
-        Vector2 DrawPoint(Vector2 finger) => finger + TipOffset;
+        Vector2 DrawPoint(Vector2 finger) => finger;
 
         void HandleInput()
         {
 #if ENABLE_INPUT_SYSTEM
             var touches = ETouch.activeTouches;
-            if (touches.Count > 0) TouchInput = true;
+            if (touches.Count > 0)
+            {
+                TouchInput = _lastTouchMode = true;
+                if (!Application.isEditor) HasHoverPointer = false;
+            }
             PointerOver = false;
             if (touches.Count >= 2)
             {
+                _wantStroke = false;
                 if (_stroking)
                 {
                     // ikinci parmak hemen geldiyse bu bir yakınlaştırmadır: çizgiyi iptal et
@@ -391,14 +408,14 @@ namespace LofiBoya
             {
                 var t = touches[0];
                 var p = t.screenPosition;
-                PointerScreen = DrawPoint(p);
-                PointerOver = InViewport(p);
+                PointerScreen = p;
+                PointerOver = InViewport(p) && !OverOtherUI(p);
                 bool ended = t.phase is UnityEngine.InputSystem.TouchPhase.Ended or UnityEngine.InputSystem.TouchPhase.Canceled;
                 if (!_gesture)
                 {
-                    // önünde pencere/buton/panel varsa (ör. "Temizle" onayı) tuval bu dokunuşu almaz
+                    // önünde pencere/buton/panel varsa (ör. "Temizle" onayı, kalem kutusu) tuval bu dokunuşu almaz
                     if (t.phase != UnityEngine.InputSystem.TouchPhase.Began || !InViewport(p) || OverOtherUI(p)) return;
-                    BeginGesture(p, false, DrawPoint(p));
+                    BeginGesture(p, false, p);
                     _touchGesture = true;
                 }
                 else if (_multi)
@@ -407,10 +424,11 @@ namespace LofiBoya
                     _lastPos = p;
                     _multi = false;
                     _panOnly = true;
+                    _wantStroke = false;
                     _moved = true;
                 }
                 // bu karede gelen ara dokunuş noktaları (telefonlar 120-240 Hz okur): çizgi parmağı birebir izlesin
-                if (_stroking)
+                if (_stroking || _wantStroke)
                 {
                     var hist = t.history;
                     for (int h = hist.Count - 1; h >= 0; h--)
@@ -418,31 +436,54 @@ namespace LofiBoya
                         var e = hist[h];
                         if (e.time <= _lastTouchTime) continue;
                         _lastTouchTime = e.time;
-                        StrokeTo(DrawPoint(e.screenPosition), false);
+                        if (_stroking) StrokeTo(e.screenPosition, false);
+                        else BeginStroke(e.screenPosition);
                     }
                 }
                 _lastTouchTime = t.time;
-                PointerMove(p, DrawPoint(p));
-                if (ended) PointerUp(p, DrawPoint(p));
+                PointerMove(p, p);
+                if (ended) PointerUp(p, p);
                 return;
             }
             // parmakla başlayan hareket, parmaklar kalkınca biter ("bitti" olayı kaçmış olsa bile).
-            // Eskiden bu yalnızca faresiz cihazda oluyordu; editörde/faresi olan cihazda tuval
-            // yakınlaştırmadan sonra "kaydırılıyor" durumunda takılı kalıp boyamayı engelliyordu.
             if (_gesture && _touchGesture && touches.Count == 0)
             {
                 if (_stroking) EndStroke();
                 ResetGesture();
-                return;
             }
+
+#if UNITY_EDITOR
+            if (!_gesture && EditorHoverProvider != null)
+            {
+                var (simActive, simPos) = EditorHoverProvider();
+                if (simActive)
+                {
+                    HasHoverPointer = true;
+                    PointerScreen = simPos;
+                    PointerOver = InViewport(simPos) && !OverOtherUI(simPos);
+                    return;
+                }
+            }
+#endif
 
             var mouse = Mouse.current;
             if (mouse == null) return;
             var mp = mouse.position.ReadValue();
+            if (!_hasMousePos) { _lastMousePos = mp; _hasMousePos = true; }
+            else if ((mp - _lastMousePos).sqrMagnitude > 1f)
+            {
+                _lastMousePos = mp;
+                if (!mouse.leftButton.isPressed)
+                {
+                    TouchInput = _lastTouchMode = false;
+                    HasHoverPointer = true;
+                }
+            }
             if (!TouchInput)
             {
+                HasHoverPointer = true;
                 PointerScreen = mp;
-                PointerOver = InViewport(mp);
+                PointerOver = InViewport(mp) && !OverOtherUI(mp);
             }
             float scroll = mouse.scroll.ReadValue().y;
             if (Mathf.Abs(scroll) > 0.01f && InViewport(mp) && !OverOtherUI(mp)) ZoomAt(mp, scroll > 0 ? 1.15f : 1f / 1.15f);
@@ -455,9 +496,13 @@ namespace LofiBoya
                 else if (panBtnDown && InViewport(mp) && !OverOtherUI(mp)) BeginGesture(mp, true);
                 return;
             }
-            if (_stroking)
+            if (_stroking || _wantStroke)
             {
-                foreach (var tp in _mouseTrail) StrokeTo(tp, false);
+                foreach (var tp in _mouseTrail)
+                {
+                    if (_stroking) StrokeTo(tp, false);
+                    else BeginStroke(tp);
+                }
             }
             _mouseTrail.Clear();
             if (mouse.leftButton.isPressed || panBtnHeld) PointerMove(mp, mp);
@@ -467,7 +512,7 @@ namespace LofiBoya
 
         void ResetGesture()
         {
-            _gesture = false; _moved = false; _multi = false; _panOnly = false; _touchGesture = false;
+            _gesture = false; _moved = false; _multi = false; _panOnly = false; _touchGesture = false; _wantStroke = false;
         }
 
         /// <param name="drawAt">Kalemin çizdiği nokta (dokunmatikte parmağın biraz önü); yoksa p.</param>
@@ -476,12 +521,14 @@ namespace LofiBoya
             _touchGesture = false;
             _gesture = true; _moved = false; _multi = false; _panOnly = panOnly;
             _startPos = _lastPos = p;
-            if (!panOnly && (Tool == Tool.Pencil || Tool == Tool.Eraser)) BeginStroke(drawAt ?? p);
+            _wantStroke = !panOnly && (Tool == Tool.Pencil || Tool == Tool.Eraser);
+            if (_wantStroke) BeginStroke(drawAt ?? p);
         }
 
         void PointerMove(Vector2 p, Vector2 draw)
         {
             if (_stroking) { StrokeTo(draw); _lastPos = p; return; }
+            if (_wantStroke) { BeginStroke(draw); _lastPos = p; return; }
             float slop = Screen.dpi > 0 ? Screen.dpi * 0.06f : 14f;
             if (!_moved && Vector2.Distance(p, _startPos) > slop) _moved = true;
             if (_moved && (Tool == Tool.Fill || Tool == Tool.Stamp || _panOnly)) Pan(p - _lastPos);
@@ -918,6 +965,10 @@ namespace LofiBoya
             if (Tool == Tool.Pencil && _strokeRegion <= 0 && SaveSystem.PencilStaysInside) return;
             CommitAnimation();
             _stroking = true;
+            _wantStroke = false;
+            _ptrVel = Vector2.zero;
+            _ptrPrev = screen;
+            _ptrHas = true;
             _strokeStartTime = Time.unscaledTime;
             _strokeLength = 0;
             _strokeUndo = new UndoStep();

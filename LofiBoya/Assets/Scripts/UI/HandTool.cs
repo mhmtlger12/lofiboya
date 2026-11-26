@@ -15,11 +15,12 @@ namespace LofiBoya
         RectTransform _root, _crayon, _eraser, _shadow;
         Image _body, _shadowImg;
         CanvasGroup _group;
-        Vector2 _pos, _vel, _lastScreen;
+        Vector2 _pos, _vel, _lastScreen, _hopOffset;
         float _alpha, _tilt, _press;
-        bool _placed;
+        bool _placed, _pendingEquip, _pendingAnimate;
+        Coroutine _equipCo;
 
-        const float Len = 230f, Wid = 58f, BaseAngle = 150f;
+        const float Len = 230f, Wid = 58f, BaseAngle = 140f;
         /// <summary>Kalem sprite'ında ucun gerçek yüksekliği (Art.CrayonSdf: 3.725 / 4.0).</summary>
         const float TipV = 0.93f;
 
@@ -85,7 +86,13 @@ namespace LofiBoya
             AddHand(_eraser, new Vector2(0.66f, 0.66f), 110f);
         }
 
-        void OnDisable() => Cursor.visible = true;
+        void OnDisable()
+        {
+            Cursor.visible = true;
+#if UNITY_EDITOR
+            ColoringCanvas.EditorHideCursor?.Invoke(false);
+#endif
+        }
 
         static void AddHand(RectTransform parent, Vector2 anchor, float size)
         {
@@ -96,50 +103,111 @@ namespace LofiBoya
         }
 
         /// <summary>
-        /// Farede kalem sağ-yukarı uzanır (uç imlecin yerinde). Dokunmatikte uç parmağın tam altındadır; gövde
-        /// tutan elin tarafına, aşağı-yana yatık uzanır (solakta sola): parmağın yanında görünür, boya kalemin ucundan çıkar.
+        /// Windows Paint tutuşu: sivri uç sol-altta (tam imlecin/dokunuşun noktasında), gövde sağ-yukarıda (~45°).
+        /// Solak modda simetrik olarak sol-yukarıya uzanır.
         /// </summary>
-        float Angle
+        float Angle => SaveSystem.LeftHanded ? -BaseAngle : BaseAngle;
+
+        /// <summary>
+        /// Kalem/silgi seçildiğinde: fare/imleç gezdirme varsa tuvale girince doğrudan imlece yapışır;
+        /// gerçek dokunmatik cihazda (hover yok) tuvalin üstünde hazır belirir.
+        /// </summary>
+        public void Equip(bool animate)
         {
-            get
+            if (_canvas == null || _canvas.Viewport == null) return;
+            UpdateVisuals();
+            if (_canvas.HasHoverPointer)
             {
-                if (!_canvas.TouchInput) return BaseAngle;
-                // gövdenin yerel yönü aşağı (-90°); bu yöne çevir
-                var dir = new Vector2(SaveSystem.LeftHanded ? -0.6f : 0.6f, -1f);
-                return Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + 90f;
+                if (_canvas.PointerOver)
+                {
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)transform, _canvas.PointerScreen, null, out _pos);
+                    _placed = true;
+                    _vel = Vector2.zero;
+                    if (animate) Hop();
+                }
+                return;
             }
+            if (_placed && _alpha > 0.2f)
+            {
+                if (animate) Hop();
+                return;
+            }
+            var vp = _canvas.Viewport;
+            if (vp.rect.height <= 0f) { _pendingEquip = true; _pendingAnimate = animate; return; }
+            _pendingEquip = false;
+            var vpPoint = vp.rect.center + new Vector2(0f, -vp.rect.height * 0.12f);
+            var screenPt = RectTransformUtility.WorldToScreenPoint(null, vp.TransformPoint(vpPoint));
+            RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)transform, screenPt, null, out _pos);
+            _placed = true;
+            _vel = Vector2.zero;
+            if (_alpha < 0.2f) _alpha = animate ? 0.35f : 0.92f;
+            _group.alpha = _alpha;
+            Tween.Stop(_equipCo);
+            float startY = animate ? -180f : -80f;
+            _hopOffset = new Vector2(0f, startY);
+            _root.anchoredPosition = _pos + _hopOffset;
+            _crayon.localRotation = Quaternion.Euler(0, 0, Angle);
+            _shadow.localRotation = _crayon.localRotation;
+            _equipCo = Tween.To(this, animate ? 0.24f : 0.28f, k =>
+            {
+                _hopOffset = new Vector2(0f, Mathf.LerpUnclamped(startY, 0f, Tween.OutBack(k)));
+            }, Tween.Linear, 0f, () => { _hopOffset = Vector2.zero; _equipCo = null; });
         }
+
+        public void Hop()
+        {
+            Tween.Stop(_equipCo);
+            _equipCo = Tween.To(this, 0.2f, k =>
+            {
+                _hopOffset = new Vector2(0f, Mathf.Sin(k * Mathf.PI) * 28f);
+            }, Tween.Linear, 0f, () => { _hopOffset = Vector2.zero; _equipCo = null; });
+        }
+
+        void UpdateVisuals()
+        {
+            bool eraser = _canvas.Tool == Tool.Eraser;
+            _crayon.gameObject.SetActive(!eraser);
+            _eraser.gameObject.SetActive(eraser);
+            _shadow.gameObject.SetActive(!eraser);
+            _body.color = _canvas.CurrentColor.grayscale > 0.92f ? Color.Lerp(_canvas.CurrentColor, Theme.Text, 0.07f) : _canvas.CurrentColor;
+        }
+
+        bool _lastHideOs;
 
         void LateUpdate()
         {
             if (_canvas == null) return;
             float dt = Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
             bool drawTool = _canvas.Tool == Tool.Pencil || _canvas.Tool == Tool.Eraser;
-            bool eraser = _canvas.Tool == Tool.Eraser;
+            if (_pendingEquip && drawTool && !_canvas.HasHoverPointer && _canvas.Viewport != null && _canvas.Viewport.rect.height > 0f)
+                Equip(_pendingAnimate);
 
-            // görünürlük: çizerken her zaman; farede tuvalin üstündeyken. Dokunmatikte parmak kalkınca kalem
-            // son yerinde durur (kaybolmaz): çocuk ucun nerede olduğunu görür, sıradaki noktayı ona göre koyar.
-            bool active = drawTool && (_canvas.Stroking || (!_canvas.TouchInput && _canvas.PointerOver));
-            float target = drawTool && (active || (_canvas.TouchInput && _placed)) ? (active ? 1f : 0.9f) : 0f;
-            _alpha = Mathf.MoveTowards(_alpha, target, dt * (target > _alpha ? 8f : 3f));
-            // Farede Windows/Mac imleci donanımla çizilir ve oyunun çizgisinden hep 1–3 kare öndedir:
-            // çizgi geriden geliyor gibi görünür. Kalem tuvalin üstündeyken imleç gizlenir; imleç kalemin
-            // kendisidir ve çizgiyle aynı karede çizilir.
-            bool hideOs = drawTool && !_canvas.TouchInput && (_canvas.PointerOver || _canvas.Stroking);
+            // Windows Paint mantığı: imleç gezdirme (hover) olan ortamda tuvale girince kalem anında imlecin
+            // ucuna gelir, tuval dışına (palete/butonlara) çıkınca normal ok geri döner.
+            // Hover olmayan gerçek telefonda ise kalem son bırakılan noktada görünür kalır.
+            bool down = _canvas.Stroking || _canvas.Pressing;
+            bool hover = _canvas.HasHoverPointer;
+            bool active = drawTool && (down || (hover && _canvas.PointerOver));
+            float target = !drawTool ? 0f : active ? 1f : (!hover && _placed) ? 0.9f : 0f;
+            float speed = hover ? 20f : (target > _alpha ? 8f : 3f);
+            _alpha = Mathf.MoveTowards(_alpha, target, dt * speed);
+
+            bool hideOs = drawTool && hover && (_canvas.PointerOver || down);
             if (Cursor.visible == hideOs) Cursor.visible = !hideOs;
+#if UNITY_EDITOR
+            if (_lastHideOs != hideOs) { _lastHideOs = hideOs; ColoringCanvas.EditorHideCursor?.Invoke(hideOs); }
+#endif
             _group.alpha = _alpha;
 
-            _crayon.gameObject.SetActive(!eraser);
-            _eraser.gameObject.SetActive(eraser);
-            _shadow.gameObject.SetActive(!eraser);
-            _body.color = _canvas.CurrentColor.grayscale > 0.92f ? Color.Lerp(_canvas.CurrentColor, Theme.Text, 0.07f) : _canvas.CurrentColor;
+            UpdateVisuals();
 
-            if (active || !_placed)
+            if (active)
             {
+                if (_equipCo != null) { Tween.Stop(_equipCo); _equipCo = null; _hopOffset = Vector2.zero; }
                 var sp = _canvas.PointerScreen;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)transform, sp, null, out var local);
                 if (!_placed || _alpha < 0.05f) { _pos = local; _vel = Vector2.zero; }
-                if (_canvas.Stroking || _canvas.PointerOver) _placed = true;
+                _placed = true;
                 // uç tam boyanın çıktığı noktada durur (yumuşatma yok: gecikme hissi verir)
                 var prev = _pos;
                 _pos = local;
@@ -150,10 +218,10 @@ namespace LofiBoya
             // hareketle eğilme: sağa çizerken kalem biraz geride kalır
             float tiltTarget = Mathf.Clamp(-_vel.x * 0.012f, -16f, 16f) + Mathf.Clamp(_vel.y * 0.006f, -6f, 6f);
             _tilt = Mathf.Lerp(_tilt, tiltTarget, 1f - Mathf.Exp(-dt * 9f));
-            float pressTarget = _canvas.Stroking ? 1f : 0f;
+            float pressTarget = down ? 1f : 0f;
             _press = Mathf.Lerp(_press, pressTarget, 1f - Mathf.Exp(-dt * 14f));
 
-            _root.anchoredPosition = _pos;
+            _root.anchoredPosition = _pos + _hopOffset;
             float wobble = Mathf.Sin(Time.unscaledTime * 2.1f) * 1.5f * (1f - _press);
             _crayon.localRotation = Quaternion.Euler(0, 0, Angle + _tilt + wobble);
             float s = 1f - 0.05f * _press;
@@ -164,7 +232,7 @@ namespace LofiBoya
             _shadow.localRotation = _crayon.localRotation;
             _shadowImg.color = Theme.Text.WithAlpha(Mathf.Lerp(0.10f, 0.2f, _press));
 
-            _eraser.localRotation = Quaternion.Euler(0, 0, _tilt * 0.7f + (_canvas.Stroking ? Mathf.Sin(Time.unscaledTime * 30f) * 4f : 0f));
+            _eraser.localRotation = Quaternion.Euler(0, 0, _tilt * 0.7f + (down ? Mathf.Sin(Time.unscaledTime * 30f) * 4f : 0f));
             _eraser.localScale = Vector3.one * (1f - 0.06f * _press);
         }
 
